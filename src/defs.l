@@ -1,4 +1,4 @@
-# 06nov19 Software Lab. Alexander Burger
+# 11nov19 Software Lab. Alexander Burger
 
 # Constants
 (compile) (HEAP CELLS STACK TOP DB1 inFile outFile)
@@ -82,14 +82,19 @@ strrchr memcpy dlerror kill exit)
 (de T NIL exit (i32))
 
 # Glue lib.c
-(compile) (stderrMsg strErrno fcntlCloExec fcntlSetFl nonBlocking xSignal xErrno
-dlOpen ffiPrep ffiCall)
+(compile) (stderrMsg strErrno fcntlCloExec fcntlSetFl nonBlocking pollIn
+pollOut xPoll pollInRdy pollOutRdy xSignal xErrno dlOpen ffiPrep ffiCall)
 
 (de T void stderrMsg (i8*))
 (de T i8* strErrno ())
 (de T i32 fcntlCloExec (i32))
 (de T i32 fcntlSetFl (i32 i32))
 (de T i32 nonBlocking (i32))
+(de T void pollIn (i32 i64*))
+(de T void pollOut (i32 i64*))
+(de T i32 xPoll (i64* i64 i64))
+(de T i32 pollInRdy (i64*))
+(de T i32 pollOutRdy (i64*))
 (de T i32 xSignal (i32))
 (de T i32 xErrno ())
 

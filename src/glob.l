@@ -1,4 +1,4 @@
-# 08nov19 Software Lab. Alexander Burger
+# 10nov19 Software Lab. Alexander Burger
 
 (compile) ()
 
@@ -156,6 +156,12 @@
    ($CtlFrames 0)                # Control frames
    ($Intern $Pico1)              # Current namespaces of internal symbols
    ($Next $Nil)                  # Next vararg
+   ($Cls 0)                      # Method class
+   ($Key 0)                      # Method key
+   ($Apply 0)                    # Apply frames
+   ($Make 0)                     # 'make' env
+   ($Yoke 0)
+   ($Task $Nil)                  # Task list
    ($Protect 0)                  # Signal protection
    ($Trace 0) )                  # Trace level
 

@@ -1,9 +1,9 @@
-# 10nov19 Software Lab. Alexander Burger
+# 11nov19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput closeOnExec initInFile initOutFile
 closeInFile closeOutFile slow slowNb stdinByte waitFd _getStdin getChar skipC
 comment skip testEsc anonymous rdAtom rdList read0 read1 _putStdout newline
-space outWord outNum outString print load)
+space outWord outNum outString print repl)
 
 (de NIL openErr ()
    (err 0 0 ($ "%s open: %s") (strErrno)) )
@@ -118,14 +118,32 @@ space outWord outNum outString print load)
 (de i32 stdinByte ()
    (getchar) )
 
+(de i1 inReady ((i32 . Fd))
+   (and
+      (> (val $InFDs) Fd)
+      (let F (inFile (val (ofs (val $InFiles) Fd)))
+         (and (n0 (F)) (> (F cnt) (F ix))) ) ) )
+
 (de i64 waitFd (Exe (i32 . Fd) (i64 . Ms))
-   (loop T
-      (let
-         (S (stack)
-            P (b64 (+ (+ (length (val $Run)) (val $Children)) 3)) )
-         #! ...
-         (stack S) )
-      (? (=0 Fd) 0) ) )
+   (let (Task (val $Task)  P (link (push (val $At) ZERO NIL)))
+      (loop T
+         (let
+            (S (stack)
+               P (b64 (+ (+ (length (val $Run)) (val $Children)) 3))
+               I 0
+               M Ms )
+            (when (ge0 Fd)
+               (if (inReady Fd)
+                  (setq M 0)
+                  (pollIn Fd (ofs P I))
+                  (inc 'I) ) )
+            #! ...
+            #! (xPoll P I M)
+            #! ...
+            (stack S) )
+         (? (=0 Fd) 0) )
+      (set $At (pop P)  $Task Task)
+      Ms ) )
 
 (de i32 _getStdin ()
    (let F (inFile (val $InFile))
@@ -459,7 +477,7 @@ space outWord outNum outString print load)
             (space) )
          (call $Put (char ")")) ) ) )
 
-(de load (Exe (i32 . Pr) X)
+(de repl (Exe (i32 . Pr) X)
    (setq X $Nil)
    (loop
       (when (and (n0 Pr) (=0 (val $Chr)))

@@ -1,4 +1,4 @@
-// 06nov19 Software Lab. Alexander Burger
+// 11nov19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -24,6 +24,28 @@ int32_t nonBlocking(int32_t fd) {
 
    fcntlSetFl(fd, flg | O_NONBLOCK);
    return flg;
+}
+
+void pollIn(int32_t fd, struct pollfd *p) {
+   p->fd = fd;
+   p->events = POLLIN;
+}
+
+void pollOut(int32_t fd, struct pollfd *p) {
+   p->fd = fd;
+   p->events = POLLOUT;
+}
+
+int xPoll(struct pollfd *fds, int64_t nfds, int64_t timeout) {
+   return poll(fds, (nfds_t)nfds, (int)timeout);
+}
+
+int pollInRdy(struct pollfd *p) {
+   return p->revents & POLLIN;
+}
+
+int pollOutRdy(struct pollfd *p) {
+   return p->revents & POLLOUT;
 }
 
 // Sync src/defs.l 'ENOENT' and src/glob.l '$Signal'

@@ -1,8 +1,9 @@
-# 10nov19 Software Lab. Alexander Burger
+# 11nov19 Software Lab. Alexander Burger
 
 (de compile ()
-   (symbols '(llvm pico))
+   (symbols '(llvm))
    (local) )
+
 
 ## PicoLisp LLVM frontend ##
 (symbols 'llvm 'pico)
@@ -10,6 +11,8 @@
 (local) (void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64* i64**
 any YES NO ZERO ONE begin end $ ? short global var str const globals array table
 symTab inline define struct $Nil)
+
+(import pico symbols T NIL @ @@ compile load setq prog */ >> char hex)
 
 (def 'void 'void)
 (def 'null 'null)
@@ -24,10 +27,10 @@ symTab inline define struct $Nil)
 (symbols 'cc 'llvm 'pico)
 
 (local) (*Strings *Ssa *Lbl *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi +phi
-br label +lbl +bind type func ptr pointee store A B C I L N P V X Y Exe Prg Prg2
-Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
+br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
+Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
 
-(import llvm~any pico~inc pico~dec pico~++ #{pico~>>>}#)
+(import any inc dec ++ #{>>>}# show bt)
 
 
 # Generate LLVM-IR
@@ -129,7 +132,7 @@ Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
                      (== 'quote (caadr X))
                      (== Var (cdadr X)) )
                   (and
-                     (memq (car X) '(setq llvm~++ llvm~>>>))
+                     (memq (car X) '(llvm~setq llvm~++ llvm~>>>))
                      (for (L (cdr X)  L  (cddr L))
                         (T (== Var (car L)) T) ) ) ) ) )
          Lst )
@@ -489,6 +492,7 @@ Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
                                  ((cadr Args) (llvm~val P))
                                  ((=T @) (llvm~set P (eval @)))
                                  (NIL P) ) ) ) ) ) ) ) ) ) ) )
+
 
 ## Cross compiler overridden ##
 (symbols '(cc pico llvm))
@@ -1181,6 +1185,7 @@ Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
          (link (pack "ret " *Ret " " X)) )
       NIL )
    (llvm~ret) )
+
 
 ## Composite ##
 (symbols '(llvm cc pico))

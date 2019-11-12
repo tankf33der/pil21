@@ -1,4 +1,4 @@
-# 10nov19 Software Lab. Alexander Burger
+# 11nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evList2 evList equal compare natRet main)
@@ -365,6 +365,6 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
    (set $OutFile (initOutFile 1))  # Standard output
    (set $InFile (initInFile 0 null))  # Standard input
    (loop
-      (load $Nil (char ":") $Nil) ) )
+      (repl $Nil (char ":") $Nil) ) )
 
 (end)
