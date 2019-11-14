@@ -1,4 +1,4 @@
-# 11nov19 Software Lab. Alexander Burger
+# 13nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -74,16 +74,17 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
          (pass pack) ) ) )
 
 (de phi (Lbl Var)
-   (if (asoq Lbl *Phi)
-      (let L @
-         (if (asoq Var L)
-            (conc @ (list (cons *Curr (val Var))))
-            (con L
-               (cons
-                  (list Var NIL (cons *Curr (val Var)))
-                  (cdr L) ) ) ) )
-      (queue '*Phi
-         (list Lbl (list Var NIL (cons *Curr (val Var)))) ) ) )
+   (let? Val (val Var)
+      (if (asoq Lbl *Phi)
+         (let L @
+            (if (asoq Var L)
+               (conc @ (list (cons *Curr Val)))
+               (con L
+                  (cons
+                     (list Var NIL (cons *Curr Val))
+                     (cdr L) ) ) ) )
+         (queue '*Phi
+            (list Lbl (list Var NIL (cons *Curr Val))) ) ) ) )
 
 (de +phi (Lbl)
    (let M NIL

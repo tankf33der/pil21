@@ -1,28 +1,35 @@
-# 11nov19 Software Lab. Alexander Burger
+# 13nov19 Software Lab. Alexander Burger
 
-(compile) (openErr closeErr eofErr badInput closeOnExec initInFile initOutFile
-closeInFile closeOutFile slow slowNb stdinByte waitFd _getStdin getChar skipC
-comment skip testEsc anonymous rdAtom rdList read0 read1 _putStdout newline
-space outWord outNum outString print repl)
+(compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
+initInFile initOutFile closeInFile closeOutFile slow slowNb wrBytes flush
+flushAll stdinByte hasData waitFd _getStdin getChar skipC comment skip testEsc
+anonymous rdAtom rdList read0 read1 _putStdout newline space outWord outNum
+outString print repl)
 
-(de NIL openErr ()
-   (err 0 0 ($ "%s open: %s") (strErrno)) )
+(de NIL openErr (Exe (i8* . Str))
+   (err Exe 0 ($ "%s open: %s") Str (strErrno)) )
 
 (de NIL closeErr ()
-   (err 0 0 ($ "Close error: %s") (strErrno)) )
+   (err 0 0 ($ "Close error: %s") (strErrno) null) )
 
 (de NIL eofErr ()
-   (err 0 0 ($ "EOF Overrun") null) )
+   (err 0 0 ($ "EOF Overrun") null null) )
 
 (de NIL badInput ()
    (let S (b8 2)
       (set S (i8 (val $Chr)))
       (set (i S) 0)
-      (err 0 0 ($ "Bad input '%c'") S) ) )
+      (err 0 0 ($ "Bad input '%c'") S null) ) )
+
+(de NIL writeErr ((i8* . Str))
+   (err 0 0 ($ "%s write: %s") Str (strErrno)) )
+
+(de NIL selectErr (Exe)
+   (err Exe 0 ($ "Select error: %s") (strErrno) null) )
 
 (de void closeOnExec (Exe (i32 . Fd))
    (when (lt0 (fcntlCloExec Fd))
-      (err Exe 0 ($ "SETFD %s") (strErrno)) ) )
+      (err Exe 0 ($ "SETFD %s") (strErrno) null) ) )
 
 (de i8* initInFile ((i32 . Fd) (i8* . Nm))
    (let I (val $InFDs)
@@ -91,8 +98,8 @@ space outWord outNum outString print repl)
    (let F (inFile In)
       (F ix (F cnt 0))
       (loop T
-         (let N (read (F fd) (F buf T) 4096)
-            (? (ge0 N) (F cnt (i32 N))) )
+         (let N (i32 (read (F fd) (F buf T) BUFSIZ))
+            (? (ge0 N) (F cnt N)) )
          (? (<> (xErrno) EINTR) 0)
          (unless (=0 (val $Signal))
             (sighandler 0) ) ) ) )
@@ -103,9 +110,9 @@ space outWord outNum outString print repl)
       (loop T
          (let
             (Flg (nonBlocking (F fd))
-               N (read (F fd) (F buf T) 4096) )
+               N (i32 (read (F fd) (F buf T) BUFSIZ)) )
             (fcntlSetFl (F fd) Flg)
-            (? (gt0 N) (F cnt (i32 N)))
+            (? (gt0 N) (F cnt N))
             (? (=0 N)
                (F ix (F cnt -1))
                0 ) )
@@ -115,33 +122,97 @@ space outWord outNum outString print repl)
          (unless (=0 (val $Signal))
             (sighandler 0) ) ) ) )
 
-(de i32 stdinByte ()
-   (getchar) )
+(de i1 wrBytes ((i32 . Fd) (i8* . P) (i32 . Cnt))
+   (loop T
+      (let N (i32 (write Fd P (i64 Cnt)))
+         (cond
+            ((lt0 N)
+               (let E (xErrno)
+                  (? (== E EBADF) NO)
+                  (? (== E EPIPE) NO)
+                  (? (== E ECONNRESET) NO)
+                  (unless (== E EINTR)
+                     (when (== Fd 2)  # Stderr
+                        (bye 2) )
+                     (writeErr ($ "bytes")) )
+                  (unless (=0 (val $Signal))
+                     (sighandler 0) ) ) )
+            (T
+               (? (=0 (setq Cnt (- Cnt N)))
+                  YES )
+               (setq P (ofs P N)) ) ) ) ) )
 
-(de i1 inReady ((i32 . Fd))
+(de i1 flush ((i8* . Out))
+   (if (=0 Out)
+      YES
+      (let (F (outFile Out)  N (F ix))
+         (if (=0 N)
+            YES
+            (F ix 0)
+            (wrBytes (F fd) (F buf T) N) ) ) ) )
+
+(de void flushAll ()
+   (let (A (val $OutFiles)  N (val $OutFDs)  I (i32 0))
+      (while (> N I)
+         (flush (val (ofs A I)))
+         (inc 'I) ) ) )
+
+(de i32 stdinByte ()
+   (let F (inFile (val (val $InFiles)))  # Stdin
+      (and
+         (n0 (F))
+         (or
+            (> (F cnt) (F ix))
+            (and (ge0 (F ix)) (n0 (slow (F)))) )
+         (ret
+            (let I (F ix)
+               (prog1
+                  (i32 (val (ofs (F buf T) I)))
+                  (F ix (+ I 1)) ) ) ) )
+      (when (=0 (isatty 0))
+         (ret -1) )
+      (bye 0) ) )
+
+(de i1 hasData ((i32 . Fd))
    (and
       (> (val $InFDs) Fd)
       (let F (inFile (val (ofs (val $InFiles) Fd)))
          (and (n0 (F)) (> (F cnt) (F ix))) ) ) )
 
 (de i64 waitFd (Exe (i32 . Fd) (i64 . Ms))
-   (let (Task (val $Task)  P (link (push (val $At) ZERO NIL)))
-      (loop T
+   (let
+      (Task (val $Task)
+         P (link (push (val $At) ZERO NIL))
+         Tim (getTime) )
+      (loop
          (let
-            (S (stack)
-               P (b64 (+ (+ (length (val $Run)) (val $Children)) 3))
+            (Stk (stack)
+               Poll (b64 (+ (+ (length (val $Run)) (val $Children)) 3))
                I 0
                M Ms )
             (when (ge0 Fd)
-               (if (inReady Fd)
+               (if (hasData Fd)
                   (setq M 0)
-                  (pollIn Fd (ofs P I))
+                  (pollIn Fd Poll)  # First 'pollfd' struct
                   (inc 'I) ) )
             #! ...
-            #! (xPoll P I M)
+            (while (lt0 (xPoll Poll I M))
+               (nond
+                  ((== (xErrno) EINTR)
+                     (set $Run $Nil)
+                     (selectErr Exe) )
+                  ((=0 (val $Signal))
+                     (sighandler Exe) ) ) )
             #! ...
-            (stack S) )
-         (? (=0 Fd) 0) )
+            (let (T2 (getTime)  D (- T2 Tim))
+               (setq Tim T2)
+               #! ...
+               (when (lt0 (setq Ms (- Ms D)))
+                  (setq Ms 0) ) )
+            (unless (=0 (val $Signal))
+               (sighandler Exe) )
+            (? (or (=0 Ms) (lt0 Fd) (n0 (readyIn Poll))))
+            (stack Stk) ) )
       (set $At (pop P)  $Task Task)
       Ms ) )
 
@@ -311,7 +382,7 @@ space outWord outNum outString print repl)
                         ((== (skip) (char ")"))
                            (call $Get) )
                         ((<> (val $Chr) (char "]"))
-                           (err 0 X ($ "Bad dotted pair") null) ) ) )
+                           (err 0 X ($ "Bad dotted pair") null null) ) ) )
                   (setq X
                      (set (i X) (cons (rdAtom (char ".")) $Nil)) ) )
                ((== C (char "~"))
@@ -344,7 +415,7 @@ space outWord outNum outString print repl)
          ((== C (char "["))
             (let X (rdList)
                (when (== (val $Chr) (char "]"))
-                  (err 0 X ($ "Super parentheses mismatch") null) )
+                  (err 0 X ($ "Super parentheses mismatch") null null) )
                (call $Get)
                X ) )
          ((== C (char "'"))
@@ -388,7 +459,17 @@ space outWord outNum outString print repl)
       (read0 YES) ) )
 
 (de void _putStdout ((i32 . C))
-   (putchar C) )
+   (let F (outFile (val $OutFile))
+      (unless (=0 (F))
+         (let I (F ix)
+            (when (== I BUFSIZ)
+               (F ix (setq I 0))
+               (wrBytes (F fd) (F buf T) BUFSIZ) )
+            (set (ofs (F buf T) I) (i8 C))
+            (F ix (inc 'I))
+            (when (and (== C (char "\n")) (F tty))
+               (F ix 0)
+               (wrBytes (F fd) (F buf T) I) ) ) ) ) )
 
 (de void newline ()
    (call $Put (char "\n")) )
@@ -482,7 +563,8 @@ space outWord outNum outString print repl)
    (loop
       (when (and (n0 Pr) (=0 (val $Chr)))
          (call $Put Pr)
-         (space) )
+         (space)
+         (flushAll) )
       (let Y (read1 (char "\n"))
          (while (gt0 (val $Chr))
             (? (== (val $Chr) (char "\n"))

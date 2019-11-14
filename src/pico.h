@@ -1,4 +1,4 @@
-// 11nov19 Software Lab. Alexander Burger
+// 13nov19 Software Lab. Alexander Burger
 
 #include <stdint.h>
 #include <string.h>
@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
+#include <setjmp.h>
+#include <sys/time.h>
 
 // Lisp data access
 #define cnt(x) (x & 2)

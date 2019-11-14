@@ -1,10 +1,10 @@
-// 11nov19 Software Lab. Alexander Burger
+// 13nov19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
 // I/O
-void stderrMsg(char *s) {
-   fprintf(stderr, "%d %s\n", (int)getpid(), s);
+void stderrMsg(char *s, int64_t n) {
+   fprintf(stderr, "%s %lX\n", s, n);
 }
 
 char *strErrno(void) {
@@ -40,15 +40,15 @@ int xPoll(struct pollfd *fds, int64_t nfds, int64_t timeout) {
    return poll(fds, (nfds_t)nfds, (int)timeout);
 }
 
-int pollInRdy(struct pollfd *p) {
+int readyIn(struct pollfd *p) {
    return p->revents & POLLIN;
 }
 
-int pollOutRdy(struct pollfd *p) {
+int readyOut(struct pollfd *p) {
    return p->revents & POLLOUT;
 }
 
-// Sync src/defs.l 'ENOENT' and src/glob.l '$Signal'
+// Sync src/defs.l 'SIGHUP' and src/glob.l '$Signal'
 int32_t xSignal(int32_t n) {
    switch (n) {
    case SIGHUP:  return 1;
@@ -81,6 +81,14 @@ int32_t xErrno(void) {
    case ECONNRESET: return 7;
    }
    return 0;
+}
+
+int64_t getTime (void) {
+   struct timeval tim;
+
+   if (gettimeofday(&tim, NULL))
+      return 0;
+   return (int64_t)tim.tv_sec * 1000 + ((int64_t)tim.tv_usec + 500) / 1000;
 }
 
 // Lisp data access

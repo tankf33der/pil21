@@ -1,4 +1,4 @@
-# 11nov19 Software Lab. Alexander Burger
+# 13nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evList2 evList equal compare natRet main)
@@ -20,7 +20,7 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
    (exit N) )
 
 (de NIL giveup ((i8* . Msg))
-   (stderrMsg Msg)
+   (stderrMsg Msg 0)
    (finish 1) )
 
 (de NIL bye ((i32 . N))
@@ -85,11 +85,11 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
       (set $Protect 0) ) )
 
 # Error handling
-(de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
+(de NIL err (Exe X (i8* . Fmt) (i8* . A) (i8* . B))
    (giveup Fmt) )
 
 (de numErr (Exe X)
-   (err Exe X ($ "Number expected") null) )
+   (err Exe X ($ "Number expected") null null) )
 
 # Argument checks
 (inline needNum (Exe X)
@@ -99,7 +99,7 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
 
 # Evaluation
 (de NIL undefined (F Exe)
-   (err Exe F ($ "Undefined") null) )
+   (err Exe F ($ "Undefined") null null) )
 
 # Apply EXPR to CDR of list
 (de evExpr (Expr Lst)
@@ -280,7 +280,7 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
                         null
                         (pathString Y (b8 (pathSize Y))) ) )
                   (when (=0 P)
-                     (err Exe 0 ($ "[DLL] %s") (dlerror)) )
+                     (err Exe 0 ($ "[DLL] %s") (dlerror) null) )
                   (set Y (box64 (i64 P)))
                   P ) ) )
          Fun (eval (++ X))  # Eval function 'cnt2|sym2'
@@ -300,7 +300,7 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
                   (T
                      (let P (ffiPrep Lib (bufString Fun (b8 (bufSize Fun))) Args)
                         (when (=0 P)
-                           (err Exe 0 ($ "Bad ffi") null) )
+                           (err Exe 0 ($ "Bad ffi") null null) )
                         (set Fun (box64 (i64 P)))
                         P ) ) )
                Args ) )

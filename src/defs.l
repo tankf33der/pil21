@@ -1,4 +1,4 @@
-# 11nov19 Software Lab. Alexander Burger
+# 13nov19 Software Lab. Alexander Burger
 
 # Constants
 (compile) (HEAP CELLS STACK TOP DB1 inFile outFile)
@@ -8,6 +8,7 @@
    CELLS (/ HEAP 2)        # Number of cells in a heap (65536)
    STACK (* 64 1024)       # Default coroutine stack segment size (64 kB)
    TOP (hex "110000")      # Character top
+   BUFSIZ 4096             # I/O buffer size
    DB1 (hex "1A") )        # Name of '{1}'
 
 ## Sync src/lib.c 'xSignal' and src/glob.l '$Signal'
@@ -45,12 +46,12 @@
    (line 8 . i64)
    (src 8 . i64)
    (name 8 . i8*)
-   (buf 4096 . i8) )
+   (buf `BUFSIZ . i8) )
 
 (struct outFile
    (fd 4 . i32)
    (ix 4 . i32)
-   (buf 4096 . i8)
+   (buf `BUFSIZ . i8)
    (tty 8 . i1) )
 
 (struct child
@@ -62,17 +63,16 @@
    (cnt 4 . i32) )
 
 # System
-(compile) (malloc realloc free getpid isatty getchar putchar read strcmp strchr
-strrchr memcpy dlerror kill exit)
+(compile) (malloc realloc free getpid isatty read write strcmp strchr strrchr
+memcpy dlerror kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
 (de T void free (i8*))
 (de T i32 getpid ())
 (de T i32 isatty (i32))
-(de T i32 getchar ())
-(de T i32 putchar (i32))
 (de T i64 read (i32 i8* i64))
+(de T i64 write (i32 i8* i64))
 (de T i32 strcmp (i8* i8*))
 (de T i8* strchr (i8* i32))
 (de T i8* strrchr (i8* i32))
@@ -83,9 +83,9 @@ strrchr memcpy dlerror kill exit)
 
 # Glue lib.c
 (compile) (stderrMsg strErrno fcntlCloExec fcntlSetFl nonBlocking pollIn
-pollOut xPoll pollInRdy pollOutRdy xSignal xErrno dlOpen ffiPrep ffiCall)
+pollOut xPoll readyIn readyOut xSignal xErrno dlOpen ffiPrep ffiCall)
 
-(de T void stderrMsg (i8*))
+(de T void stderrMsg (i8* i64))
 (de T i8* strErrno ())
 (de T i32 fcntlCloExec (i32))
 (de T i32 fcntlSetFl (i32 i32))
@@ -93,10 +93,11 @@ pollOut xPoll pollInRdy pollOutRdy xSignal xErrno dlOpen ffiPrep ffiCall)
 (de T void pollIn (i32 i64*))
 (de T void pollOut (i32 i64*))
 (de T i32 xPoll (i64* i64 i64))
-(de T i32 pollInRdy (i64*))
-(de T i32 pollOutRdy (i64*))
+(de T i32 readyIn (i64*))
+(de T i32 readyOut (i64*))
 (de T i32 xSignal (i32))
 (de T i32 xErrno ())
+(de T i64 getTime ())
 
 # Native lib.c
 (de T i8* dlOpen (i8*))
@@ -104,8 +105,12 @@ pollOut xPoll pollInRdy pollOutRdy xSignal xErrno dlOpen ffiPrep ffiCall)
 (de T i64 ffiCall (i8* i64))
 
 ### Forward references
-(compile) (evList read0 print)
+(compile) (evList read0 newline space print)
 
-(de evList (any))  # main.l
+# main.l
+(de evList (any))
+# io.l
 (de read0 (i1))
+(de void newline ())
+(de void space ())
 (de void print (any))
