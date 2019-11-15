@@ -1,4 +1,4 @@
-# 14nov19 Software Lab. Alexander Burger
+# 15nov19 Software Lab. Alexander Burger
 
 (compile) ()
 
@@ -158,11 +158,11 @@
    ($InFile i8* null)            # Input file
    ($OutFile i8* null)           # Output file
    ($Bind 0)                     # Bind frames
-   ($Catch 0)                    # Catch frames
-   ($InFrames 0)                 # Input frames
-   ($OutFrames 0)                # Output frames
-   ($ErrFrames 0)                # Error frames
-   ($CtlFrames 0)                # Control frames
+   ($Catch i8* null)             # Catch frames
+   ($InFrames i8* null)          # Input frames
+   ($OutFrames i8* null)         # Output frames
+   ($ErrFrames i8* null)         # Error frames
+   ($CtlFrames i8* null)         # Control frames
    ($Intern $Pico1)              # Current namespaces of internal symbols
    ($Next $Nil)                  # Next vararg
    ($Cls 0)                      # Method class

@@ -1,4 +1,4 @@
-# 14nov19 Software Lab. Alexander Burger
+# 15nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -31,6 +31,9 @@ br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
 Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
 
 (import any inc dec ++ #{>>>}#)
+
+(de *Err
+   (and *Dbg (symbols '(cc llvm pico))) )
 
 
 # Generate LLVM-IR
@@ -169,8 +172,9 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
          (when (num? X)
             (setq X (def (format X) (pointee (val P)))) )
          (link
-            (pack "store " (type (val X))
-               " " X ", " (val P) " " P ) ) )
+            (pack "store " (type (val X)) " " X ", "
+               (type (val P)) (and (pair (val P)) "*")
+               " " P ) ) )
       ((pre? "@" P)
          (ssa (inc '*Ssa) "inttoptr i64 " P " to i64*")
          (link (pack "store i64 " X ", i64* %" *Ssa)) )
@@ -575,6 +579,10 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
                   (T (quit "Bad type" V)) ) )
             (def (pack "%" *Ssa) 'any) ) ) )
    (llvm~any) )
+
+(asm ()
+   (Args (def (pack "@" (cadr Args)) (car Args)))
+   (llvm~fun) )
 
 # (Un)Boxing
 (asm ()

@@ -1,4 +1,4 @@
-# 14nov19 Software Lab. Alexander Burger
+# 15nov19 Software Lab. Alexander Burger
 
 # Constants
 (compile) (HEAP CELLS STACK TOP DB1 SIGHUP SIGINT SIGUSR1 SIGUSR2 SIGPIPE
@@ -86,6 +86,7 @@ memcpy dlerror kill exit)
 (de T i8* strrchr (i8* i32))
 (de T i8* memcpy (i8* i8* i64))
 (de T i8* dlerror ())
+(de T i32 close (i32))
 (de T i32 kill (i32 i32))
 (de T NIL exit (i32))
 

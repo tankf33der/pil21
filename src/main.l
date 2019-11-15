@@ -1,4 +1,4 @@
-# 13nov19 Software Lab. Alexander Burger
+# 15nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evList2 evList equal compare natRet main)
@@ -98,8 +98,8 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
    X )
 
 # Evaluation
-(de NIL undefined (F Exe)
-   (err Exe F ($ "Undefined") null null) )
+(de NIL undefined (Fun Exe)
+   (err Exe Fun ($ "Undefined") null null) )
 
 # Apply EXPR to CDR of list
 (de evExpr (Expr Lst)
@@ -154,35 +154,35 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
             (set $Link (val (ii P))) )
          (set $Bind (val (iii Q))) ) ) )
 
-(de evList2 (F Lst)
-   (save F T  # Save computed function
-      (if (pair F)  # Either EXPR  or symbol
-         (evExpr F Lst)
+(de evList2 (Fun Lst)
+   (save Fun T  # Save computed function
+      (if (pair Fun)  # Either EXPR  or symbol
+         (evExpr Fun Lst)
          (loop
-            (let V (val F)  # Get VAL
+            (let V (val Fun)  # Get VAL
                (when (num? V)
                   (ret (subr V Lst)) )
                (when (== V (val V))
-                  (undefined F Lst) )
-               (when (pair (setq F V))
-                  (ret (evExpr F Lst)) ) ) ) ) ) )
+                  (undefined Fun Lst) )
+               (when (pair (setq Fun V))
+                  (ret (evExpr Fun Lst)) ) ) ) ) ) )
 
 (de evList (Lst)
-   (let F (car Lst)
+   (let Fun (car Lst)
       (cond T
-         ((num? F) Lst)  # Number: Return list
-         ((sym? F)  # Symbol: Find function
+         ((num? Fun) Lst)  # Number: Return list
+         ((sym? Fun)  # Symbol: Find function
             (loop
-               (let V (val F)  # Get VAL
+               (let V (val Fun)  # Get VAL
                   (when (num? V)
                      (ret (subr V Lst)) )
                   (when (== V (val V))
-                     (undefined F Lst) )
-                  (when (pair (setq F V))
-                     (ret (evExpr F Lst)) ) ) ) )
-         ((num? (setq F (evList F)))  # List: Evaluate
-            (subr F Lst) )
-         (T (evList2 F Lst)) ) ) )
+                     (undefined Fun Lst) )
+                  (when (pair (setq Fun V))
+                     (ret (evExpr Fun Lst)) ) ) ) )
+         ((num? (setq Fun (evList Fun)))  # List: Evaluate
+            (subr Fun Lst) )
+         (T (evList2 Fun Lst)) ) ) )
 
 (load "gc.l" "big.l" "sym.l" "db.l")
 
