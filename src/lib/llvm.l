@@ -1,4 +1,4 @@
-# 13nov19 Software Lab. Alexander Burger
+# 14nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -30,7 +30,7 @@ symTab inline define struct $Nil)
 br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
 Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
 
-(import any inc dec ++ #{>>>}# show bt)
+(import any inc dec ++ #{>>>}#)
 
 
 # Generate LLVM-IR
@@ -488,7 +488,7 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
                         ((assoc (car Args) '@L)
                            (quit "Bad struct item" (car Args)) )
                         (NIL
-                           (let P ((ptr (cddr @)) (llvm~ofs '@P (cadr @)))
+                           (let P ((ptr (caddr @)) (llvm~ofs '@P (cadr @)))
                               (nond
                                  ((cadr Args) (llvm~val P))
                                  ((=T @) (llvm~set P (eval @)))
@@ -548,6 +548,8 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
    ((X)
       (let V (val X)
          (cond
+            ((pair V)
+               (ssa (inc '*Ssa) "bitcast " (func V) "* " X " to " '@Typ) )
             ((memq V '(any i64))
                (ssa (inc '*Ssa) "inttoptr i64 " X " to " '@Typ) )
             ((sub? "*" V)
@@ -714,7 +716,8 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
    (llvm~- - "sub" "-") )
 
 (asm (@Op1 @Op2 @Sgn)
-   ((X)
+   ((X Z)
+      (and Z (quit "Second argument not supported" Z))
       (if (num? X)
          (@Op1 X)
          (let (Y (or (str? X) (val X))  V (val Y))

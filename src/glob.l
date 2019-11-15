@@ -1,4 +1,4 @@
-# 10nov19 Software Lab. Alexander Burger
+# 14nov19 Software Lab. Alexander Burger
 
 (compile) ()
 
@@ -111,7 +111,16 @@
    (NIL ">=" _ge)
    # Symbol functions
    # Input/Output
+   (NIL "read" _read)
    (NIL "in" _in)
+   (NIL "out" _out)
+   (NIL "prin" _prin)
+   (NIL "prinl" _prinl)
+   (NIL "space" _space)
+   (NIL "print" _print)
+   (NIL "printsp" _printsp)
+   (NIL "println" _println)
+   (NIL "flush" _flush)
    # Mapping
    # Control flow
    (NIL "de" _de)

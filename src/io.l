@@ -1,10 +1,10 @@
-# 13nov19 Software Lab. Alexander Burger
+# 14nov19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile slow slowNb wrBytes flush
-flushAll stdinByte hasData waitFd _getStdin getChar skipC comment skip testEsc
-anonymous rdAtom rdList read0 read1 _putStdout newline space outWord outNum
-outString print repl)
+flushAll stdinByte hasData waitFd getChar skipC comment skip testEsc anonymous
+rdAtom rdList read0 read1 token newline space outWord outNum outString print
+prin prin1 repl)
 
 (de NIL openErr (Exe (i8* . Str))
    (err Exe 0 ($ "%s open: %s") Str (strErrno)) )
@@ -458,6 +458,34 @@ outString print repl)
       $Nil
       (read0 YES) ) )
 
+(de token (X (i32 . C))
+   )
+
+# (read ['sym1 ['sym2]]) -> any
+(de _read (Exe)
+   (let X (cdr Exe)
+      (prog1
+         (if (atom X)
+            (read1 0)
+            # (token)
+            $Nil )
+         (and
+            (== (val $Chr) (char "\n"))
+            (== (val $InFile) (val (val $InFiles)))  # Stdin
+            (set $Chr 0) ) ) ) )
+
+# (in 'any . prg) -> any
+(de _in (Exe)
+   (let F (ioFrame (b8 (ioFrame T)))
+      (F fun (val (i8** $Get)))
+
+      (set (i8** $Get) (F fun))
+      Exe ) )
+
+# (out 'any . prg) -> any
+(de _out (Exe)
+   $Nil )
+
 (de void _putStdout ((i32 . C))
    (let F (outFile (val $OutFile))
       (unless (=0 (F))
@@ -517,6 +545,8 @@ outString print repl)
       (inc 'S) ) )
 
 (de void print (X)
+   (unless (=0 (val $Signal))
+      (sighandler Exe) )
    (cond
       ((cnt? X) (outNum X))
       ((big? X) (outString ($ "<big>")))
@@ -558,6 +588,57 @@ outString print repl)
             (space) )
          (call $Put (char ")")) ) ) )
 
+(de void prin (X)
+   $Nil )
+
+(de void prin1 (X)
+   $Nil )
+
+# (prin 'any ..) -> any
+(de _prin (X)
+   $Nil )
+
+# (prinl 'any ..) -> any
+(de _prinl (X)
+   $Nil )
+
+# (space ['cnt]) -> cnt
+(de _space (Exe)
+   $Nil )
+
+# (print 'any ..) -> any
+(de _print (X)
+   (let Y (eval (car (>>> X)))
+      (print Y)
+      (while (pair (>>> X))
+         (space)
+         (print (setq Y (eval (car X)))) )
+      Y ) )
+
+# (printsp 'any ..) -> any
+(de _printsp (X)
+   (let Y NIL
+      (>>> X)
+      (loop
+         (print (setq Y (eval (car X))))
+         (space)
+         (? (atom (>>> X))) )
+      Y ) )
+
+# (println 'any ..) -> any
+(de _println (X)
+   (let Y (eval (car (>>> X)))
+      (print Y)
+      (while (pair (>>> X))
+         (space)
+         (print (setq Y (eval (car X)))) )
+      (newline)
+      Y ) )
+
+# (flush) -> flg
+(de _flush (X)
+   $Nil )
+
 (de repl (Exe (i32 . Pr) X)
    (setq X $Nil)
    (loop
@@ -583,8 +664,3 @@ outString print repl)
                (outString ($ "-> "))
                (print X)
                (newline) ) ) ) ) )
-
-# (in 'any . prg) -> any
-(de _in (X)
-   (let F (inFile)
-      X ) )

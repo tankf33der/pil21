@@ -1,7 +1,9 @@
-# 13nov19 Software Lab. Alexander Burger
+# 14nov19 Software Lab. Alexander Burger
 
 # Constants
-(compile) (HEAP CELLS STACK TOP DB1 inFile outFile)
+(compile) (HEAP CELLS STACK TOP DB1 SIGHUP SIGINT SIGUSR1 SIGUSR2 SIGPIPE
+SIGALRM SIGTERM SIGCHLD SIGCONT SIGSTOP SIGTSTP SIGTTIN SIGTTOU SIGIO ENOENT
+EINTR EBADF EAGAIN EACCES EPIPE ECONNRESET ioFrame inFile outFile child)
 
 (setq
    HEAP (*/ 1024 1024 8)   # Heap size (number of pointers)
@@ -38,29 +40,35 @@
    EPIPE      6      # Broken pipe
    ECONNRESET 7 )    # Connection reset by peer
 
+(struct ioFrame
+   (link 8 i8*)
+   (fd 4 i32)
+   (pid 4 i32)
+   (fun 8 i8*) )
+
 (struct inFile
-   (fd 4 . i32)
-   (ix 4 . i32)
-   (cnt 4 . i32)
-   (next 4 . i32)
-   (line 8 . i64)
-   (src 8 . i64)
-   (name 8 . i8*)
-   (buf `BUFSIZ . i8) )
+   (fd 4 i32)
+   (ix 4 i32)
+   (cnt 4 i32)
+   (next 4 i32)
+   (line 8 i64)
+   (src 8 i64)
+   (name 8 i8*)
+   (buf `BUFSIZ i8) )
 
 (struct outFile
-   (fd 4 . i32)
-   (ix 4 . i32)
-   (buf `BUFSIZ . i8)
-   (tty 8 . i1) )
+   (fd 4 i32)
+   (ix 4 i32)
+   (buf `BUFSIZ i8)
+   (tty 8 i1) )
 
 (struct child
-   (buf 8 . i8*)
-   (pid 4 . i32)
-   (hear 4 . i32)
-   (tell 4 . i32)
-   (ofs 4 . i32)
-   (cnt 4 . i32) )
+   (buf 8 i8*)
+   (pid 4 i32)
+   (hear 4 i32)
+   (tell 4 i32)
+   (ofs 4 i32)
+   (cnt 4 i32) )
 
 # System
 (compile) (malloc realloc free getpid isatty read write strcmp strchr strrchr

@@ -1,4 +1,4 @@
-# 31oct19 Software Lab. Alexander Burger
+# 14nov19 Software Lab. Alexander Burger
 
 .SILENT:
 
@@ -18,14 +18,15 @@ $(BIN)/picolisp: picolisp.bc
 	llc picolisp.bc -relocation-model=pic -o picolisp.s
 	$(CC) picolisp.s -o $(BIN)/picolisp -lc -lm -ldl -lffi
 
-picolisp.bc: main.bc lib.bc
-	llvm-link -o picolisp.bc main.bc lib.bc
+picolisp.bc: base.bc lib.bc
+	llvm-link -o picolisp.bc base.bc lib.bc
 
 lib.bc: pico.h lib.c
 	clang -c -O3 `pkg-config --cflags libffi` -emit-llvm lib.c
 
-main.bc: lib/llvm.l $(SRC)
-	pil lib/llvm.l main.l -bye |llvm-as -o main.bc -
+base.bc: lib/llvm.l $(SRC)
+	pil lib/llvm.l main.l -bye > base.ll
+	llvm-as -o base.bc base.ll
 
 clean:
-	rm -f *.bc *.s
+	rm -f *.ll *.bc *.s
