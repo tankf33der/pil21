@@ -1,4 +1,4 @@
-# 15nov19 Software Lab. Alexander Burger
+# 16nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -887,12 +887,12 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
             (if (pair X)
                (recur ()
                   (let (Var (++ X)  Val (eval (++ X)))
-                     (+bind Lst Var)
+                     (and (atom Val) (+bind Lst Var))
                      (bind Var
                         (set Var Val)
                         (if X (recurse) (run Lst)) ) ) )
                (let Val (eval (++ Lst))
-                  (+bind Lst X)
+                  (and (atom Val) (+bind Lst X))
                   (bind X
                      (set X Val)
                      (run Lst) ) ) ) ) ) )

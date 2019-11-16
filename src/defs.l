@@ -71,8 +71,8 @@ EINTR EBADF EAGAIN EACCES EPIPE ECONNRESET ioFrame inFile outFile child)
    (cnt 4 i32) )
 
 # System
-(compile) (malloc realloc free getpid isatty read write strcmp strchr strrchr
-memcpy dlerror kill exit)
+(compile) (malloc realloc free getpid isatty read write strdup strcmp strchr
+strrchr memcpy dlerror kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
@@ -81,6 +81,7 @@ memcpy dlerror kill exit)
 (de T i32 isatty (i32))
 (de T i64 read (i32 i8* i64))
 (de T i64 write (i32 i8* i64))
+(de T i8* strdup (i8*))
 (de T i32 strcmp (i8* i8*))
 (de T i8* strchr (i8* i32))
 (de T i8* strrchr (i8* i32))
@@ -91,11 +92,14 @@ memcpy dlerror kill exit)
 (de T NIL exit (i32))
 
 # Glue lib.c
-(compile) (stderrMsg strErrno fcntlCloExec fcntlSetFl nonBlocking pollIn
-pollOut xPoll readyIn readyOut xSignal xErrno dlOpen ffiPrep ffiCall)
+(compile) (stderrMsg strErrno openRdonly openAppend fcntlCloExec fcntlSetFl
+nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno dlOpen ffiPrep
+ffiCall)
 
 (de T void stderrMsg (i8* i64))
 (de T i8* strErrno ())
+(de T i32 openRdonly (i8*))
+(de T i32 openAppend (i8*))
 (de T i32 fcntlCloExec (i32))
 (de T i32 fcntlSetFl (i32 i32))
 (de T i32 nonBlocking (i32))

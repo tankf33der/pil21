@@ -1,4 +1,4 @@
-// 13nov19 Software Lab. Alexander Burger
+// 15nov19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -9,6 +9,14 @@ void stderrMsg(char *s, int64_t n) {
 
 char *strErrno(void) {
    return strerror(errno);
+}
+
+int32_t openRdonly(char *nm) {
+   return open(nm, O_RDONLY);
+}
+
+int32_t openAppend(char *nm) {
+   return open(nm, O_APPEND|O_CREAT|O_RDWR, 0666);
 }
 
 int32_t fcntlCloExec(int32_t fd) {

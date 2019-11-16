@@ -1,4 +1,4 @@
-# 15nov19 Software Lab. Alexander Burger
+# 16nov19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -115,23 +115,24 @@ prin prin1 repl)
    (let Frame (ioFrame (val $InFrames))
       (nond
          ((=0 (Frame pid))
-            (close (Frame pid))
+            (close (Frame fd))
+            (closeInFile (Frame fd))
             #! ...
             )
          ((=0 (val $InFile))
             ((inFile (val $InFile)) next (val $Chr)) ) )
       (set (i8** $Get) (Frame fun))
-      (let New (ioFrame (set $InFrames (Frame link)))
-         (set $Chr
-            (if
-               (=0
-                  (set $InFile
-                     (val
-                        (if (=0 (New))
-                           (val $InFiles)  # Stdin
-                           (ofs (val $InFiles) (New fd)) ) ) ) )
-               -1
-               ((inFile (val $InFile)) next) ) ) ) ) )
+      (setq Frame (ioFrame (set $InFrames (Frame link))))
+      (set $Chr
+         (if
+            (=0
+               (set $InFile
+                  (val
+                     (if (=0 (Frame))
+                        (val $InFiles)  # Stdin
+                        (ofs (val $InFiles) (Frame fd)) ) ) ) )
+            -1
+            ((inFile (val $InFile)) next) ) ) ) )
 
 (de void popOutFiles ()
    )
@@ -267,9 +268,17 @@ prin prin1 repl)
          #! ((num? X)
          #!    )
          ((sym? X)
-            (let Nm (pathString X (b8 (pathSize X)))
-               )
-            (Frame pid 1) )
+            (let (Nm (pathString X (b8 (pathSize X)))  Flg (== (val Nm) (char "+")))
+               (when Flg
+                  (setq Nm (ofs Nm 1)) )
+               (while (lt0 (Frame fd (if Flg (openAppend Nm) (openRdonly Nm))))
+                  (unless (== (xErrno) EINTR)
+                     (openErr Exe Nm) )
+                  (unless (=0 (val $Signal))
+                     (sighandler Exe) ) )
+               (Frame pid 1)
+               (initInFile (Frame fd) (strdup Nm)) )
+            (closeOnExec Exe (Frame fd)) )
          #! (T
          #!    )
          ) ) )
