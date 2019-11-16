@@ -5,7 +5,7 @@ initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
 popInFiles popOutFiles slow slowNb wrBytes flush flushAll stdinByte hasData
 waitFd rdOpen wrOpen erOpen ctOpen getChar skipC comment skip testEsc anonymous
 rdAtom rdList read0 read1 token newline space outWord outNum outString print
-prin prin1 repl)
+prin prin1 repl loadAll)
 
 (de NIL openErr (Exe (i8* . Str))
    (err Exe 0 ($ "%s open: %s") Str (strErrno)) )
@@ -270,7 +270,7 @@ prin prin1 repl)
          ((sym? X)
             (let (Nm (pathString X (b8 (pathSize X)))  Flg (== (val Nm) (char "+")))
                (when Flg
-                  (setq Nm (ofs Nm 1)) )
+                  (setq Nm (i Nm)) )
                (while (lt0 (Frame fd (if Flg (openAppend Nm) (openRdonly Nm))))
                   (unless (== (xErrno) EINTR)
                      (openErr Exe Nm) )
@@ -552,7 +552,7 @@ prin prin1 repl)
 
 # (in 'any . prg) -> any
 (de _in (Exe)
-   (let (P (b8 (ioFrame T))  Frame (ioFrame P)  X (cdr Exe))
+   (let (P (b8 (ioFrame T))  X (cdr Exe))
       (rdOpen Exe (eval (car X)) P)
       (pushInFiles P)
       (prog1
@@ -717,27 +717,74 @@ prin prin1 repl)
    $Nil )
 
 (de repl (Exe (i32 . Pr) X)
-   (setq X $Nil)
-   (loop
-      (when (and (n0 Pr) (=0 (val $Chr)))
-         (call $Put Pr)
-         (space)
-         (flushAll) )
-      (let Y (read1 (char "\n"))
-         (while (gt0 (val $Chr))
-            (? (== (val $Chr) (char "\n"))
-               (set $Chr 0) )
-            (if (== (val $Chr) (char "#"))
-               (comment)
-               (? (> (val $Chr) (char " ")))
-               (call $Get) ) )
-         (when (nil? Y)
-            (exit 0) #{ret X)}# )
-         (let A (val $At)
-            (save Y A
-               (setq X (set $At (eval Y)))
-               (set $At3 (val $At2))
-               (set $At2 A)
-               (outString ($ "-> "))
-               (print X)
-               (newline) ) ) ) ) )
+   (let (Safe (link (push T T NIL))  P (b8 (ioFrame T)))
+      (rdOpen Exe X P)
+      (pushInFiles P)
+      (setq X $Nil)
+      (loop
+         (let Y
+            (ifn (== (val $InFile) (val (val $InFiles)))
+               (read1 0)
+               (prog2
+                  (when (and (n0 Pr) (=0 (val $Chr)))
+                     (call $Put Pr)
+                     (space)
+                     (flushAll) )
+                  (read1
+                     (if (=0 (isatty 0))
+                        (i32 0)
+                        (char "\n") ) )
+                  (while (gt0 (val $Chr))
+                     (? (== (val $Chr) (char "\n"))
+                        (set $Chr 0) )
+                     (if (== (val $Chr) (char "#"))
+                        (comment)
+                        (? (> (val $Chr) (char " ")))
+                        (call $Get) ) ) ) )
+            (? (nil? Y))
+            (set Save Y)
+            (cond
+               ((or
+                     (<> (val $InFile) (val (val $InFiles)))
+                     (n0 (val $Chr))
+                     (=0 Pr) )
+                  (setq X (eval Y)) )
+               (T
+                  (flushAll)
+                  (let A (val $At)
+                     (set (i Safe) A)
+                     (setq X (set $At (eval Y)))
+                     (set $At3 (val $At2))
+                     (set $At2 A) )
+                  (outString ($ "-> "))
+                  (flushAll)
+                  (print X)
+                  (newline) ) ) ) )
+      (popInFiles)
+      (drop Safe)
+      X ) )
+
+(de loadAll (Exe)
+   (let (X $Nil  P (val $AV))
+      (loop
+         (let Q (val P)
+            (? (=0 Q))
+            (?
+               (and
+                  (== (val Q) (char "-"))
+                  (=0 (val (i Q))) ) )
+            (setq
+               P (set $AV (i P))
+               X (repl Exe 0 (mkStr Q)) ) ) )
+      X ) )
+
+# (load 'any ..) -> any
+(de _load (Exe)
+   (let X (cdr Exe)
+      (loop T
+         (let Y (eval (car X))
+            (setq Y
+               (if (== $T Y)
+                  (loadAll Exe)
+                  (repl Exe (char ">") Y) ) )
+            (? (atom (>>> X)) Y) ) ) ) )

@@ -1,4 +1,4 @@
-# 15nov19 Software Lab. Alexander Burger
+# 16nov19 Software Lab. Alexander Burger
 
 (compile) ()
 
@@ -121,6 +121,7 @@
    (NIL "printsp" _printsp)
    (NIL "println" _println)
    (NIL "flush" _flush)
+   (NIL "load" _load)
    # Mapping
    # Control flow
    (NIL "de" _de)

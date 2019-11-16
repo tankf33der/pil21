@@ -1,4 +1,4 @@
-# 15nov19 Software Lab. Alexander Burger
+# 16nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evList2 evList equal compare natRet main)
@@ -357,13 +357,14 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
             (when (cnt? Nm)
                (intern P 0 Nm $Pico $Nil)
                (? (== P $LastSym)) ) )
-         (setq P (ofs P 2)) ) )
+         (setq P (ii P)) ) )
    (set
       (tail $Db1) DB1  # Name of external root symbol '{1}'
       $Extern (cons $Db1 $Nil) )  # External symbol tree root node
    (initOutFile 2)  # Standard error
    (set $OutFile (initOutFile 1))  # Standard output
    (set $InFile (initInFile 0 null))  # Standard input
+   (loadAll 0)  # Load arguments
    (loop
       (repl $Nil (char ":") $Nil) ) )
 
