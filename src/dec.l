@@ -57,13 +57,15 @@ strrchr memcpy dlerror kill exit)
 (de T i8* memcpy (i8* i8* i64))
 (de T i8* dlerror ())
 (de T i32 close (i32))
+(de T i32 setjmp (i8*))
+(de T NIL longjmp (i8* i32))
 (de T i32 kill (i32 i32))
 (de T NIL exit (i32))
 
 # Glue lib.c
 (compile) (stderrMsg strErrno openRdonly openAppend fcntlCloExec fcntlSetFl
-nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno getTime catch
-throw catchQuit throwQuit dlOpen ffiPrep ffiCall)
+nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno getTime
+catchQuit throwQuit dlOpen ffiPrep ffiCall)
 
 (de T void stderrMsg (i8* i64))
 (de T i8* strErrno ())
@@ -80,8 +82,6 @@ throw catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i32 xSignal (i32))
 (de T i32 xErrno ())
 (de T i64 getTime ())
-(de T i32 catch (i8*))
-(de T NIL throw (i8* i32))
 (de T i32 catchQuit ())
 (de T NIL throwQuit (i32))
 

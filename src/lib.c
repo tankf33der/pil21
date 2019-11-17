@@ -103,14 +103,6 @@ int64_t getTime(void) {
 // Catch and Throw
 jmp_buf QuitRst;
 
-int32_t catch(void *env) {
-   return (int32_t)setjmp(env);
-}
-
-void throw(void *env, int32_t val) {
-   longjmp(env, (int)val);
-}
-
 int32_t catchQuit(void) {
    return (int32_t)setjmp(QuitRst);
 }
