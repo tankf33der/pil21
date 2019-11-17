@@ -1,4 +1,4 @@
-// 15nov19 Software Lab. Alexander Burger
+// 17nov19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -12,26 +12,26 @@ char *strErrno(void) {
 }
 
 int32_t openRdonly(char *nm) {
-   return open(nm, O_RDONLY);
+   return (int32_t)open(nm, O_RDONLY);
 }
 
 int32_t openAppend(char *nm) {
-   return open(nm, O_APPEND|O_CREAT|O_RDWR, 0666);
+   return (int32_t)open(nm, O_APPEND|O_CREAT|O_RDWR, 0666);
 }
 
 int32_t fcntlCloExec(int32_t fd) {
-   return fcntl(fd, F_SETFD, FD_CLOEXEC);
+   return (int32_t)fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
 int32_t fcntlSetFl(int32_t fd, int32_t flg) {
-   return fcntl(fd, F_SETFL, flg);
+   return (int32_t)fcntl(fd, F_SETFL, flg);
 }
 
 int32_t nonBlocking(int32_t fd) {
    int flg = fcntl(fd, F_GETFL, 0);
 
    fcntlSetFl(fd, flg | O_NONBLOCK);
-   return flg;
+   return (int32_t)flg;
 }
 
 void pollIn(int32_t fd, struct pollfd *p) {
@@ -44,16 +44,16 @@ void pollOut(int32_t fd, struct pollfd *p) {
    p->events = POLLOUT;
 }
 
-int xPoll(struct pollfd *fds, int64_t nfds, int64_t timeout) {
-   return poll(fds, (nfds_t)nfds, (int)timeout);
+int32_t xPoll(struct pollfd *fds, int64_t nfds, int64_t timeout) {
+   return (int32_t)poll(fds, (nfds_t)nfds, (int)timeout);
 }
 
-int readyIn(struct pollfd *p) {
-   return p->revents & POLLIN;
+int32_t readyIn(struct pollfd *p) {
+   return (int32_t)p->revents & POLLIN;
 }
 
-int readyOut(struct pollfd *p) {
-   return p->revents & POLLOUT;
+int32_t readyOut(struct pollfd *p) {
+   return (int32_t)p->revents & POLLOUT;
 }
 
 // Sync src/defs.l 'SIGHUP' and src/glob.l '$Signal'
@@ -91,12 +91,32 @@ int32_t xErrno(void) {
    return 0;
 }
 
-int64_t getTime (void) {
+// System
+int64_t getTime(void) {
    struct timeval tim;
 
    if (gettimeofday(&tim, NULL))
       return 0;
    return (int64_t)tim.tv_sec * 1000 + ((int64_t)tim.tv_usec + 500) / 1000;
+}
+
+// Catch and Throw
+jmp_buf QuitRst;
+
+int32_t catch(void *env) {
+   return (int32_t)setjmp(env);
+}
+
+void throw(void *env, int32_t val) {
+   longjmp(env, (int)val);
+}
+
+int32_t catchQuit(void) {
+   return (int32_t)setjmp(QuitRst);
+}
+
+void throwQuit(int32_t val) {
+   longjmp(QuitRst, val);
 }
 
 // Lisp data access
@@ -120,12 +140,12 @@ int64_t num(int64_t x) {
    return -(x >> 4);
 }
 
-int length(int64_t x) {
+int32_t length(int64_t x) {
    int n = 0;
 
    while (!atom(x))
       ++n,  x = cdr(x);
-   return n;
+   return (int32_t)n;
 }
 
 // Native library interface
@@ -142,7 +162,7 @@ void *dlOpen(char *lib) {
    return dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
 }
 
-ffi *ffiPrep(void *lib, char *fun, int64_t lst) {
+ffi *ffiPrep(char *lib, char *fun, int64_t lst) {
    int64_t x = car(lst);
    int64_t y = cdr(lst);
    int i, nargs = length(y);

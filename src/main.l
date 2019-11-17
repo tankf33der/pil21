@@ -1,10 +1,10 @@
-# 16nov19 Software Lab. Alexander Burger
+# 17nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evList2 evList equal compare natRet main)
 
 (begin "base")
-(load "vers.l" "defs.l" "glob.l")
+(load "vers.l" "defs.l" "glob.l" "dec.l")
 
 # Utilities
 (inline length (X)
@@ -49,7 +49,7 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
 
 # Signals
 (de void sig((i32 . N))
-   (let I (val TtyPid)
+   (let I (val $TtyPid)
       (ifn (=0 I)
          (kill I N)
          (set $Signal (+ (val $Signal) 1))
@@ -364,7 +364,9 @@ needNum undefined evExpr evList2 evList equal compare natRet main)
    (initOutFile 2)  # Standard error
    (set $OutFile (initOutFile 1))  # Standard output
    (set $InFile (initInFile 0 null))  # Standard input
-   (loadAll 0)  # Load arguments
+   (when (=0 (catchQuit))
+      (loadAll 0)  # Load arguments
+      )
    (loop
       (repl $Nil (char ":") $Nil) ) )
 

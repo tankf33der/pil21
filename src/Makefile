@@ -1,9 +1,9 @@
-# 14nov19 Software Lab. Alexander Burger
+# 17nov19 Software Lab. Alexander Burger
 
 .SILENT:
 
 SRC = main.l \
-   vers.l defs.l glob.l \
+   vers.l defs.l glob.l dec.l \
    gc.l big.l sym.l db.l \
    io.l apply.l flow.l subr.l net.l
 

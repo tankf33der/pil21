@@ -1,6 +1,6 @@
-# 16nov19 Software Lab. Alexander Burger
+# 17nov19 Software Lab. Alexander Burger
 
-(compile) ()
+(compile) (GcData Env)
 
 (var $Link 0)  # Link register
 
@@ -10,7 +10,7 @@
 (var $Heaps 0)          # Heap list
 (var $Avail 0)          # Avail list
 
-(var TtyPid i32 0)               # Terminal process ID
+(var $TtyPid i32 0)              # Terminal process ID
 (var $InFDs i32 0)               # Number of input files
 (var $InFiles i8** null)         # Input files
 (var $OutFDs i32 0)              # Number of ourput files

@@ -1,4 +1,4 @@
-# 16nov19 Software Lab. Alexander Burger
+# 17nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -28,7 +28,8 @@ symTab inline define struct $Nil)
 
 (local) (*Strings *Ssa *Lbl *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi +phi
 br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
-Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
+Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False
+Beg End)
 
 (import any inc dec ++ #{>>>}#)
 
@@ -282,7 +283,9 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
 
 (de table Args
    (let (Table (++ Args)  I 0)
-      (put Table 'length (length Args))
+      (set Table
+         (* 8
+            (put Table 'length (length Args)) ) )
       (prinl "@" Table " = global [" (; Table length) " x i64] [")
       (for (I . Lst) Args
          (let Typ (if (caddr Lst) (cadr Lst) 'any)
@@ -319,11 +322,13 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
 
 (de symTab Args
    (let (Table 'SymTab  I 0)
-      (put Table 'length
-         (sum
-            '((L)
-               (if (> (length (cadr L)) 7) 4 2) )
-            Args ) )
+      (set Table
+         (* 8
+            (put Table 'length
+               (sum
+                  '((L)
+                     (if (> (length (cadr L)) 7) 4 2) )
+                  Args ) ) ) )
       (prinl "@" Table " = global [" (; Table length) " x i64] [")
       (for Lst Args
          (let? Sym (car Lst)
@@ -480,7 +485,7 @@ Prg2 Bnd2 Typ Sym Ret Args Ext Body Var Val Lst Lbl Flg Skip True False Beg End)
                '((X)
                   (prog1
                      (cons (car X) @N (cddr X))
-                     (inc '@N (cadr X)) ) )
+                     (inc '@N (eval (cadr X))) ) )
                (cdr Lst) ) )
          (curry (@N @L) (P)
             (if (=T P)
