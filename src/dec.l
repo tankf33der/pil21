@@ -1,6 +1,6 @@
-# 17nov19 Software Lab. Alexander Burger
+# 19nov19 Software Lab. Alexander Burger
 
-(compile) (ioFrame inFile outFile child)
+(compile) (inFile outFile child ioFrame catchFrame)
 
 (struct inFile
    (fd 4 i32)
@@ -36,8 +36,8 @@
    (link 8 i8*)
    (tag 8 any)
    (fin 8 any)
-   (env Env i64)
-   (rst 0) )
+   (env (env T) i8)
+   (rst 0 i8) )
 
 # System
 (compile) (malloc realloc free getpid isatty read write strdup strcmp strchr
@@ -63,9 +63,11 @@ strrchr memcpy dlerror kill exit)
 (de T NIL exit (i32))
 
 # Glue lib.c
-(compile) (stderrMsg strErrno openRdonly openAppend fcntlCloExec fcntlSetFl
-nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno getTime
-catchQuit throwQuit dlOpen ffiPrep ffiCall)
+(compile) (JmpBufSize stderrMsg strErrno openRdonly openAppend fcntlCloExec
+fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno
+getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
+
+(var JmpBufSize i32 NIL)
 
 (de T void stderrMsg (i8* i64))
 (de T i8* strErrno ())

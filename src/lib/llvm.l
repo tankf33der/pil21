@@ -1,4 +1,4 @@
-# 17nov19 Software Lab. Alexander Burger
+# 19nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -9,8 +9,8 @@
 (symbols 'llvm 'pico)
 
 (local) (void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64* i64**
-any YES NO ZERO ONE begin end $ ? short global var str const globals array table
-symTab inline define struct $Nil)
+any YES NO ZERO ONE SymTab begin end $ ? short global var str const globals
+array table symTab inline define struct $Nil)
 
 (import pico symbols T NIL @ @@ compile load setq prog */ >> char hex)
 
@@ -206,26 +206,29 @@ Beg End)
    (| 2 (>> -4 N)) )
 
 (de global (Sym Typ Val)
-   (prinl
-      "@" Sym " = global " (type Typ) " "
-      (cond
-         ((pre? "_" Val) (pack "@" @))
-         ((pre? "$" Val)
-            (if (; Val offset)
-               (pack
-                  "ptrtoint (i8* getelementptr (i8, i8* bitcast (["
-                  (; Val table length)
-                  " x i64]* @"
-                  (; Val table)
-                  " to i8*), i32 "
-                  @
-                  ") to i64)" )
-               (pack "ptrtoint ("
-                  (if (== 'any Typ) 'i64 Typ)
-                  "* @" @ " to "
-                  (if (== 'any Typ) 'i64 Typ)
-                  ")" ) ) )
-         (T Val) ) )
+   (prin
+      "@" Sym " = "
+      (unless Val "external ")
+      "global " (type Typ) )
+   (cond
+      ((pre? "_" Val) (prin " @" @))
+      ((pre? "$" Val)
+         (if (; Val offset)
+            (prin
+               " ptrtoint (i8* getelementptr (i8, i8* bitcast (["
+               (; Val table length)
+               " x i64]* @"
+               (; Val table)
+               " to i8*), i32 "
+               @
+               ") to i64)" )
+            (prin " ptrtoint ("
+               (if (== 'any Typ) 'i64 Typ)
+               "* @" @ " to "
+               (if (== 'any Typ) 'i64 Typ)
+               ")" ) ) )
+      (Val (prin " " @)) )
+   (prinl)
    (def Sym (def (pack "@" Sym) (ptr Typ))) )
 
 (de var Lst
@@ -282,10 +285,14 @@ Beg End)
       (prinl "]") ) )
 
 (de table Args
-   (let (Table (++ Args)  I 0)
-      (set Table
-         (* 8
-            (put Table 'length (length Args)) ) )
+   (let
+      (Table (++ Args)
+         I 0
+         @N (* 8 (put Table 'length (length Args)))
+         @S (caar Args) )
+      (def Table
+         (curry (@N @S) A
+            (if A @N (i8* @S)) ) )
       (prinl "@" Table " = global [" (; Table length) " x i64] [")
       (for (I . Lst) Args
          (let Typ (if (caddr Lst) (cadr Lst) 'any)
@@ -322,13 +329,11 @@ Beg End)
 
 (de symTab Args
    (let (Table 'SymTab  I 0)
-      (set Table
-         (* 8
-            (put Table 'length
-               (sum
-                  '((L)
-                     (if (> (length (cadr L)) 7) 4 2) )
-                  Args ) ) ) )
+      (put Table 'length
+         (sum
+            '((L)
+               (if (> (length (cadr L)) 7) 4 2) )
+            Args ) )
       (prinl "@" Table " = global [" (; Table length) " x i64] [")
       (for Lst Args
          (let? Sym (car Lst)
@@ -562,7 +567,8 @@ Beg End)
             ((memq V '(any i64))
                (ssa (inc '*Ssa) "inttoptr i64 " X " to " '@Typ) )
             ((sub? "*" V)
-               (ssa (inc '*Ssa) "bitcast " V " " X " to " '@Typ) )
+               (unless (== V '@Typ)
+                  (ssa (inc '*Ssa) "bitcast " V " " X " to " '@Typ) ) )
             (T (quit "Bad type" V)) )
          (def (pack "%" *Ssa) '@Typ) ) )
    (llvm~i1* llvm~i1*)

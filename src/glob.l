@@ -1,6 +1,6 @@
-# 17nov19 Software Lab. Alexander Burger
+# 19nov19 Software Lab. Alexander Burger
 
-(compile) (GcData Env)
+(compile) (gcData env)
 
 (var $Link 0)  # Link register
 
@@ -127,6 +127,8 @@
    (NIL "de" _de)
    (NIL "and" _and)
    (NIL "if" _if)
+   (NIL "catch" _catch)
+   (NIL "throw" _throw)
    (NIL "bye" _bye)
    # List processing
    (NIL "car" _car)
@@ -135,15 +137,15 @@
    (NIL "list" _list)
    # Database
    # Networking
-   ($LastSym "udp" _udp)
+   (NIL "udp" _udp)
    # System functions
    (NIL "native" _native)
    (NIL "args" _args)
    (NIL "next" _next)
-   (NIL "rest" _rest) )
+   ($LastSym "rest" _rest) )
 
 # GC relevant data
-(table GcData
+(table gcData
    ($Transient $Nil)    # Short transient names
    (NIL $Nil)           # Long transient names
    ($Alarm $Nil)        # Alarm handler
@@ -152,7 +154,7 @@
    )
 
 # Structures
-(table Env
+(table env
    ($Chr i32 0)                  # Single-char look ahead
    ($Put (void i32) _putStdout)  # Character output function
    ($Get (i32) _getStdin)        # Character input function
@@ -166,10 +168,11 @@
    ($CtlFrames i8* null)         # Control frames
    ($Intern $Pico1)              # Current namespaces of internal symbols
    ($Next $Nil)                  # Next vararg
+   ($Thrown $Nil)                # Thrown value
    ($Cls 0)                      # Method class
    ($Key 0)                      # Method key
    ($Apply 0)                    # Apply frames
-   ($Make 0)                     # 'make' env
+   ($Make 0)                     # 'make' environment
    ($Yoke 0)
    ($Task $Nil)                  # Task list
    ($Protect 0)                  # Signal protection

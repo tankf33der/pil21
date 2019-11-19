@@ -1,4 +1,4 @@
-# 01nov19 Software Lab. Alexander Burger
+# 19nov19 Software Lab. Alexander Burger
 
 (compile) (redefine)
 
@@ -37,6 +37,34 @@
          (run (cdr X))
          (set $At A)
          (eval (car X)) ) ) )
+
+# (catch 'any . prg) -> any
+(de _catch (X)
+   (let Frame (catchFrame (b8 (+ (val JmpBufSize) (catchFrame T))))
+      (>>> X)
+      (Frame tag (eval (++ X)))
+      (Frame link (val $Catch))
+      (set $Catch (Frame))
+      (Frame fin ZERO)
+      (memcpy (Frame env T) (env) (env T))
+      (prog1
+         (if (=0 (setjmp (Frame rst T)))
+            (run X)
+            (val $Thrown) )
+         (set $Catch (Frame link)) ) ) )
+
+# (throw 'sym 'any)
+(de _throw (Exe)
+   (let (X (cdr Exe)  Tag (eval (++ X)))
+      (save Tag T
+         (set $Thrown (eval (car X))) )
+      (let Frame (catchFrame (val $Catch))
+         (until (=0 (Frame))
+            (when (or (== $T (Frame tag)) (== Tag (Frame tag)))
+               #! (unwind Frame)
+               (longjmp (Frame rst T) 1) )
+            (setq Frame (Frame link)) ) )
+      (err Exe Tag ($ "Tag not found") null null) ) )
 
 # (bye ['cnt])
 (de _bye (X)

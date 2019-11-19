@@ -1,4 +1,4 @@
-// 17nov19 Software Lab. Alexander Burger
+// 19nov19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -101,6 +101,7 @@ int64_t getTime(void) {
 }
 
 // Catch and Throw
+int JmpBufSize = sizeof(jmp_buf);
 jmp_buf QuitRst;
 
 int32_t catchQuit(void) {
