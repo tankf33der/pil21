@@ -46,6 +46,7 @@ Beg End)
    (prinl "declare {i64, i1} @llvm.usub.with.overflow.i64(i64, i64)")
    (prinl "declare i64 @llvm.fshl.i64(i64, i64, i64)")
    (prinl "declare i64 @llvm.fshr.i64(i64, i64, i64)")
+   (prinl "declare void @llvm.memcpy.p0i8.p0i8.i64(i8*, i8*, i64, i1)")
    (prinl "declare i8* @llvm.stacksave()")
    (prinl "declare void @llvm.stackrestore(i8*)")
    (prinl) )
@@ -892,6 +893,16 @@ Beg End)
       (while (next)
          (store (next) @) ) )
    (llvm~set) )
+
+(asm ()
+   ((X Y Z)
+      (link
+         (pack
+            "call void @llvm.memcpy.p0i8.p0i8.i64(i8* " X
+            ", i8* " Y
+            ", i64 " Z
+            ", i1 0)" ) ) )
+   (llvm~memcpy) )
 
 (asm ()
    (Lst

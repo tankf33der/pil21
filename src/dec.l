@@ -1,4 +1,4 @@
-# 19nov19 Software Lab. Alexander Burger
+# 20nov19 Software Lab. Alexander Burger
 
 (compile) (inFile outFile child ioFrame catchFrame)
 
@@ -41,7 +41,7 @@
 
 # System
 (compile) (malloc realloc free getpid isatty read write strdup strcmp strchr
-strrchr memcpy dlerror kill exit)
+strrchr dlerror kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
@@ -54,7 +54,6 @@ strrchr memcpy dlerror kill exit)
 (de T i32 strcmp (i8* i8*))
 (de T i8* strchr (i8* i32))
 (de T i8* strrchr (i8* i32))
-(de T i8* memcpy (i8* i8* i64))
 (de T i8* dlerror ())
 (de T i32 close (i32))
 (de T i32 setjmp (i8*))
