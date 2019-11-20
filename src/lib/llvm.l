@@ -1,4 +1,4 @@
-# 19nov19 Software Lab. Alexander Burger
+# 20nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -161,11 +161,13 @@ Beg End)
    (or
       (pair Typ)
       (if (== 'any Typ)
-         'any
+         Typ
          (intern (pack Typ "*")) ) ) )
 
 (de pointee (Typ)
-   (intern (pack (head -1 (chop Typ)))) )
+   (if (== 'any Typ)
+      Typ
+      (intern (pack (head -1 (chop Typ)))) ) )
 
 (de store (X P)
    (nond

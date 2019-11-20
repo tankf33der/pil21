@@ -1,4 +1,4 @@
-# 19nov19 Software Lab. Alexander Burger
+# 20nov19 Software Lab. Alexander Burger
 
 (compile) (redefine)
 
@@ -58,12 +58,13 @@
    (let (X (cdr Exe)  Tag (eval (++ X)))
       (save Tag T
          (set $Thrown (eval (car X))) )
-      (let Frame (catchFrame (val $Catch))
-         (until (=0 (Frame))
-            (when (or (== $T (Frame tag)) (== Tag (Frame tag)))
-               #! (unwind Frame)
-               (longjmp (Frame rst T) 1) )
-            (setq Frame (Frame link)) ) )
+      (let P (val $Catch)
+         (until (=0 P)
+            (let Frame (catchFrame P)
+               (when (or (== $T (Frame tag)) (== Tag (Frame tag)))
+                  #! (unwind Frame)
+                  (longjmp (Frame rst T) 1) )
+               (setq P (Frame link)) ) ) )
       (err Exe Tag ($ "Tag not found") null null) ) )
 
 # (bye ['cnt])
