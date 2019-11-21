@@ -1,4 +1,4 @@
-# 16nov19 Software Lab. Alexander Burger
+# 21nov19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -7,30 +7,30 @@ waitFd rdOpen wrOpen erOpen ctOpen getChar skipC comment skip testEsc anonymous
 rdAtom rdList read0 read1 token newline space outWord outNum outString print
 prin prin1 repl loadAll)
 
-(de NIL openErr (Exe (i8* . Str))
-   (err Exe 0 ($ "%s open: %s") Str (strErrno)) )
+(de NIL openErr (Exe X)
+   (err Exe X ($ "Open error: %s") (strErrno)) )
 
 (de NIL closeErr ()
-   (err 0 0 ($ "Close error: %s") (strErrno) null) )
+   (err 0 0 ($ "Close error: %s") (strErrno)) )
 
 (de NIL eofErr ()
-   (err 0 0 ($ "EOF Overrun") null null) )
+   (err 0 0 ($ "EOF Overrun") null) )
 
 (de NIL badInput ()
    (let S (b8 2)
       (set S (i8 (val $Chr)))
       (set (i S) 0)
-      (err 0 0 ($ "Bad input '%c'") S null) ) )
+      (err 0 0 ($ "Bad input '%c'") S) ) )
 
-(de NIL writeErr ((i8* . Str))
-   (err 0 0 ($ "%s write: %s") Str (strErrno)) )
+(de NIL writeErr ((i8* . Fmt))
+   (err 0 0 Fmt (strErrno)) )
 
 (de NIL selectErr (Exe)
-   (err Exe 0 ($ "Select error: %s") (strErrno) null) )
+   (err Exe 0 ($ "Select error: %s") (strErrno)) )
 
 (de void closeOnExec (Exe (i32 . Fd))
    (when (lt0 (fcntlCloExec Fd))
-      (err Exe 0 ($ "SETFD %s") (strErrno) null) ) )
+      (err Exe 0 ($ "SETFD %s") (strErrno)) ) )
 
 (de i8* initInFile ((i32 . Fd) (i8* . Nm))
    (let I (val $InFDs)
@@ -177,7 +177,7 @@ prin prin1 repl loadAll)
                   (unless (== E EINTR)
                      (when (== Fd 2)  # Stderr
                         (bye 2) )
-                     (writeErr ($ "bytes")) )
+                     (writeErr ($ "bytes write: %s")) )
                   (unless (=0 (val $Signal))
                      (sighandler 0) ) ) )
             (T
@@ -273,7 +273,7 @@ prin prin1 repl loadAll)
                   (setq Nm (i Nm)) )
                (while (lt0 (Frame fd (if Flg (openAppend Nm) (openRdonly Nm))))
                   (unless (== (xErrno) EINTR)
-                     (openErr Exe Nm) )
+                     (openErr Exe X) )
                   (unless (=0 (val $Signal))
                      (sighandler Exe) ) )
                (Frame pid 1)
@@ -458,7 +458,7 @@ prin prin1 repl loadAll)
                         ((== (skip) (char ")"))
                            (call $Get) )
                         ((<> (val $Chr) (char "]"))
-                           (err 0 X ($ "Bad dotted pair") null null) ) ) )
+                           (err 0 X ($ "Bad dotted pair") null) ) ) )
                   (setq X
                      (set (i X) (cons (rdAtom (char ".")) $Nil)) ) )
                ((== C (char "~"))
@@ -491,7 +491,7 @@ prin prin1 repl loadAll)
          ((== C (char "["))
             (let X (rdList)
                (when (== (val $Chr) (char "]"))
-                  (err 0 X ($ "Super parentheses mismatch") null null) )
+                  (err 0 X ($ "Super parentheses mismatch") null) )
                (call $Get)
                X ) )
          ((== C (char "'"))

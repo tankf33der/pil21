@@ -1,4 +1,4 @@
-# 20nov19 Software Lab. Alexander Burger
+# 21nov19 Software Lab. Alexander Burger
 
 (compile) (redefine)
 
@@ -65,7 +65,7 @@
                   #! (unwind Frame)
                   (longjmp (Frame rst T) 1) )
                (setq P (Frame link)) ) ) )
-      (err Exe Tag ($ "Tag not found") null null) ) )
+      (err Exe Tag ($ "Tag not found") null) ) )
 
 # (bye ['cnt])
 (de _bye (X)

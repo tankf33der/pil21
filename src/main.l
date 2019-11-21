@@ -1,4 +1,4 @@
-# 20nov19 Software Lab. Alexander Burger
+# 21nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
 needNum undefined evExpr evListSave evList equal compare natRet main)
@@ -85,11 +85,11 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
       (set $Protect 0) ) )
 
 # Error handling
-(de NIL err (Exe X (i8* . Fmt) (i8* . A) (i8* . B))
+(de NIL err (Exe X (i8* . Fmt) (i8* . Str))
    (giveup Fmt) )
 
 (de numErr (Exe X)
-   (err Exe X ($ "Number expected") null null) )
+   (err Exe X ($ "Number expected") null) )
 
 # Argument checks
 (inline needNum (Exe X)
@@ -99,7 +99,7 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
 
 # Evaluation
 (de NIL undefined (Fun Exe)
-   (err Exe Fun ($ "Undefined") null null) )
+   (err Exe Fun ($ "Undefined") null) )
 
 # Apply EXPR to CDR of list
 (de evExpr (Exe Lst)
@@ -285,7 +285,7 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
                         null
                         (pathString Y (b8 (pathSize Y))) ) )
                   (when (=0 P)
-                     (err Exe 0 ($ "[DLL] %s") (dlerror) null) )
+                     (err Exe Y ($ "[DLL] %s") (dlerror)) )
                   (set Y (box64 (i64 P)))
                   P ) ) )
          Fun (eval (++ X))  # Eval function 'cnt2|sym2'
@@ -305,7 +305,7 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
                   (T
                      (let P (ffiPrep Lib (bufString Fun (b8 (bufSize Fun))) Args)
                         (when (=0 P)
-                           (err Exe 0 ($ "Bad ffi") null null) )
+                           (err Exe 0 ($ "Bad ffi") null) )
                         (set Fun (box64 (i64 P)))
                         P ) ) )
                Args ) )
