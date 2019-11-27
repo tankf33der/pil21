@@ -1,4 +1,4 @@
-# 24nov19 Software Lab. Alexander Burger
+# 27nov19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -66,7 +66,7 @@ intern isIntern findSym preStr subStr)
 
 (de i32 cmpLong (X Y)
    (loop T
-      (? (n0 (- (val (dig X)) (val (dig Y))))
+      (? (n0 (sub (val (dig X)) (val (dig Y))))
          (if @@ (i32 -1) (i32 +1)) )
       (setq X (val (big X))  Y (val (big Y)))
       (? (cnt? X)

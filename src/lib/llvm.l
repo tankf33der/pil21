@@ -1,4 +1,4 @@
-# 20nov19 Software Lab. Alexander Burger
+# 27nov19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -12,7 +12,7 @@
 any YES NO ZERO ONE SymTab begin end $ ? short global var str const globals
 array table symTab inline define struct $Nil)
 
-(import pico symbols T NIL @ @@ compile load setq prog */ >> char hex)
+(import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex)
 
 (def 'void 'void)
 (def 'null 'null)
@@ -140,7 +140,12 @@ Beg End)
                   (and
                      (memq (car X) '(llvm~setq llvm~++ llvm~>>>))
                      (for (L (cdr X)  L  (cddr L))
-                        (T (== Var (car L)) T) ) ) ) ) )
+                        (T (== Var (car L)) T) ) )
+                  (and
+                     (== (car X) 'llvm~xchg)
+                     (or
+                        (and (== 'quote (caadr X)) (== Var (cdadr X)))
+                        (and (== 'quote (caaddr X)) (== Var (cdaddr X))) ) ) ) ) )
          Lst )
       (push '*Bind Var) ) )
 
@@ -707,35 +712,43 @@ Beg End)
 
 # Arithmetics
 (asm (@Op1 @Op2 @Sgn)
-   ((X Y)
-      (if (num? X)
-         (if Y (@Op1 X Y) (@Op1 X))
-         (let V (val X)
-            (casq V
-               ((any i64)
-                  (ifn Y
-                     (ssa (inc '*Ssa) @Op2 " " V " 0, " X)
-                     (when (and (sym? Y) (== 'i1 (val Y)))
-                        (ssa (inc '*Ssa) "zext i1 " Y " to i64")
-                        (setq Y (pack "%" *Ssa)) )
-                     (ssa (inc '*Ssa) "call {i64, i1} @llvm.u" @Op2 ".with.overflow.i64(i64 " X ", i64 " Y ")")
-                     (ssa (inc '*Ssa) "extractvalue {i64, i1} %" (dec *Ssa) ", 1")
-                     (setq @@ (def (pack "%" *Ssa) 'i1))
-                     (ssa (inc '*Ssa) "extractvalue {i64, i1} %" (- *Ssa 2) ", 0") ) )
-               ((i8 i32)
-                  (ssa (inc '*Ssa) @Op2 " " V " " (if Y X 0) ", " (or Y X)) )
-               ((i1* i1** i8* i8** i8*** i32* i32** i64* i64**)
-                  (let Typ (pointee V)
-                     (if (num? Y)
-                        (ssa (inc '*Ssa) "getelementptr " Typ ", " V " " X ", i32 " @Sgn Y)
-                        (ssa (inc '*Ssa) "ptrtoint " V " " X " to i64")
-                        (ssa (inc '*Ssa) "ptrtoint " (val Y) " " Y " to i64")
-                        (ssa (inc '*Ssa) @Op2 " i64 %" (- *Ssa 2) ", %" (dec *Ssa))
-                        (setq V 'i64) ) ) )
-               (T (quit "Bad type" V)) )
+   ((X . @)
+      (cond
+         ((num? X) (pass @Op1 X))
+         ((args)
+            (let V (val X)
+               (for (Y (next)  Y  (next))
+                  (casq V
+                     ((i8 i32 i64 any)
+                        (ssa (inc '*Ssa) @Op2 " " V " " X ", " Y) )
+                     ((i1* i1** i8* i8** i8*** i32* i32** i64* i64**)
+                        (let Typ (pointee V)
+                           (if (num? Y)
+                              (ssa (inc '*Ssa) "getelementptr " Typ ", " V " " X ", i32 " @Sgn Y)
+                              (ssa (inc '*Ssa) "ptrtoint " V " " X " to i64")
+                              (ssa (inc '*Ssa) "ptrtoint " (val Y) " " Y " to i64")
+                              (ssa (inc '*Ssa) @Op2 " i64 %" (- *Ssa 2) ", %" (dec *Ssa))
+                              (setq V 'i64) ) ) )
+                     (T (quit "Bad type" V)) )
+                  (setq X (def (pack "%" *Ssa) V)) ) ) )
+         (T
+            (ssa (inc '*Ssa) @Op2 " " V " 0, " X)
             (def (pack "%" *Ssa) V) ) ) )
    (llvm~+ + "add")
    (llvm~- - "sub" "-") )
+
+(asm (@Op)
+   ((X Y)
+      (when (and (sym? Y) (== 'i1 (val Y)))
+         (ssa (inc '*Ssa) "zext i1 " Y " to i64")
+         (setq Y (pack "%" *Ssa)) )
+      (ssa (inc '*Ssa) "call {i64, i1} @llvm.u" @Op ".with.overflow.i64(i64 " X ", i64 " Y ")")
+      (ssa (inc '*Ssa) "extractvalue {i64, i1} %" (dec *Ssa) ", 1")
+      (setq @@ (def (pack "%" *Ssa) 'i1))
+      (ssa (inc '*Ssa) "extractvalue {i64, i1} %" (- *Ssa 2) ", 0")
+      (def (pack "%" *Ssa) 'i64) )
+   (llvm~add "add")
+   (llvm~sub "sub") )
 
 (asm (@Op1 @Op2 @Sgn)
    ((X Z)

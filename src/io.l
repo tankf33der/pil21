@@ -229,7 +229,7 @@ prin prin1 repl loadAll)
       (loop
          (let
             (Stk (stack)
-               Poll (b64 (+ (+ (length (val $Run)) (val $Children)) 3))
+               Poll (b64 (+ (length (val $Run)) (val $Children) 3))
                I 0
                M Ms )
             (when (ge0 Fd)

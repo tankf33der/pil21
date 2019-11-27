@@ -113,7 +113,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
 (de twice (N)
    (if (big? N)
       (twiceBig N)
-      (let X (+ N N)  # Shift left
+      (let X (add N N)  # Shift left
          (if @@  # Overflow
             (boxNum (shr N 3))  # Make big
             (x| X 6) ) ) ) )  # Fix tag bit
@@ -157,7 +157,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
             (? (cnt? (setq A (val (big X)))))
             (setq X A  A (mul 10 (val (dig X))))
             (let C @@
-               (setq A (+ A B)  B (+ C @@)) ) )
+               (setq A (add A B)  B (add C @@)) ) )
          (set (big X)
             (box64 (+ B (mul 10 (int A)))) )
          N ) ) )
@@ -181,7 +181,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
             (box64
                (| (shl (shr Y 4) 1) (shl 0 A 1)) ) )
          (pop P) )
-      (let X (+ N N)  # Shift left
+      (let X (add N N)  # Shift left
          (if @@  # Overflow
             (boxNum (shr N 3))  # Make big
             (x| X 6) ) ) ) )  # Fix tag bit
@@ -239,9 +239,12 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
    )
 }#
 
-# Add two (unsigned) numbers
 (de addu (A B)
-   (cnt (+ (int A) (int B))) )
+   (if (cnt? A)
+      (if (cnt? B)
+         (box64 (+ (int A) (int B)))
+         $Nil )
+      $Nil ) )
 
 # Subtract two (unsigned) numbers
 (de subu (A B)
@@ -349,7 +352,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                               (when (> A TopA)
                                  (inc 'TopA)  # Extend accumulator
                                  (set A 0) )  # with 0
-                              (let N (+ (+ (val A) (val I)) C)  # Add BCDs and Carry
+                              (let N (+ (val A) (val I) C)  # Add BCDs and Carry
                                  (setq C
                                     (if (> 1000000000000000000 N)
                                        0
@@ -366,7 +369,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                         (loop
                            (let N (val I)
                               (setq C
-                                 (if (> 1000000000000000000 (setq N (+ (+ N N) C)))  # Double digit
+                                 (if (> 1000000000000000000 (setq N (+ N N C)))  # Double digit
                                     0
                                     (setq N (- N 1000000000000000000))  # BCD overflow
                                     1 ) )
