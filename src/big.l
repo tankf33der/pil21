@@ -239,12 +239,25 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
    )
 }#
 
+# Add two (unsigned) numbers
 (de addu (A B)
    (if (cnt? A)
+      # A is short
       (if (cnt? B)
          (box64 (+ (int A) (int B)))
-         $Nil )
-      $Nil ) )
+         (xchg 'A 'B)
+         (goto 1) )
+      # A is big
+      (if (cnt? B)
+         (: 1
+            (let Big (val (big A))
+               (setq B (add (val (dig A)) (int B)))
+               (ifn @@
+                  (consNum B Big)  # No carry
+                  (let P (link (push (consNum B Big) T NIL))
+
+                     (pop P) ) ) ) )
+         $Nil ) ) )
 
 # Subtract two (unsigned) numbers
 (de subu (A B)

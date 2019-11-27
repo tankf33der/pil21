@@ -1,4 +1,4 @@
-# 15oct19 Software Lab. Alexander Burger
+# 27nov19 Software Lab. Alexander Burger
 
 (compile) (mark gc cons)
 
@@ -55,3 +55,14 @@
    (if (=0 (& N (hex "F000000000000000")))  # Fit in short number
       (cnt N)
       (boxNum N) ) )
+
+(de consNum (Dig Big)
+   (let P (val $Avail)
+      (when (=0 P)
+         (save Big T
+            (gc CELLS) )
+         (setq P (val $Avail)) )
+      (set $Avail (car P))
+      (set P Dig)
+      (set (i P) Big)
+      (big P) ) )

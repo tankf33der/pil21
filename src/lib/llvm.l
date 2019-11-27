@@ -615,7 +615,7 @@ Beg End)
       (ssa (inc '*Ssa) "shl i64 " X ", 4")
       (ssa (inc '*Ssa) "or i64 %" (dec *Ssa) ", 2")
       (def (pack "%" *Ssa) 'any) )
-   (llvm~cnt 2) )
+   (llvm~cnt) )
 
 (asm (@Tag)
    ((X)
