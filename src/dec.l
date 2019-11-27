@@ -1,4 +1,4 @@
-# 20nov19 Software Lab. Alexander Burger
+# 27nov19 Software Lab. Alexander Burger
 
 (compile) (inFile outFile child ioFrame catchFrame)
 
@@ -41,7 +41,7 @@
 
 # System
 (compile) (malloc realloc free getpid isatty read write strdup strcmp strchr
-strrchr dlerror kill exit)
+strrchr dlerror close setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
@@ -62,13 +62,14 @@ strrchr dlerror kill exit)
 (de T NIL exit (i32))
 
 # Glue lib.c
-(compile) (JmpBufSize stderrMsg strErrno openRdonly openAppend fcntlCloExec
-fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut xSignal xErrno
-getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
+(compile) (JmpBufSize stderrMsg xprintf strErrno openRdonly openAppend
+fcntlCloExec fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut
+xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 
 (var JmpBufSize i32 NIL)
 
 (de T void stderrMsg (i8* i64))
+(de T i32 xprintf (i8* i32 i8* i8*))
 (de T i8* strErrno ())
 (de T i32 openRdonly (i8*))
 (de T i32 openAppend (i8*))
@@ -92,12 +93,17 @@ getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i64 ffiCall (i8* i64))
 
 ### Forward references
-(compile) (evList read0 newline space print)
+(compile) (evList mkStr subStr read0 newline space print)
 
 # main.l
 (de evList (any))
+# sym.l
+(de mkStr (i8*))
+(de xSym (any))
+(de i1 subStr (any any))
 # io.l
 (de read0 (i1))
 (de void newline ())
 (de void space ())
+(de void outWord (i64))
 (de void print (any))

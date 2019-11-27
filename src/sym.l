@@ -1,7 +1,7 @@
-# 10nov19 Software Lab. Alexander Burger
+# 24nov19 Software Lab. Alexander Burger
 
-(compile) (name bufSize pathSize bufString pathString cmpLong mkStr intern
-findSym isIntern)
+(compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
+intern isIntern findSym preStr subStr)
 
 (de name (Tail)
    (setq Tail (any (& (i64 Tail) -9)))  # Clear 'extern' tag
@@ -32,19 +32,6 @@ findSym isIntern)
 (de i8* pathString (X (i8* . P))
    (bufString X P) )  #!
 
-(de i32 cmpLong (X Y)
-   (loop T
-      (? (n0 (- (val (dig X)) (val (dig Y))))
-         (if @@ (i32 -1) (i32 +1)) )
-      (setq X (val (big X))  Y (val (big Y)))
-      (? (cnt? X)
-         (cond T
-            ((big? Y) (i32 -1))
-            ((== Y X) (i32 0))
-            ((> Y X) (i32 -1))
-            (T (i32 +1)) ) )
-      (? (cnt? Y) (i32 +1)) ) )
-
 (de mkStr ((i8* . Str))
    (if (=0 Str)
       $Nil
@@ -58,6 +45,37 @@ findSym isIntern)
                (prog1
                   (consSym (val Q) 0)
                   (drop Q) ) ) ) ) ) )
+
+(de void pack (X (i64* . P))
+   (when (pair X)
+      (loop
+         (pack (car X) P)
+         (? (atom (>>> X))) ) )
+   #{(unless (nil? X)
+      (byteNum B P)
+      )}# )
+
+(de xSym (X)
+   (if (or (num? X) (pair X))
+      (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+         (pack X P)
+         (prog1
+            (consSym (val Q) 0)
+            (drop Q) ) )
+      X ) )
+
+(de i32 cmpLong (X Y)
+   (loop T
+      (? (n0 (- (val (dig X)) (val (dig Y))))
+         (if @@ (i32 -1) (i32 +1)) )
+      (setq X (val (big X))  Y (val (big Y)))
+      (? (cnt? X)
+         (cond T
+            ((big? Y) (i32 -1))
+            ((== Y X) (i32 0))
+            ((> Y X) (i32 -1))
+            (T (i32 +1)) ) )
+      (? (cnt? Y) (i32 +1)) ) )
 
 (de intern (Sym Val Name Tree More)
    (when (cnt? Name)  # Short name
@@ -185,3 +203,29 @@ findSym isIntern)
    (intern 0 $Nil Name
       (val (car (val $Intern)))
       (cdr (val $Intern)) ) )
+
+(de i1 preStr (Nm (i8 . B) (i64* . P))
+   (let (Q (push 0 (i64 Nm))  C (numByte Q))
+      (loop T
+         (? (<> B C) NO)
+         (? (=0 (setq B (numByte P))) YES)
+         (? (=0 (setq C (numByte Q))) NO) ) ) )
+
+(de i1 subStr (X Y)
+   (or
+      (nil? X)
+      (== ZERO (setq X (name (val (tail X)))))
+      (let (P (push 0 (i64 (name (val (tail Y)))))  B NIL)
+         (loop T
+            (? (=0 (setq B (numByte P))) NO)
+            (let (Cnt (val P)  Nm (val (i P)))
+               (? (preStr X B P) YES)
+               (set P Cnt  (i P) Nm) ) ) ) ) )
+
+# (pre? 'any1 'any2) -> any2 | NIL
+(de _preQ (Exe)
+   $Nil )
+
+# (sub? 'any1 'any2) -> any2 | NIL
+(de _subQ (Exe)
+   $Nil )

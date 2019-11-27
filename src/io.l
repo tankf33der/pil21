@@ -1,4 +1,4 @@
-# 21nov19 Software Lab. Alexander Burger
+# 27nov19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -181,8 +181,7 @@ prin prin1 repl loadAll)
                   (unless (=0 (val $Signal))
                      (sighandler 0) ) ) )
             (T
-               (? (=0 (setq Cnt (- Cnt N)))
-                  YES )
+               (? (=0 (setq Cnt (- Cnt N))) YES)
                (setq P (ofs P N)) ) ) ) ) )
 
 (de i1 flush ((i8* . Out))
@@ -626,7 +625,7 @@ prin prin1 repl loadAll)
       (sighandler Exe) )
    (cond
       ((cnt? X) (outNum X))
-      ((big? X) (outString ($ "<big>")))
+      ((big? X) (fmtNum X -1 0 0))
       ((sym? X)
          (let Nm (name (val (tail X)))
             (cond

@@ -1,7 +1,7 @@
-# 21nov19 Software Lab. Alexander Burger
+# 24nov19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler err numErr
-needNum undefined evExpr evListSave evList equal compare natRet main)
+needNum undefined evExpr evListSave evList evSym equal compare natRet main)
 
 (begin "base")
 (load "vers.l" "defs.l" "glob.l" "dec.l")
@@ -85,8 +85,33 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
       (set $Protect 0) ) )
 
 # Error handling
-(de NIL err (Exe X (i8* . Fmt) (i8* . Str))
-   (giveup Fmt) )
+(de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
+   (set $Up (if (=0 Exe) $Nil Exe))
+   (unless (=0 X)
+      (link (push X T NIL)) )  # Save
+   (let Msg (b8 240)
+      (xprintf Msg 240 Fmt Arg)
+      (unless (=0 (val Msg))
+         (set $Msg (mkStr Msg))
+         (let P (val $Catch)
+            (until (=0 P)
+               (let (Frame (catchFrame P)  Tag (Frame tag))
+                  (unless (=0 Tag)
+                     (while (pair Tag)
+                        (when (subStr (car Tag) (val $Msg))
+                           (set $Thrown
+                              (if (nil? (car Tag))
+                                 (val $Msg)
+                                 (car Tag) ) )
+                           #! (unwind Frame)
+                           (longjmp (Frame rst T) 1) )
+                        (>>> Tag) ) )
+                  (setq P (Frame link)) ) ) ) )
+
+      (set $Chr (set $ExtN 0))
+      (set $Break NO)
+
+      (giveup Msg) ) )
 
 (de numErr (Exe X)
    (err Exe X ($ "Number expected") null) )
@@ -188,6 +213,9 @@ needNum undefined evExpr evListSave evList equal compare natRet main)
                         (undefined Fun Exe) ) )
                   (setq Fun V) ) ) )
          (T (evListSave (evList Fun) Exe)) ) ) )  # List: Evaluate
+
+(de evSym (Exe)
+   (xSym (eval (car Exe))) )
 
 (load "gc.l" "big.l" "sym.l" "db.l")
 

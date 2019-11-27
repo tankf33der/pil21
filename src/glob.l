@@ -1,4 +1,4 @@
-# 19nov19 Software Lab. Alexander Burger
+# 24nov19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -31,6 +31,9 @@
 (var $Talking i32 0)             # Active child
 (var $Children i32 0)            # Number of children
 (var $Child i8* null)            # Child array
+(var $ExtN i32 0)                # External symbol offset
+(var $Break i1 NO)               # Breakpoint
+(var $GcCount i32 CELLS)         # Collector count
 
 # Console line
 (array $Line i64
@@ -110,6 +113,8 @@
    (NIL "=" _equal)
    (NIL ">=" _ge)
    # Symbol functions
+   (NIL "pre?" _preQ)
+   (NIL "sub?" _subQ)
    # Input/Output
    (NIL "read" _read)
    (NIL "in" _in)
