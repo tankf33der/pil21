@@ -1,4 +1,4 @@
-# 27nov19 Software Lab. Alexander Burger
+# 28nov19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
@@ -250,13 +250,27 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
       # A is big
       (if (cnt? B)
          (: 1
-            (let Big (val (big A))
+            (let N (val (big A))
                (setq B (add (val (dig A)) (int B)))
                (ifn @@
-                  (consNum B Big)  # No carry
-                  (let P (link (push (consNum B Big) T NIL))
-
+                  (consNum B N)  # No carry
+                  (let P (link (push (setq B (consNum B N)) T NIL))  # Else build new head
+                     (loop
+                        (? (cnt? N)
+                           (setq N (add N (hex "10")))  # Add carry
+                           (set (big B)
+                              (ifn @@  # No further carry
+                                 N  # Append it
+                                 (boxNum (| (int N) (hex "1000000000000000"))) ) ) )  # Set top bit
+                        (let D (val (dig N))  # Next digit
+                           (setq
+                              N (val (big N))
+                              D (add D 1) )  # Add carry
+                           (? (not @@)  # No carry
+                              (set (big B) (consNum D N)) )
+                           (setq B (set (big B) (consNum D N))) ) )
                      (pop P) ) ) ) )
+         # Both are big
          $Nil ) ) )
 
 # Subtract two (unsigned) numbers
