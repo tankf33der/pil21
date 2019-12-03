@@ -1,4 +1,4 @@
-# 28nov19 Software Lab. Alexander Burger
+# 03dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
@@ -271,7 +271,8 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                            (setq B (set (big B) (consNum D N))) ) )
                      (pop P) ) ) ) )
          # Both are big
-         $Nil ) ) )
+         (let P (link (push ZERO T NIL))  # Result
+            (pop P) ) ) ) )
 
 # Subtract two (unsigned) numbers
 (de subu (A B)
@@ -348,11 +349,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
 
 # Format number to output, length, or symbol
 (de fmtNum (Num (i32 . Scl) (i32 . Sep) (i32 . Ign))
-   (let
-      (P (push 4 ZERO T NIL)
-         Q (link (any (i P)))  # [cnt name cell]
-         Sign (sign? Num)
-         Len (i32 (+ 19 17)) )  # Length of 'cnt' (60 bit) plus round up div/18
+   (let (Sign (sign? Num)  Len (i32 (+ 19 17)))  # Length of 'cnt' (60 bit) plus round up div/18
       # Calculate buffer size
       (let N (setq Num (& Num -9))  # Clear sign bit
          (until (cnt? N)  # Calculate length
@@ -369,16 +366,12 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                   (when (big? Num)  # and first digit and mask
                      (setq
                         Dig (val (dig Num))
-                        Num (val (big Num))
                         Mask 1 ) )
                   (loop
                      (unless (=0 (& Dig Mask))  # Bit is set
                         # Add incrementor to accumulator
                         (let (A Acc  I Inc  C 0)  # Carry for BCD addition
                            (loop
-                              (when (> A TopA)
-                                 (inc 'TopA)  # Extend accumulator
-                                 (set A 0) )  # with 0
                               (let N (+ (val A) (val I) C)  # Add BCDs and Carry
                                  (setq C
                                     (if (> 1000000000000000000 N)
@@ -386,8 +379,10 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                                        (setq N (- N 1000000000000000000))  # BCD overflow
                                        1 ) )
                                  (set A N) )
-                              (inc 'A)
-                              (? (> (inc 'I) TopI)) )
+                              (? (> (inc 'I) TopI))
+                              (when (> (inc 'A) TopA)
+                                 (inc 'TopA)  # Extend accumulator
+                                 (set A 0) ) )  # with 0
                            (unless (=0 C) # BCD-Carry
                               (inc 'TopA)  # Extend accumulator
                               (set A 1) ) ) )  # with 1
@@ -401,17 +396,18 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                                     (setq N (- N 1000000000000000000))  # BCD overflow
                                     1 ) )
                               (set I N) )
-                           (inc 'I)
                            (? (> (inc 'I) TopI)) )
                         (unless (=0 C) # BCD-Carry
                            (inc 'TopI)  # Extend incrementor
-                           (set A 1) ) )  # with 1
+                           (set I 1) ) )  # with 1
                      (? (=0 (setq Mask (shl Mask 1)))) ) )
-               (? (cnt? Num)) ) )
+               (? (cnt? Num))
+               (setq Num (val (big Num))) ) )
          (cond T
             ((ge0 Scl)  # Build symbol
-               #(byteNum (i32 C) P)
-               $Nil )
+               (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+                  #(byteNum (i32 C) P)
+                  (pop Q) ) )
             ((== Scl -1)  # Direct print
                (when Sign
                   (call $Put (char "-")) )  # Output sign
@@ -420,8 +416,9 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                   (let (N (val Acc)  D 100000000000000000)
                      (loop
                         (call $Put (+ (i32 (/ N D)) (char "0")))  # Output next digit
-                        (? (== D 1))
-                        (setq N (% N D)  D (/ D 10)) ) ) )
+                        (setq N (% N D))
+                        (? (== 1 (setq D (/ D 10)))) )
+                     (call $Put (+ (i32 N) (char "0"))) ) )  # Output last digit
                $Nil )
             (T  # Calculate length
                $Nil ) ) ) ) )
