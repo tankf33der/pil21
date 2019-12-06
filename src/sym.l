@@ -1,4 +1,4 @@
-# 27nov19 Software Lab. Alexander Burger
+# 05dec19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -51,9 +51,16 @@ intern isIntern findSym preStr subStr)
       (loop
          (pack (car X) P)
          (? (atom (>>> X))) ) )
-   #{(unless (nil? X)
-      (byteNum B P)
-      )}# )
+   (cond
+      ((nil? X))
+      ((num? X) (fmtNum X 0 0 0 P))
+      ((sym? (val (tail X)))
+         )
+      (T
+         (name (val (tail X)))
+         #!
+         (byteNum (i32 66) P)
+         ) ) )
 
 (de xSym (X)
    (if (or (num? X) (pair X))
@@ -227,5 +234,6 @@ intern isIntern findSym preStr subStr)
    $Nil )
 
 # (sub? 'any1 'any2) -> any2 | NIL
-(de _subQ (Exe)
-   $Nil )
+(de _subQ (X)
+   (evSym (>>> X))
+   )

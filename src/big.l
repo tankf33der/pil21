@@ -1,7 +1,7 @@
-# 03dec19 Software Lab. Alexander Burger
+# 06dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
-shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
+shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 ### Bignum byte access ###
 (de i8 numByte ((i64* . P))
@@ -347,15 +347,25 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
          (Sign (sign Num))
          (T Num) ) ]
 
+(de i32 fmtWord ((i64 . N) (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
+   (when (> N 9)
+      (setq Scl (fmtWord (/ N 10) Scl Sep Ign P))
+      (cond
+         ((=0 Scl) (charNum Sep P))
+         ((and (n0 Ign) (gt0 Scl) (=0 (% Scl 3)))
+            (charNum Ign P) ) )
+      (dec 'Scl)
+      (setq N (% N 10)) )
+   (byteNum (+ (i32 N) (char "0")) P)
+   Scl )
+
 # Format number to output, length, or symbol
-(de fmtNum (Num (i32 . Scl) (i32 . Sep) (i32 . Ign))
+(de fmtNum (Num (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
    (let (Sign (sign? Num)  Len (i32 (+ 19 17)))  # Length of 'cnt' (60 bit) plus round up div/18
       # Calculate buffer size
       (let N (setq Num (& Num -9))  # Clear sign bit
          (until (cnt? N)  # Calculate length
-            (setq
-               Len (+ Len 20)  # Add length of 'digit'
-               N (val (big N)) ) ) )
+            (setq Len (+ Len 20)  N (val (big N))) ) )  # Add length of 'digit'
       (setq Len (/ Len 18))  # Divide by 18 (rounded), word count
       (let (Acc (b64 Len)  TopA Acc)
          # Build BCD
@@ -364,9 +374,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
             (loop
                (let (Dig Num  Mask 16)
                   (when (big? Num)  # and first digit and mask
-                     (setq
-                        Dig (val (dig Num))
-                        Mask 1 ) )
+                     (setq Dig (val (dig Num))  Mask 1) )
                   (loop
                      (unless (=0 (& Dig Mask))  # Bit is set
                         # Add incrementor to accumulator
@@ -405,23 +413,52 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtNum)
                (setq Num (val (big Num))) ) )
          (cond T
             ((ge0 Scl)  # Build symbol
-               (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
-                  #(byteNum (i32 C) P)
-                  (pop Q) ) )
+               (when Sign
+                  (byteNum (char "-") P) )
+               (let N (* (shr (i32 (- TopA Acc)) 3) 18)  # Calculate length~1
+                  (let D (val TopA)
+                     (until (=0 (setq D (/ D 10)))
+                        (inc 'N) ) )
+                  (when (lt0 (setq Scl (- N Scl)))
+                     (byteNum (char "0") P)
+                     (byteNum Sep P)
+                     (while (> -1 Scl)
+                        (inc 'Scl)
+                        (byteNum (char "0") P) ) ) )
+               (setq Scl (fmtWord (val TopA) Scl Sep Ign P))  # Pack highest word
+               (while (>= (dec 'TopA) Acc)
+                  (let (N (val TopA)  D 100000000000000000)
+                     (loop
+                        (cond
+                           ((=0 Scl) (charNum Sep P))
+                           ((and (n0 Ign) (gt0 Scl) (=0 (% Scl 3)))
+                              (charNum Ign P) ) )
+                        (dec 'Scl)
+                        (byteNum (+ (i32 (/ N D)) (char "0")) P)
+                        (setq N (% N D))
+                        (? (== 1 (setq D (/ D 10)))) )
+                     (byteNum (+ (i32 N) (char "0")) P) ) )
+               0 )
             ((== Scl -1)  # Direct print
                (when Sign
                   (call $Put (char "-")) )  # Output sign
                (outWord (val TopA))  # Output highest word
                (while (>= (dec 'TopA) Acc)
-                  (let (N (val Acc)  D 100000000000000000)
+                  (let (N (val TopA)  D 100000000000000000)
                      (loop
                         (call $Put (+ (i32 (/ N D)) (char "0")))  # Output next digit
                         (setq N (% N D))
                         (? (== 1 (setq D (/ D 10)))) )
                      (call $Put (+ (i32 N) (char "0"))) ) )  # Output last digit
-               $Nil )
+               0 )
             (T  # Calculate length
-               $Nil ) ) ) ) )
+               (let (N (* (shr (- TopA Acc) 3) 18)  D (val Acc))
+                  (loop
+                     (inc 'N)
+                     (? (=0 (setq D (/ D 10)))) )
+                  (when Sign
+                     (inc 'N) )
+                  (cnt N) ) ) ) ) ) )
 
 # (+ 'num ..) -> num
 (de _add (Exe)

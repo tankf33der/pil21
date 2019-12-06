@@ -1,4 +1,4 @@
-# 27nov19 Software Lab. Alexander Burger
+# 05dec19 Software Lab. Alexander Burger
 
 (compile) (mark gc cons)
 
@@ -29,17 +29,18 @@
       P ) )
 
 (de consSym (Name Val)
-   #? ZERO name -> NIL
-   (let P (val $Avail)
-      (when (=0 P)
-         (save Name Val
-            (gc CELLS) )
-         (setq P (val $Avail)) )
-      (set $Avail (car P))
-      (set P Name)
-      (prog1
-         (sym P)
-         (set @ (if (=0 Val) @ Val)) ) ) )
+   (if (== Name ZERO)
+      $Nil
+      (let P (val $Avail)
+         (when (=0 P)
+            (save Name Val
+               (gc CELLS) )
+            (setq P (val $Avail)) )
+         (set $Avail (car P))
+         (set P Name)
+         (prog1
+            (sym P)
+            (set @ (if (=0 Val) @ Val)) ) ) ) )
 
 (de boxNum (Dig)
    (let P (val $Avail)
