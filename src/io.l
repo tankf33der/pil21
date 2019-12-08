@@ -1,4 +1,4 @@
-# 05dec19 Software Lab. Alexander Burger
+# 08dec19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -501,7 +501,7 @@ prin prin1 repl loadAll)
          ((== C (char "`"))
             (call $Get)
             (save (read0 Top) T
-               (eval @) ) )
+               (eval (safe 1)) ) )
          ((== C (char "\""))
             (if (== (setq C (call $Get)) (char "\""))
                (prog (call $Get) $Nil)  # Empty string

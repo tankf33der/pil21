@@ -1,4 +1,4 @@
-# 06dec19 Software Lab. Alexander Burger
+# 08dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -392,8 +392,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                                  (inc 'TopA)  # Extend accumulator
                                  (set A 0) ) )  # with 0
                            (unless (=0 C) # BCD-Carry
-                              (inc 'TopA)  # Extend accumulator
-                              (set A 1) ) ) )  # with 1
+                              (set (inc 'TopA) 1) ) ) )  # Extend accumulator with 1
                      # Shift incrementor left
                      (let (I Inc  C 0)
                         (loop

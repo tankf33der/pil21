@@ -1,4 +1,4 @@
-# 27nov19 Software Lab. Alexander Burger
+# 08dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -29,7 +29,7 @@ array table symTab inline define struct $Nil)
 (local) (*Strings *Ssa *Lbl *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi +phi
 br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
 Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False
-Beg End)
+Beg End *Safe)
 
 (import any inc dec ++ #{>>>}#)
 
@@ -1239,7 +1239,8 @@ Beg End)
 ## Composite ##
 (symbols '(llvm cc pico))
 
-(local) (i ii iii iv v vi vii viii ix caar cadr cdar cddr eval run save evList)
+(local) (i ii iii iv v vi vii viii ix caar cadr cdar cddr eval run save safe
+evList)
 
 (for (@I . S) '(i ii iii iv v vi vii viii ix)
    (def S
@@ -1284,7 +1285,11 @@ Beg End)
    (log (up))
    (pico~let P (push X Y NIL)
       (link P)
-      (setq @ X)
-      (prog1
-         (pico~run Prg2)
-         (drop P) ) ) )
+      (use *Safe
+         (pico~push '*Safe Y X)
+         (prog1
+            (pico~run Prg2)
+            (drop P) ) ) ) )
+
+(pico~de safe (N)
+   (get *Safe N) )

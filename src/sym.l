@@ -1,4 +1,4 @@
-# 05dec19 Software Lab. Alexander Burger
+# 08dec19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -54,13 +54,13 @@ intern isIntern findSym preStr subStr)
    (cond
       ((nil? X))
       ((num? X) (fmtNum X 0 0 0 P))
-      ((sym? (val (tail X)))
+      ((sym? (val (tail X)))  # External symbol
          )
       (T
-         (name (val (tail X)))
-         #!
-         (byteNum (i32 66) P)
-         ) ) )
+         (let (Q (push 0 (i64 (name (val (tail X)))))  B (numByte Q))  # [cnt name]
+            (loop
+               (byteNum (i32 B) P)
+               (? (=0 (setq B (numByte Q)))) ) ) ) ) )
 
 (de xSym (X)
    (if (or (num? X) (pair X))
@@ -215,8 +215,8 @@ intern isIntern findSym preStr subStr)
    (let (Q (push 0 (i64 Nm))  C (numByte Q))
       (loop T
          (? (<> B C) NO)
-         (? (=0 (setq B (numByte P))) YES)
-         (? (=0 (setq C (numByte Q))) NO) ) ) )
+         (? (=0 (setq C (numByte Q))) YES)
+         (? (=0 (setq B (numByte P))) NO) ) ) )
 
 (de i1 subStr (X Y)
    (or
@@ -235,5 +235,8 @@ intern isIntern findSym preStr subStr)
 
 # (sub? 'any1 'any2) -> any2 | NIL
 (de _subQ (X)
-   (evSym (>>> X))
-   )
+   (save (evSym (>>> X)) T
+      (let Z (evSym (>>> X))
+         (if (subStr (safe 1) Z)
+            Z
+            $Nil ) ) ) )
