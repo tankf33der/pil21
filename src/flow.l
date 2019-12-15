@@ -1,4 +1,4 @@
-# 21nov19 Software Lab. Alexander Burger
+# 15dec19 Software Lab. Alexander Burger
 
 (compile) (redefine)
 
@@ -40,31 +40,30 @@
 
 # (catch 'any . prg) -> any
 (de _catch (X)
-   (let Frame (catchFrame (b8 (+ (val JmpBufSize) (catchFrame T))))
+   (let Ctch (catchFrame (b8 (+ (val JmpBufSize) (catchFrame T))))
       (>>> X)
-      (Frame tag (eval (++ X)))
-      (Frame link (val $Catch))
-      (set $Catch (Frame))
-      (Frame fin ZERO)
-      (memcpy (Frame env T) (env) (env T))
+      (Ctch tag (eval (++ X)))
+      (Ctch link (val $Catch))
+      (set $Catch (Ctch))
+      (Ctch fin ZERO)
+      (memcpy (Ctch (env)) (env) (env T))
       (prog1
-         (if (=0 (setjmp (Frame rst T)))
+         (if (=0 (setjmp (Ctch (rst))))
             (run X)
             (val $Thrown) )
-         (set $Catch (Frame link)) ) ) )
+         (set $Catch (Ctch link)) ) ) )
 
 # (throw 'sym 'any)
 (de _throw (Exe)
    (let (X (cdr Exe)  Tag (eval (++ X)))
       (save Tag T
          (set $Thrown (eval (car X))) )
-      (let P (val $Catch)
-         (until (=0 P)
-            (let Frame (catchFrame P)
-               (when (or (== $T (Frame tag)) (== Tag (Frame tag)))
-                  #! (unwind Frame)
-                  (longjmp (Frame rst T) 1) )
-               (setq P (Frame link)) ) ) )
+      (let Ctch (catchFrame (val $Catch))
+         (until (=0 (Ctch))
+            (when (or (== $T (Ctch tag)) (== Tag (Ctch tag)))
+               (unwind (Ctch))
+               (longjmp (Ctch (rst)) 1) )
+            (setq Ctch (catchFrame (Ctch link))) ) )
       (err Exe Tag ($ "Tag not found") null) ) )
 
 # (bye ['cnt])

@@ -1,4 +1,4 @@
-# 08dec19 Software Lab. Alexander Burger
+# 15dec19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -95,42 +95,47 @@ prin prin1 repl loadAll)
             (free V)
             (set P null) ) ) ) )
 
-(de void pushInFiles ((i8* . In))
-   (let (Frame (ioFrame In)  File (inFile (val $InFile)))
+(de void pushInFiles ((i8* . P))
+   (let (In (ioFrame P)  File (inFile (val $InFile)))
       (unless (=0 (File))
          (File next (val $Chr)) )
       (set $Chr
-         (if (=0 (set $InFile (val (ofs (val $InFiles) (Frame fd)))))
+         (if (=0 (set $InFile (val (ofs (val $InFiles) (In fd)))))
             -1
             (File next) ) )
-      (Frame fun (val (i8** $Get)))
+      (In fun (val (i8** $Get)))
       (set $Get (fun (i32) _getStdin))
-      (Frame link (val $InFrames))
-      (set $InFrames In) ) )
+      (In link (val $InFrames))
+      (set $InFrames (In)) ) )
 
-(de void pushOutFiles ((i8* . Out))
-   )
+(de void pushOutFiles ((i8* . P))
+   (let Out (ioFrame P)
+      (set $OutFile (val (ofs (val $OutFiles) (Out fd))))
+      (Out fun (val (i8** $Put)))
+      (set $Put (fun (void i32) _putStdout))
+      (Out link (val $OutFrames))
+      (set $OutFrames (Out)) ) )
 
 (de void popInFiles ()
-   (let Frame (ioFrame (val $InFrames))
+   (let In (ioFrame (val $InFrames))
       (nond
-         ((=0 (Frame pid))
-            (close (Frame fd))
-            (closeInFile (Frame fd))
+         ((=0 (In pid))
+            (close (In fd))
+            (closeInFile (In fd))
             #! ...
             )
          ((=0 (val $InFile))
             ((inFile (val $InFile)) next (val $Chr)) ) )
-      (set (i8** $Get) (Frame fun))
-      (setq Frame (ioFrame (set $InFrames (Frame link))))
+      (set (i8** $Get) (In fun))
+      (setq In (ioFrame (set $InFrames (In link))))
       (set $Chr
          (if
             (=0
                (set $InFile
                   (val
-                     (if (=0 (Frame))
+                     (if (=0 (In))
                         (val $InFiles)  # Stdin
-                        (ofs (val $InFiles) (Frame fd)) ) ) ) )
+                        (ofs (val $InFiles) (In fd)) ) ) ) )
             -1
             ((inFile (val $InFile)) next) ) ) ) )
 
@@ -141,7 +146,7 @@ prin prin1 repl loadAll)
    (let File (inFile In)
       (File ix (File cnt 0))
       (loop T
-         (let N (i32 (read (File fd) (File buf T) BUFSIZ))
+         (let N (i32 (read (File fd) (File (buf)) BUFSIZ))
             (? (ge0 N) (File cnt N)) )
          (? (<> (xErrno) EINTR) 0)
          (unless (=0 (val $Signal))
@@ -153,7 +158,7 @@ prin prin1 repl loadAll)
       (loop T
          (let
             (Flg (nonBlocking (File fd))
-               N (i32 (read (File fd) (File buf T) BUFSIZ)) )
+               N (i32 (read (File fd) (File (buf)) BUFSIZ)) )
             (fcntlSetFl (File fd) Flg)
             (? (gt0 N) (File cnt N))
             (? (=0 N)
@@ -191,7 +196,7 @@ prin prin1 repl loadAll)
          (if (=0 N)
             YES
             (File ix 0)
-            (wrBytes (File fd) (File buf T) N) ) ) ) )
+            (wrBytes (File fd) (File (buf)) N) ) ) ) )
 
 (de void flushAll ()
    (let (A (val $OutFiles)  N (val $OutFDs)  I (i32 0))
@@ -209,7 +214,7 @@ prin prin1 repl loadAll)
          (ret
             (let I (File ix)
                (prog1
-                  (i32 (val (ofs (File buf T) I)))
+                  (i32 (val (ofs (File (buf)) I)))
                   (File ix (+ I 1)) ) ) ) )
       (when (=0 (isatty 0))
          (ret -1) )
@@ -258,26 +263,26 @@ prin prin1 repl loadAll)
       (set $At (pop P)  $Task Task)
       Ms ) )
 
-(de void rdOpen (Exe X (i8* . In))
-   (let Frame (ioFrame In)
+(de void rdOpen (Exe X (i8* . P))
+   (let In (ioFrame P)
       (cond
          ((nil? X)
-            (Frame fd 0)  # Stdin
-            (Frame pid 0) )
+            (In fd 0)  # Stdin
+            (In pid 0) )
          #! ((num? X)
          #!    )
          ((sym? X)
             (let (Nm (pathString X (b8 (pathSize X)))  Flg (== (val Nm) (char "+")))
                (when Flg
                   (setq Nm (i Nm)) )
-               (while (lt0 (Frame fd (if Flg (openAppend Nm) (openRdonly Nm))))
+               (while (lt0 (In fd (if Flg (openAppend Nm) (openRdonly Nm))))
                   (unless (== (xErrno) EINTR)
                      (openErr Exe X) )
                   (unless (=0 (val $Signal))
                      (sighandler Exe) ) )
-               (Frame pid 1)
-               (initInFile (Frame fd) (strdup Nm)) )
-            (closeOnExec Exe (Frame fd)) )
+               (In pid 1)
+               (initInFile (In fd) (strdup Nm)) )
+            (closeOnExec Exe (In fd)) )
          #! (T
          #!    )
          ) ) )
@@ -304,7 +309,7 @@ prin prin1 repl loadAll)
                   -1
                   (let I (File ix)
                      (prog1
-                        (i32 (val (ofs (File buf T) I)))
+                        (i32 (val (ofs (File (buf)) I)))
                         (when (== @ (char "\n"))
                            (File line (+ (File line) 1)) )
                         (File ix (+ I 1)) ) ) ) )
@@ -568,12 +573,12 @@ prin prin1 repl loadAll)
          (let I (File ix)
             (when (== I BUFSIZ)
                (File ix (setq I 0))
-               (wrBytes (File fd) (File buf T) BUFSIZ) )
-            (set (ofs (File buf T) I) (i8 C))
+               (wrBytes (File fd) (File (buf)) BUFSIZ) )
+            (set (ofs (File (buf)) I) (i8 C))
             (File ix (inc 'I))
             (when (and (== C (char "\n")) (File tty))
                (File ix 0)
-               (wrBytes (File fd) (File buf T) I) ) ) ) ) )
+               (wrBytes (File fd) (File (buf)) I) ) ) ) ) )
 
 (de void newline ()
    (call $Put (char "\n")) )

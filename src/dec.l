@@ -1,4 +1,4 @@
-# 27nov19 Software Lab. Alexander Burger
+# 14dec19 Software Lab. Alexander Burger
 
 (compile) (inFile outFile child ioFrame catchFrame)
 
@@ -93,7 +93,8 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i64 ffiCall (i8* i64))
 
 ### Forward references
-(compile) (evList mkStr subStr read0 newline space print)
+(compile) (evList mkStr subStr read0 pushOutFiles newline space outWord
+outString print repl)
 
 # main.l
 (de evList (any))
@@ -103,7 +104,10 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de i1 subStr (any any))
 # io.l
 (de read0 (i1))
+(de void pushOutFiles (i8*))
 (de void newline ())
 (de void space ())
 (de void outWord (i64))
+(de void outString (i8*))
 (de void print (any))
+(de repl (any i32 any))

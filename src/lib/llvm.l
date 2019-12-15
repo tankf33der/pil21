@@ -1,4 +1,4 @@
-# 08dec19 Software Lab. Alexander Burger
+# 15dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -507,14 +507,21 @@ Beg End *Safe)
                   (curry (@P) Args
                      (nond
                         (Args '@P)
-                        ((assoc (car Args) '@L)
+                        ((or
+                              (asoq (car Args) '@L)
+                              (and
+                                 (pair (car Args))
+                                 (asoq (car @) '@L) ) )
                            (quit "Bad struct item" (car Args)) )
                         (NIL
                            (let P ((ptr (caddr @)) (llvm~ofs '@P (cadr @)))
-                              (nond
-                                 ((cadr Args) (llvm~val P))
-                                 ((=T @) (llvm~set P (eval @)))
-                                 (NIL P) ) ) ) ) ) ) ) ) ) ) )
+                              (if (atom (car Args))
+                                 (if (cadr Args)
+                                    (llvm~set P (eval @))
+                                    (llvm~val P) )
+                                 (if (cadar Args)
+                                    (llvm~ofs P (eval @))
+                                    P ) ) ) ) ) ) ) ) ) ) ) )
 
 
 ## Cross compiler overridden ##

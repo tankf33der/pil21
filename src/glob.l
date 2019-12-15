@@ -1,4 +1,4 @@
-# 24nov19 Software Lab. Alexander Burger
+# 14dec19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -184,6 +184,10 @@
    ($Trace 0) )                  # Trace level
 
 (var $FoundSym 0)
+
+(var $Repl i1 0)                 # REPL flag
+(var $PRepl i1 0)                # Parent REPL
+(var $Jam i1 0)                  # Error jam
 
 # Bytes
 
