@@ -89,7 +89,7 @@ main)
    (let (Ctch (catchFrame (val $Catch))  Q (val $Bind))
       (until (=0 (Ctch))
          (until (=0 Q)
-            (? (== Q (val (any (Ctch (env 40))))))
+            (? (== Q (Ctch (env 40 any))))
             ) )
       ) )
 

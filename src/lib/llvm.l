@@ -514,14 +514,21 @@ Beg End *Safe)
                                  (asoq (car @) '@L) ) )
                            (quit "Bad struct item" (car Args)) )
                         (NIL
-                           (let P ((ptr (caddr @)) (llvm~ofs '@P (cadr @)))
-                              (if (atom (car Args))
-                                 (if (cadr Args)
-                                    (llvm~set P (eval @))
-                                    (llvm~val P) )
-                                 (if (cadar Args)
-                                    (llvm~ofs P (eval @))
-                                    P ) ) ) ) ) ) ) ) ) ) ) )
+                           (let P (llvm~ofs '@P (cadr @))
+                              (let Q ((ptr (caddr @)) P)
+                                 (if (atom (car Args))
+                                    (if (cadr Args)
+                                       (llvm~set Q (eval @))
+                                       (llvm~val Q) )
+                                    (ifn (cdar Args)
+                                       P
+                                       (setq P (llvm~ofs P (eval (cadar Args))))
+                                       (ifn (cddar Args)
+                                          P
+                                          (let Q ((ptr (caddar Args)) P)
+                                             (if (cadr Args)
+                                                (llvm~set Q (eval @))
+                                                (llvm~val Q) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
 
 
 ## Cross compiler overridden ##
