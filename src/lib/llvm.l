@@ -1,4 +1,4 @@
-# 15dec19 Software Lab. Alexander Burger
+# 16dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -522,7 +522,10 @@ Beg End *Safe)
                                        (llvm~val Q) )
                                     (ifn (cdar Args)
                                        P
-                                       (setq P (llvm~ofs P (eval (cadar Args))))
+                                       (let A (cadar Args)
+                                          (setq P
+                                             (llvm~ofs P
+                                                (if (sym? A) (; A offset) (eval A)) ) ) )
                                        (ifn (cddar Args)
                                           P
                                           (let Q ((ptr (caddar Args)) P)

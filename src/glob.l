@@ -1,39 +1,40 @@
-# 14dec19 Software Lab. Alexander Burger
+# 16dec19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
 (var $Link 0)  # Link register
 
-(var $AV0 i8* null)     # Command name
-(var $AV i8** null)     # Command line argument vector
-(var $Home i8* null)    # Home directory
-(var $Heaps 0)          # Heap list
-(var $Avail 0)          # Avail list
-
-(var $TtyPid i32 0)              # Terminal process ID
-(var $InFDs i32 0)               # Number of input files
-(var $InFiles i8** null)         # Input files
-(var $OutFDs i32 0)              # Number of ourput files
-(var $OutFiles i8** null)        # Output files
-(var $PutBin (void any) null)    # Binary output function
-(var $GetBin (any) null)         # Binary input function
-(var $SeedL i64 0)               # Random seed low
-(var $SeedH i64 0)               # Random seed high
-(var $TickU i64 0)               # Ticks in user time
-(var $TickS i64 0)               # Ticks in system time
-(var $Slot i32 0)                # Child index
-(var $Spkr i32 0)                # RPC loadspeaker
-(var $Mic i32 0)                 # RPC microphone
-(var $SpMiPipe i64 0)            # Speaker/microphone pipe
-(var $Hear i32 0)                # RPC listener
-(var $Tell i32 0)                # RPC broadcaster
-(var $TellBuf i8* null)          # RPC buffer
-(var $Talking i32 0)             # Active child
-(var $Children i32 0)            # Number of children
-(var $Child i8* null)            # Child array
-(var $ExtN i32 0)                # External symbol offset
-(var $Break i1 NO)               # Breakpoint
-(var $GcCount i32 CELLS)         # Collector count
+(var $AV0 i8* null)                    # Command name
+(var $AV i8** null)                    # Command line argument vector
+(var $Home i8* null)                   # Home directory
+(var $Heaps 0)                         # Heap list
+(var $Avail 0)                         # Avail list
+(var $Ret2 0)                          # Second return value
+(var $Ret3 0)                          # Third return value
+(var $TtyPid i32 0)                    # Terminal process ID
+(var $InFDs i32 0)                     # Number of input files
+(var $InFiles i8** null)               # Input files
+(var $OutFDs i32 0)                    # Number of ourput files
+(var $OutFiles i8** null)              # Output files
+(var $PutBin (void any) null)          # Binary output function
+(var $GetBin (any) null)               # Binary input function
+(var $SeedL i64 0)                     # Random seed low
+(var $SeedH i64 0)                     # Random seed high
+(var $TickU i64 0)                     # Ticks in user time
+(var $TickS i64 0)                     # Ticks in system time
+(var $Slot i32 0)                      # Child index
+(var $Spkr i32 0)                      # RPC loadspeaker
+(var $Mic i32 0)                       # RPC microphone
+(var $SpMiPipe i64 0)                  # Speaker/microphone pipe
+(var $Hear i32 0)                      # RPC listener
+(var $Tell i32 0)                      # RPC broadcaster
+(var $TellBuf i8* null)                # RPC buffer
+(var $Talking i32 0)                   # Active child
+(var $Children i32 0)                  # Number of children
+(var $Child i8* null)                  # Child array
+(var $ExtN i32 0)                      # External symbol offset
+(var $Break i1 NO)                     # Breakpoint
+(var $GcCount i32 CELLS)               # Collector count
 
 # Console line
 (array $Line i64
@@ -158,19 +159,19 @@
    ($Extern $Nil)       # External symbol tree
    )
 
-# Structures
+# Environment
 (table env
-   ($Chr i32 0)                  # Single-char look ahead
-   ($Put (void i32) _putStdout)  # Character output function
-   ($Get (i32) _getStdin)        # Character input function
-   ($InFile i8* null)            # Input file
-   ($OutFile i8* null)           # Output file
    ($Bind 0)                     # Bind frames
    ($Catch i8* null)             # Catch frames
    ($InFrames i8* null)          # Input frames
    ($OutFrames i8* null)         # Output frames
    ($ErrFrames i8* null)         # Error frames
    ($CtlFrames i8* null)         # Control frames
+   ($Chr i32 0)                  # Single-char look ahead
+   ($Put (void i32) _putStdout)  # Character output function
+   ($Get (i32) _getStdin)        # Character input function
+   ($InFile i8* null)            # Input file
+   ($OutFile i8* null)           # Output file
    ($Intern $Pico1)              # Current namespaces of internal symbols
    ($Next $Nil)                  # Next vararg
    ($Thrown $Nil)                # Thrown value
@@ -183,8 +184,7 @@
    ($Protect 0)                  # Signal protection
    ($Trace 0) )                  # Trace level
 
-(var $FoundSym 0)
-
+# Booleans
 (var $Repl i1 0)                 # REPL flag
 (var $PRepl i1 0)                # Parent REPL
 (var $Jam i1 0)                  # Error jam

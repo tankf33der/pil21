@@ -1,4 +1,4 @@
-# 15dec19 Software Lab. Alexander Burger
+# 16dec19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler unwind err
 numErr needNum undefined evExpr evListSave evList evSym equal compare natRet
@@ -89,7 +89,7 @@ main)
    (let (Ctch (catchFrame (val $Catch))  Q (val $Bind))
       (until (=0 (Ctch))
          (until (=0 Q)
-            (? (== Q (Ctch (env 40 any))))
+            (? (== Q (Ctch (env $Catch any))))
             ) )
       ) )
 

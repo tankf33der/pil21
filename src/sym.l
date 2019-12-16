@@ -1,4 +1,4 @@
-# 08dec19 Software Lab. Alexander Burger
+# 16dec19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -181,7 +181,7 @@ intern isIntern findSym preStr subStr)
                      (cadr X) ) ) ) )
          (cond
             ((=0 Sym)  # No symbol given
-               (set $FoundSym (car X)) )  # Found one
+               (set $Ret2 (car X)) )  # Found one
             ((<> Sym (car X))  # Different Symbol
                (ret NO)  # .. check More
                ) )
@@ -200,7 +200,7 @@ intern isIntern findSym preStr subStr)
                      (cadr X) ) ) ) )
          (cond
             ((=0 Sym)  # No symbol given
-               (set $FoundSym (car X)) )  # Found one
+               (set $Ret2 (car X)) )  # Found one
             ((<> Sym (car X))  # Different Symbol
                (ret NO)  # .. check More
                ) )
