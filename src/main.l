@@ -1,4 +1,4 @@
-# 16dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (length finish giveup bye alloc heapAlloc sig sighandler unwind err
 numErr needNum undefined evExpr evListSave evList evSym equal compare natRet
@@ -86,11 +86,28 @@ main)
       (set $Protect 0) ) )
 
 (de void unwind ((i8* . Catch))
-   (let (Ctch (catchFrame (val $Catch))  Q (val $Bind))
+   (let (Ctch (catchFrame (val $Catch))  P (val $Bind))
       (until (=0 (Ctch))
-         (until (=0 Q)
-            (? (== Q (Ctch (env $Catch any))))
-            ) )
+         (until (or (=0 P) (== P (Ctch (env $Bind any))))
+            (loop
+               (set (val P) (val 2 P))  # Restore values
+               (? (== $At (val P)))
+               (setq P (val 3 P)) )
+            (setq P (val 3 P)) )
+         # ...
+         (memcpy (env) (Ctch (env)) (env T))
+         (eval (Ctch fin))  # Evaluate 'finally' expression
+         (let F (== (Ctch) Catch)
+            (set $Catch (Ctch link))
+            (and F (ret)) ) )
+      (until (=0 P)
+         (loop
+            (set (val P) (val 2 P))  # Restore values
+            (? (== $At (val P)))
+            (setq P (val 3 P)) )
+         (setq P (val 3 P)) )
+      (set $Bind 0)
+      # ...
       ) )
 
 # Error handling
@@ -119,7 +136,7 @@ main)
       (set $Chr (set $ExtN 0))
       (set $Break NO)
       (set $Alarm (set $Sigio $Nil))
-      (set $Line (set (i $Line) 0))
+      (set $Line (set 2 $Line 0))
       (let Out (ioFrame (b8 (ioFrame T)))
          (Out fd 2)  # Stderr
          (Out pid 0)
@@ -186,16 +203,16 @@ main)
                      (let L (link (push (eval (car X)) $Nil NIL))  # [arg1 next]
                         (while (pair (>>> X))
                            (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
-                              (set (i L) Z)
+                              (set 2 L Z)
                               (setq L Z) ) ) )
                      (set $Next (val $Link)) )
                   (set $Bind P)
                   (loop
                      (let (S (val P)  V (val S))  # Symbol, old value
-                        (set S (val (i P)))  # Set new value
-                        (set (i P) V)  # Save old value
+                        (set S (val 2 P))  # Set new value
+                        (set 2 P V)  # Save old value
                         (? (== Q P))
-                        (setq P (val (ii P))) ) )
+                        (setq P (val 3 P)) ) )
                   (prog1
                      (run (cdr Exe))  # Run body
                      (set $Next (val Next)  $Link (val $Bind)) ) )
@@ -205,18 +222,18 @@ main)
                (set $Bind (val $Link))
                (loop
                   (let (S (val P)  V (val S))  # Symbol, old value
-                     (set S (val (i P)))  # Set new value
-                     (set (i P) V)  # Save old value
+                     (set S (val 2 P))  # Set new value
+                     (set 2 P V)  # Save old value
                      (? (== Q P))
-                     (setq P (val (ii P))) ) )
+                     (setq P (val 3 P)) ) )
                (run (cdr Exe)) ) )  # Run body
          (let P (val $Link)
             (loop
-               (set (val P) (val (i P)))  # Restore values
+               (set (val P) (val 2 P))  # Restore values
                (? (== Q P))
-               (setq P (val (ii P))) )
-            (set $Link (val (ii P))) )
-         (set $Bind (val (iii Q))) ) ) )
+               (setq P (val 3 P)) )
+            (set $Link (val 3 P)) )
+         (set $Bind (val 4 Q)) ) ) )
 
 (de i1 sharedLib (Sym)
    NO )
@@ -360,7 +377,7 @@ main)
          L Args )  # [ret args]
       (while (pair (>>> X))
          (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
-            (set (i L) Z)
+            (set 2 L Z)
             (setq L Z) ) )
       (prog1
          (natRet
@@ -394,13 +411,13 @@ main)
       (let (Y (cons (car X) $Nil)  P (link (push Y T NIL)))
          (while (pair (>>> X))
             (setq Y
-               (set (i Y) (cons (car X) $Nil)) ) )
+               (set 2 Y (cons (car X) $Nil)) ) )
          (pop P) ) ) )
 
 # Main entry point
 (de i32 main ((i32 . Ac) (i8** . Av))
    (set $AV0 (val Av))  # Save command
-   (set $AV (setq Av (i Av)))  # and argument vector
+   (set $AV (setq Av (ofs Av 1)))  # and argument vector
    # Check debug mode
    (let P (ofs Av (- Ac 2))
       (when (=0 (strcmp (val P) ($ "+")))
@@ -429,7 +446,7 @@ main)
             (when (cnt? Nm)
                (intern P 0 Nm $Pico $Nil)
                (? (== P $LastSym)) ) )
-         (setq P (ii P)) ) )
+         (setq P (ofs P 2)) ) )
    (set
       (tail $Db1) DB1  # Name of external root symbol '{1}'
       $Extern (cons $Db1 $Nil) )  # External symbol tree root node

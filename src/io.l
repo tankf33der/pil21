@@ -1,4 +1,4 @@
-# 15dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -19,7 +19,7 @@ prin prin1 repl loadAll)
 (de NIL badInput ()
    (let S (b8 2)
       (set S (i8 (val $Chr)))
-      (set (i S) 0)
+      (set 2 S 0)
       (err 0 0 ($ "Bad input '%c'") S) ) )
 
 (de NIL writeErr ((i8* . Fmt))
@@ -274,7 +274,7 @@ prin prin1 repl loadAll)
          ((sym? X)
             (let (Nm (pathString X (b8 (pathSize X)))  Flg (== (val Nm) (char "+")))
                (when Flg
-                  (setq Nm (i Nm)) )
+                  (setq Nm (ofs Nm 1)) )
                (while (lt0 (In fd (if Flg (openAppend Nm) (openRdonly Nm))))
                   (unless (== (xErrno) EINTR)
                      (openErr Exe X) )
@@ -317,10 +317,10 @@ prin prin1 repl loadAll)
                (waitFd 0 0 -1)
                (stdinByte) )
             (T
-               (when (=0 (val (i $Line)))  # First call
+               (when (=0 (val 2 $Line))  # First call
                   (let S (run (val $Led))
                      (set $Line 0)
-                     (set (i $Line)
+                     (set 2 $Line
                         (if (nil? S)
                            ZERO
                            (name S) ) ) ) )
@@ -406,7 +406,7 @@ prin prin1 repl loadAll)
    $Nil )
 
 (de rdAtom ((i32 . C))
-   (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+   (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
       (byteNum C P)
       (setq C (val $Chr))
       (while (and (gt0 C) (=0 (strchr $Delim C)))
@@ -451,7 +451,7 @@ prin prin1 repl loadAll)
                ((== C (char "."))
                   (? (n0 (strchr $Delim (call $Get)))
                      (setq X
-                        (set (i X)
+                        (set 2 X
                            (if
                               (or
                                  (== (setq C (skip)) (char ")"))
@@ -464,17 +464,17 @@ prin prin1 repl loadAll)
                         ((<> (val $Chr) (char "]"))
                            (err 0 X ($ "Bad dotted pair") null) ) ) )
                   (setq X
-                     (set (i X) (cons (rdAtom (char ".")) $Nil)) ) )
+                     (set 2 X (cons (rdAtom (char ".")) $Nil)) ) )
                ((== C (char "~"))
                   (call $Get)
-                  (set (i X)
+                  (set 2 X
                      (eval
-                        (set (i X) (read0 NO)) ) )
+                        (set 2 X (read0 NO)) ) )
                   (while (pair (cdr X))
                      (>>> X) ) )
                (T
                   (setq X
-                     (set (i X) (cons (read0 NO) $Nil)) ) ) ) ) )
+                     (set 2 X (cons (read0 NO) $Nil)) ) ) ) ) )
       (pop P) ) )
 
 (de read0 ((i1 . Top))
@@ -511,7 +511,7 @@ prin prin1 repl loadAll)
             (if (== (setq C (call $Get)) (char "\""))
                (prog (call $Get) $Nil)  # Empty string
                (unless (testEsc C) (eofErr))
-               (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+               (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
                   (loop
                      (charNum (val $Chr) P)
                      (? (== (setq C (call $Get)) (char "\"")))
@@ -746,7 +746,7 @@ prin prin1 repl loadAll)
                         (? (> (val $Chr) (char " ")))
                         (call $Get) ) ) ) )
             (? (nil? Y))
-            (set Save Y)
+            (set Safe Y)
             (cond
                ((or
                      (<> (val $InFile) (val (val $InFiles)))
@@ -756,7 +756,7 @@ prin prin1 repl loadAll)
                (T
                   (flushAll)
                   (let A (val $At)
-                     (set (i Safe) A)
+                     (set 2 Safe A)
                      (setq X (set $At (eval Y)))
                      (set $At3 (val $At2))
                      (set $At2 A) )
@@ -776,9 +776,9 @@ prin prin1 repl loadAll)
             (?
                (and
                   (== (val Q) (char "-"))
-                  (=0 (val (i Q))) ) )
+                  (=0 (val 2 Q)) ) )
             (setq
-               P (set $AV (i P))
+               P (set $AV (ofs P 1))
                X (repl Exe 0 (mkStr Q)) ) ) )
       X ) )
 

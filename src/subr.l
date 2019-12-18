@@ -1,4 +1,4 @@
-# 17oct19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) ()
 
@@ -15,8 +15,8 @@
    (let (Y (cons (eval (car (>>> X))) $Nil)  P (link (push Y T NIL)))
       (while (pair (cdr (>>> X)))
          (setq Y
-            (set (i Y) (cons (eval (car X)) $Nil)) ) )
-      (set (i Y) (eval (car X)))
+            (set 2 Y (cons (eval (car X)) $Nil)) ) )
+      (set 2 Y (eval (car X)))
       (pop P) ) )
 
 # (list 'any ['any ..]) -> lst
@@ -24,7 +24,7 @@
    (let (Y (cons (eval (car (>>> X))) $Nil)  P (link (push Y T NIL)))
       (while (pair (>>> X))
          (setq Y
-            (set (i Y) (cons (eval (car X)) $Nil)) ) )
+            (set 2 Y (cons (eval (car X)) $Nil)) ) )
       (pop P) ) )
 
 # (= 'any ..) -> flg

@@ -1,4 +1,4 @@
-# 05dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (mark gc cons)
 
@@ -25,7 +25,7 @@
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Car)
-      (set (i P) Cdr)
+      (set 2 P Cdr)
       P ) )
 
 (de consSym (Name Val)
@@ -49,7 +49,7 @@
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Dig)
-      (set (i P) ZERO)
+      (set 2 P ZERO)
       (big P) ) )
 
 (de box64 (N)
@@ -65,5 +65,5 @@
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Dig)
-      (set (i P) Big)
+      (set 2 P Big)
       (big P) ) )

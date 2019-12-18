@@ -1,4 +1,4 @@
-# 16dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -38,7 +38,7 @@ intern isIntern findSym preStr subStr)
       (let C (val Str)
          (if (=0 C)
             $Nil
-            (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+            (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
                (byteNum (i32 C) P)
                (until (=0 (setq C (val (inc 'Str))))
                   (byteNum (i32 C) P) )
@@ -64,7 +64,7 @@ intern isIntern findSym preStr subStr)
 
 (de xSym (X)
    (if (or (num? X) (pair X))
-      (let (P (push 4 ZERO T NIL)  Q (link (any (i P))))  # [cnt name cell]
+      (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
          (pack X P)
          (prog1
             (consSym (val Q) 0)
@@ -102,21 +102,21 @@ intern isIntern findSym preStr subStr)
                         # .. check More
                         (when (=0 Sym)  # New symbol
                            (setq Sym (consSym Name Val)) )
-                        (set (i X) (cons $Nil (cons Sym $Nil)))
+                        (set 2 X (cons $Nil (cons Sym $Nil)))
                         (ret Sym) )
                      (if (pair (cdr (>>> X)))
                         (setq X (cdr X))
                         # .. check More
                         (when (=0 Sym)  # New symbol
                            (setq Sym (consSym Name Val)) )
-                        (set (i X) (cons Sym $Nil))
+                        (set 2 X (cons Sym $Nil))
                         (ret Sym) ) )
                   (T  # Symbol is greater
                      (when (atom (cdr X))  # No link yet
                         # .. check More
                         (when (=0 Sym)  # New symbol
                            (setq Sym (consSym Name Val)) )
-                        (set (i X) (cons (cons Sym $Nil) $Nil))
+                        (set 2 X (cons (cons Sym $Nil) $Nil))
                         (ret Sym) )
                      (if (pair (car (>>> X)))
                         (setq X (car X))
@@ -131,7 +131,7 @@ intern isIntern findSym preStr subStr)
          # .. check More
          (when (=0 Sym)  # New symbol
             (setq Sym (consSym Name Val)) )
-         (set (i Tree) (cons Sym $Nil))
+         (set 2 Tree (cons Sym $Nil))
          (ret Sym) )
       (loop
          (let (Nm (name (val (tail (car X))))  I (cmpLong Nm Name))
@@ -142,21 +142,21 @@ intern isIntern findSym preStr subStr)
                      # .. check More
                      (when (=0 Sym)  # New symbol
                         (setq Sym (consSym Name Val)) )
-                     (set (i X) (cons $Nil (cons Sym $Nil)))
+                     (set 2 X (cons $Nil (cons Sym $Nil)))
                      (ret Sym) )
                   (if (pair (cdr (>>> X)))
                      (setq X (cdr X))
                      # .. check More
                      (when (=0 Sym)  # New symbol
                         (setq Sym (consSym Name Val)) )
-                     (set (i X) (cons Sym $Nil))
+                     (set 2 X (cons Sym $Nil))
                      (ret Sym) ) )
                (T  # Symbol is greater
                   (when (atom (cdr X))  # No link yet
                      # .. check More
                      (when (=0 Sym)  # New symbol
                         (setq Sym (consSym Name Val)) )
-                     (set (i X) (cons (cons Sym $Nil) $Nil))
+                     (set 2 X (cons (cons Sym $Nil) $Nil))
                      (ret Sym) )
                   (if (pair (car (>>> X)))
                      (setq X (car X))
@@ -225,9 +225,9 @@ intern isIntern findSym preStr subStr)
       (let (P (push 0 (i64 (name (val (tail Y)))))  B NIL)
          (loop T
             (? (=0 (setq B (numByte P))) NO)
-            (let (Cnt (val P)  Nm (val (i P)))
+            (let (Cnt (val P)  Nm (val 2 P))
                (? (preStr X B P) YES)
-               (set P Cnt  (i P) Nm) ) ) ) ) )
+               (set P Cnt  2 P Nm) ) ) ) ) )
 
 # (pre? 'any1 'any2) -> any2 | NIL
 (de _preQ (Exe)

@@ -1,8 +1,6 @@
-# 16dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
-
-(var $Link 0)  # Link register
 
 (var $AV0 i8* null)                    # Command name
 (var $AV i8** null)                    # Command line argument vector
@@ -161,6 +159,7 @@
 
 # Environment
 (table env
+   ($Link 0)                     # Link register
    ($Bind 0)                     # Bind frames
    ($Catch i8* null)             # Catch frames
    ($InFrames i8* null)          # Input frames

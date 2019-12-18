@@ -1,4 +1,4 @@
-# 16dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -10,7 +10,7 @@
 
 (local) (void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64* i64**
 any YES NO ZERO ONE SymTab begin end $ ? short global var str const globals
-array table symTab inline define struct $Nil)
+array table symTab inline define struct $Nil $Link)
 
 (import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex)
 
@@ -175,17 +175,28 @@ Beg End *Safe)
       Typ
       (intern (pack (head -1 (chop Typ)))) ) )
 
-(de store (X P)
+(de store (X P Ofs)
    (nond
       ((== 'any (val P))
          (when (num? X)
             (setq X (def (format X) (pointee (val P)))) )
-         (link
-            (pack "store " (type (val X)) " " X ", "
+         (ifn Ofs
+            (link
+               (pack "store " (type (val X)) " " X ", "
+                  (type (val P)) (and (pair (val P)) "*")
+                  " " P ) )
+            (ssa (inc '*Ssa) "getelementptr "
+               (type (val X)) ", "
                (type (val P)) (and (pair (val P)) "*")
-               " " P ) ) )
+               " " P ", i32 " Ofs )
+            (link
+               (pack "store " (type (val X)) " " X ", "
+                  (type (val P)) (and (pair (val P)) "*")
+                  " %" *Ssa ) ) ) )
       ((pre? "@" P)
          (ssa (inc '*Ssa) "inttoptr i64 " P " to i64*")
+         (when Ofs
+            (ssa (inc '*Ssa) "getelementptr i64, i64* %" (dec *Ssa) ", i32 " Ofs) )
          (link (pack "store i64 " X ", i64* %" *Ssa)) )
       (NIL
          (link (pack "store i64 " X ", i64* " P)) ) )
@@ -903,25 +914,36 @@ Beg End *Safe)
    (llvm~>>>) )
 
 (asm ()
-   ((X)
-      (casq (val X)
-         (any
-            (if (pre? "@" X)
-               (ssa (inc '*Ssa) "load " "i64, i64* " X)
-               (ssa (inc '*Ssa) "inttoptr i64 " X " to i64*")
-               (ssa (inc '*Ssa) "load " "i64, i64* %" (dec *Ssa)) )
-            (def (pack "%" *Ssa) 'any) )
-         ((i1* i1** i8* i8** i8*** i32* i32** i64* i64**)
-            (let Typ (pointee (val X))
-               (ssa (inc '*Ssa) "load " Typ ", " (val X) " " X)
-               (def (pack "%" *Ssa) Typ) ) )
-         (T (quit "Bad type" (val X))) ) )
+   (@
+      (let (X (next)  Ofs)
+         (when (num? X)
+            (setq Ofs (dec X)  X (next)) )
+         (casq (val X)
+            (any
+               (if (pre? "@" X)
+                  (ssa (inc '*Ssa) "load " "i64, i64* " X)
+                  (ssa (inc '*Ssa) "inttoptr i64 " X " to i64*")
+                  (when Ofs
+                     (ssa (inc '*Ssa) "getelementptr i64, i64* %" (dec *Ssa) ", i32 " Ofs) )
+                  (ssa (inc '*Ssa) "load " "i64, i64* %" (dec *Ssa)) )
+               (def (pack "%" *Ssa) 'any) )
+            ((i1* i1** i8* i8** i8*** i32* i32** i64* i64**)
+               (let Typ (pointee (val X))
+                  (ifn Ofs
+                     (ssa (inc '*Ssa) "load " Typ ", " (val X) " " X)
+                     (ssa (inc '*Ssa) "getelementptr " Typ ", " (val X) " " X ", i32 " Ofs)
+                     (ssa (inc '*Ssa) "load " Typ ", " (val X) " %" (dec *Ssa)) )
+                  (def (pack "%" *Ssa) Typ) ) )
+            (T (quit "Bad type" (val X))) ) ) )
    (llvm~val) )
 
 (asm ()
    (@
-      (while (next)
-         (store (next) @) ) )
+      (while (args)
+         (let (P (next)  X (next))
+            (ifn (num? P)
+               (store X P)
+               (store (next) X (dec P)) ) ) ) )
    (llvm~set) )
 
 (asm ()
@@ -1001,36 +1023,6 @@ Beg End *Safe)
                      (store Y (def (pack "%" *Ssa) (val P))) ) ) )
             P ) ) )
    (llvm~push) )
-
-(asm ()
-   ((P)
-      (ssa (inc '*Ssa) "add i64 " P ", 16")
-      (ssa (inc '*Ssa) "inttoptr i64 %" (dec *Ssa) " to i64*")
-      (ssa (inc '*Ssa) "load i64, i64* @$Link")
-      (link (pack "store i64 %" *Ssa ", i64* %" (dec *Ssa)))
-      (link (pack "store i64 " P ", i64* @$Link"))
-      P )
-   (llvm~link) )
-
-(asm ()
-   ((P)
-      (ssa (inc '*Ssa) "inttoptr i64 " P " to i64*")
-      (ssa (inc '*Ssa) "load " "i64, i64* %" (dec *Ssa))
-      (let Q *Ssa
-         (ssa (inc '*Ssa) "getelementptr i64, i64* %" (- *Ssa 2) ", i32 2")
-         (ssa (inc '*Ssa) "load i64, i64* %" (dec *Ssa))
-         (link (pack "store i64 %" *Ssa ", i64* @$Link"))
-         (def (pack "%" Q) 'any) ) )
-   (llvm~pop) )
-
-(asm ()
-   ((P)
-      (ssa (inc '*Ssa) "add i64 " P ", 16")
-      (ssa (inc '*Ssa) "inttoptr i64 %" (dec *Ssa) " to i64*")
-      (ssa (inc '*Ssa) "load i64, i64* %" (dec *Ssa))
-      (link (pack "store i64 %" *Ssa ", i64* @$Link"))
-      P )
-   (llvm~drop) )
 
 # Flow
 (asm ()
@@ -1256,14 +1248,8 @@ Beg End *Safe)
 ## Composite ##
 (symbols '(llvm cc pico))
 
-(local) (i ii iii iv v vi vii viii ix caar cadr cdar cddr eval run save safe
-evList)
-
-(for (@I . S) '(i ii iii iv v vi vii viii ix)
-   (def S
-      (curry (@I) (X)
-         (log (up))
-         (ofs X @I) ) ) )
+(local) (caar cadr cdar cddr eval run link pop drop
+save safe evList)
 
 (pico~de caar (X)
    (log (up))
@@ -1297,6 +1283,21 @@ evList)
          (when (pair (car Bnd2))
             (evList (car Bnd2)) )
          (setq Bnd2 (cdr Bnd2)) ) ) )
+
+(pico~de link (P)
+   (log (up))
+   (set 3 P (val $Link))
+   (set $Link P) )
+
+(pico~de pop (P)
+   (log (up))
+   (prog1
+      (val P)
+      (set $Link (val 3 P)) ) )
+
+(pico~de drop (P)
+   (log (up))
+   (set $Link (val 3 P)) )
 
 (pico~de save (X Y . Prg2)
    (log (up))

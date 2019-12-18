@@ -1,4 +1,4 @@
-# 08dec19 Software Lab. Alexander Burger
+# 18dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -7,47 +7,46 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 (de i8 numByte ((i64* . P))
    (let C (val P)  # Get cnt
       (when (=0 C)  # New round
-         (let Nm (val (i P))
+         (let Nm (val 2 P)
             (cond
                ((== Nm ZERO) (ret (i8 0)))  # Done
                ((cnt? Nm)  # Short
                   (setq C (shr Nm 4))
-                  (set (i P) ZERO) )
+                  (set 2 P ZERO) )
                (T  # Big: Next digit
                   (setq C (set P (val (dig Nm))))
-                  (set (i P) (val (big Nm))) ) ) ) )
+                  (set 2 P (val (big Nm))) ) ) ) )
       (set P (shr C 8))
       (i8 C) ) )
 
 #! numChar
 
 (de void byteNum ((i32 . C) (i64* . P))
-   (let (Cnt (val P)  Name (val (i P)))
+   (let (Cnt (val P)  Name (val 2 P))
       (unless (big? Name)  # Short name
          # 0000.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx0010
          #   60      52      44      36      28      20      12       4
          (when (> 60 Cnt)  # Digit not full
-            (set
-               (i P)
+            (set 2 P
                (| Name (shl (i64 C) Cnt)) )
             (set P (+ Cnt 8))
             (ret) )
-         (set (ii P)
-            (set (i P)
+         (set 3 P
+            (set 2 P
                (boxNum  # Make big
                   (|  # Combine byte with digit
                      (shr Name 4)  # De-normalize short number
                      (shl (i64 C) 56) ) ) ) )  # Adjust byte
          (set P 4)  # Start new digit
          (ret) )
-      (let (Q (val (ii P))  N (val (big Q)))
+      (let (Q (val 3 P)  N (val (big Q)))
          (when (> 60 Cnt)  # Digit not full
             (set
                (big Q)
                (| N (shl (i64 C) Cnt)) )
             (set P (+ Cnt 8))
             (ret) )
-         (set (ii P)
+         (set 3 P
             (set (big Q)
                (boxNum  # Make big
                   (|  # Combine byte with digit
