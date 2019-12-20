@@ -1,4 +1,4 @@
-# 14dec19 Software Lab. Alexander Burger
+# 20dec19 Software Lab. Alexander Burger
 
 (compile) (inFile outFile child ioFrame catchFrame)
 
@@ -85,7 +85,7 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i32 xErrno ())
 (de T i64 getTime ())
 (de T i32 catchQuit ())
-(de T NIL throwQuit (i32))
+(de T NIL throwQuit ())
 
 # Native lib.c
 (de T i8* dlOpen (i8*))

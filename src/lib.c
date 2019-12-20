@@ -1,4 +1,4 @@
-// 21nov19 Software Lab. Alexander Burger
+// 20dec19 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -112,8 +112,8 @@ int32_t catchQuit(void) {
    return (int32_t)setjmp(QuitRst);
 }
 
-void throwQuit(int32_t val) {
-   longjmp(QuitRst, val);
+void throwQuit(void) {
+   longjmp(QuitRst, 1);
 }
 
 // Lisp data access

@@ -1,6 +1,6 @@
-# 18dec19 Software Lab. Alexander Burger
+# 20dec19 Software Lab. Alexander Burger
 
-(compile) (length finish giveup bye alloc heapAlloc sig sighandler unwind err
+(compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr needNum undefined evExpr evListSave evList evSym equal compare natRet
 main)
 
@@ -15,6 +15,32 @@ main)
          (>>> X) )
       N ) )
 
+# Unwind stack
+(de void unwind ((i8* . Catch))
+   (let (Ctch (catchFrame (val $Catch))  P (val $Bind))
+      (until (=0 (Ctch))
+         (until (or (=0 P) (== P (Ctch (env $Bind any))))
+            (loop
+               (set (val P) (val 2 P))  # Restore values
+               (? (== $At (val P)))
+               (setq P (val 3 P)) )
+            (setq P (val 3 P)) )
+         # ...
+         (memcpy (env) (Ctch (env)) (env T))
+         (eval (Ctch fin))  # Evaluate 'finally' expression
+         (let F (== (Ctch) Catch)
+            (set $Catch (Ctch link))
+            (and F (ret)) ) )
+      (until (=0 P)
+         (loop
+            (set (val P) (val 2 P))  # Restore values
+            (? (== $At (val P)))
+            (setq P (val 3 P)) )
+         (setq P (val 3 P)) )
+      (set $Bind 0)
+      # ...
+      ) )
+
 # Exit
 (de NIL finish ((i32 . N))
    #(setCooked)
@@ -25,6 +51,7 @@ main)
    (finish 1) )
 
 (de NIL bye ((i32 . N))
+   (unwind null)
    (finish N) )
 
 # Memory
@@ -85,31 +112,6 @@ main)
          (? (=0 (val $Signal))) )
       (set $Protect 0) ) )
 
-(de void unwind ((i8* . Catch))
-   (let (Ctch (catchFrame (val $Catch))  P (val $Bind))
-      (until (=0 (Ctch))
-         (until (or (=0 P) (== P (Ctch (env $Bind any))))
-            (loop
-               (set (val P) (val 2 P))  # Restore values
-               (? (== $At (val P)))
-               (setq P (val 3 P)) )
-            (setq P (val 3 P)) )
-         # ...
-         (memcpy (env) (Ctch (env)) (env T))
-         (eval (Ctch fin))  # Evaluate 'finally' expression
-         (let F (== (Ctch) Catch)
-            (set $Catch (Ctch link))
-            (and F (ret)) ) )
-      (until (=0 P)
-         (loop
-            (set (val P) (val 2 P))  # Restore values
-            (? (== $At (val P)))
-            (setq P (val 3 P)) )
-         (setq P (val 3 P)) )
-      (set $Bind 0)
-      # ...
-      ) )
-
 # Error handling
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
@@ -167,7 +169,13 @@ main)
                (bye 1) )
             (repl 0 (char "?") $Nil) )
          (unwind null)
-         ) ) )
+         (set
+            $Link 0
+            $Protect 0
+            $Task $Nil )
+         (set $Put (fun (void i32) _putStdout))
+         (set $Get (fun (i32) _getStdin))
+         (throwQuit) ) ) )
 
 (de numErr (Exe X)
    (err Exe X ($ "Number expected") null) )
