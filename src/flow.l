@@ -1,6 +1,6 @@
-# 15dec19 Software Lab. Alexander Burger
+# 23dec19 Software Lab. Alexander Burger
 
-(compile) (redefine)
+(compile) (redefine evMethod)
 
 (de redefine (Ex S X)
    (set S X)
@@ -15,6 +15,74 @@
    (let S (cadr X)
       (redefine X S (cddr X))
       S ) )
+
+# (dm sym . fun|cls2) -> sym
+# (dm (sym . cls) . fun|cls2) -> sym
+# (dm (sym sym2 [. cls]) . fun|cls2) -> sym
+(de _dm (X)
+   $Nil )
+
+# Apply METH to CDR of list
+(de evMethod (Obj Cls Key Exe Lst)
+   (let
+      (X (cdr Lst)  # Arguments
+         Y (car Exe)  # Parameters
+         Q (link (push $This Obj $At (val $At) NIL (val $Bind) Lst)) )  # [@ [@] LINK Bind Exe]
+      (while (pair Y)
+         (link
+            (push  # [sym val]
+               (++ Y)  # Next parameter
+               (eval (++ X))  # Evaluate next argument
+               NIL ) ) )
+      (prog1
+         (let P (val $Link)
+            (if (== Y $At)  # VarArgs
+               (let Next (push (val $Next))
+                  (if (atom X)
+                     (set $Next $Nil)
+                     (let L (link (push (eval (car X)) $Nil NIL))  # [arg1 next]
+                        (while (pair (>>> X))
+                           (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
+                              (set 2 L Z)
+                              (setq L Z) ) ) )
+                     (set $Next (val $Link)) )
+                  (set $Bind P)
+                  (loop
+                     (let (S (val P)  V (val S))  # Symbol, old value
+                        (set S (val 2 P))  # Set new value
+                        (set 2 P V)  # Save old value
+                        (? (== Q P))
+                        (setq P (val 3 P)) ) )
+                  (let (C (val $Cls)  K (val $Key))
+                     (prog1
+                        (run (cdr Exe))  # Run body
+                        (set
+                           $Key K
+                           $Cls C
+                           $Next (val Next)
+                           $Link (val $Bind) ) ) ) )
+               (unless (== Y $Nil)
+                  (link (push Y (val Y) NIL))  # Last parameter
+                  (set Y X) )  # Set to unevaluated argument(s)
+               (set $Bind (val $Link))
+               (loop
+                  (let (S (val P)  V (val S))  # Symbol, old value
+                     (set S (val 2 P))  # Set new value
+                     (set 2 P V)  # Save old value
+                     (? (== Q P))
+                     (setq P (val 3 P)) ) )
+               (let (C (val $Cls)  K (val $Key))
+                  (set $Cls Cls)
+                  (set $Key Key)
+                  (run (cdr Exe))  # Run body
+                  (set $Key K  $Cls C) ) ) )
+         (let P (val $Link)
+            (loop
+               (set (val P) (val 2 P))  # Restore values
+               (? (== Q P))
+               (setq P (val 3 P)) )
+            (set $Link (val 3 P)) )
+         (set $Bind (val 4 Q)) ) ) )
 
 # (meth 'obj ['any ..]) -> any
 (de _meth (X)

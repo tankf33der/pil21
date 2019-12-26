@@ -1,8 +1,8 @@
-# 20dec19 Software Lab. Alexander Burger
+# 26dec19 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
-numErr needNum undefined evExpr evListSave evList evSym equal compare natRet
-main)
+numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
+evSym equal compare natRet main)
 
 (begin "base")
 (load "vers.l" "defs.l" "glob.l" "dec.l")
@@ -180,11 +180,23 @@ main)
 (de numErr (Exe X)
    (err Exe X ($ "Number expected") null) )
 
+(de cntErr (Exe X)
+   (err Exe X ($ "Small number expected") null) )
+
 # Argument checks
 (inline needNum (Exe X)
    (unless (num? X)
       (numErr Exe X) )
    X )
+
+(inline needCnt (Exe X)
+   (unless (cnt? X)
+      (cntErr Exe X) )
+   X )
+
+(de xCnt (Exe X)
+   (let N (int (needCnt Exe X))
+      (if (sign? X) (- N) N) ) )
 
 # Evaluation
 (de NIL undefined (Fun Exe)
@@ -277,6 +289,9 @@ main)
                         (undefined Fun Exe) ) )
                   (setq Fun V) ) ) )
          (T (evListSave (evList Fun) Exe)) ) ) )  # List: Evaluate
+
+(de evCnt (Exe X)
+   (xCnt Exe (eval (car X))) )
 
 (de evSym (Exe)
    (xSym (eval (car Exe))) )
@@ -421,6 +436,19 @@ main)
             (setq Y
                (set 2 Y (cons (car X) $Nil)) ) )
          (pop P) ) ) )
+
+# (version ['flg]) -> lst
+(de _version (X)
+   (when (nil? (eval (cadr X)))
+      (outWord (int (val $Y)))
+      (call $Put (char "."))
+      (outWord (int (val $M)))
+      (call $Put (char "."))
+      (outWord (int (val $D)))
+      (newline) )
+   (cons (val $Y)
+      (cons (val $M)
+         (cons (val $D) $Nil) ) ) )
 
 # Main entry point
 (de i32 main ((i32 . Ac) (i8** . Av))

@@ -1,4 +1,4 @@
-# 18dec19 Software Lab. Alexander Burger
+# 26dec19 Software Lab. Alexander Burger
 
 (compile) (mark gc cons)
 
@@ -6,22 +6,31 @@
    #{..}#
    (mark X) )
 
-(de void gc ((i64 . C))
+(de void gc ()
    #{..}#
    (val $Heaps)
    )
 
-# (gc ['cnt]) -> cnt | NIL
-(de $gc (X)
-   #{..}#
-   (gc CELLS)
-   $Nil )
+# (gc ['cnt [cnt2]]) -> cnt | NIL
+(de _gc (Exe)
+   (let (X (cdr Exe)  Y (eval (++ X)))  # MiBs
+      (set $At $Nil  $At2 $Nil)
+      (cond
+         ((nil? Y) (gc))
+         (T
+            (set $GcCount (shl (xCnt Exe Y) 16))  # Multiply with CELLS
+            (gc)
+            (set $GcCount
+               (if (atom X)
+                  CELLS
+                  (shl (evCnt Exe X) 16) ) ) ) )  # New default
+      Y ) )
 
 (de cons (Car Cdr)
    (let P (val $Avail)
       (when (=0 P)
          (save Car Cdr
-            (gc CELLS) )
+            (gc) )
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Car)
@@ -34,7 +43,7 @@
       (let P (val $Avail)
          (when (=0 P)
             (save Name Val
-               (gc CELLS) )
+               (gc) )
             (setq P (val $Avail)) )
          (set $Avail (car P))
          (set P Name)
@@ -45,7 +54,7 @@
 (de boxNum (Dig)
    (let P (val $Avail)
       (when (=0 P)
-         (gc CELLS)
+         (gc)
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Dig)
@@ -61,7 +70,7 @@
    (let P (val $Avail)
       (when (=0 P)
          (save Big T
-            (gc CELLS) )
+            (gc) )
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Dig)

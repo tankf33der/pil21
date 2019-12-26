@@ -1,4 +1,4 @@
-# 18dec19 Software Lab. Alexander Burger
+# 26dec19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -32,7 +32,7 @@
 (var $Child i8* null)                  # Child array
 (var $ExtN i32 0)                      # External symbol offset
 (var $Break i1 NO)                     # Breakpoint
-(var $GcCount i32 CELLS)               # Collector count
+(var $GcCount i64 CELLS)               # Collector count
 
 # Console line
 (array $Line i64
@@ -104,6 +104,7 @@
    ($Bye "*Bye" $Nil)
    ($Dbg "*Dbg" $Nil)
    # Garbage collection
+   (NIL "gc" _gc)
    # Arithmetics
    (NIL "+" _add)
    (NIL "-" _sub)
@@ -129,6 +130,7 @@
    # Mapping
    # Control flow
    (NIL "de" _de)
+   (NIL "dm" _dm)
    (NIL "and" _and)
    (NIL "if" _if)
    (NIL "catch" _catch)
@@ -146,7 +148,8 @@
    (NIL "native" _native)
    (NIL "args" _args)
    (NIL "next" _next)
-   ($LastSym "rest" _rest) )
+   (NIL "rest" _rest)
+   ($LastSym "version" _version) )
 
 # GC relevant data
 (table gcData
@@ -182,6 +185,12 @@
    ($Task $Nil)                  # Task list
    ($Protect 0)                  # Signal protection
    ($Trace 0) )                  # Trace level
+
+# Version number
+(table $Version
+   ($Y (short (pico~car *Version)))
+   ($M (short (pico~cadr *Version)))
+   ($D (short (pico~caddr *Version))) )
 
 # Booleans
 (var $Repl i1 0)                 # REPL flag

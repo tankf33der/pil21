@@ -1,4 +1,4 @@
-# 18dec19 Software Lab. Alexander Burger
+# 26dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -8,9 +8,9 @@
 ## PicoLisp LLVM frontend ##
 (symbols 'llvm 'pico)
 
-(local) (void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64* i64**
-any YES NO ZERO ONE SymTab begin end $ ? short global var str const globals
-array table symTab inline define struct $Nil $Link)
+(local) (priv void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64*
+i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
+globals array table symTab inline define struct $Nil $Link)
 
 (import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex)
 
@@ -23,8 +23,8 @@ array table symTab inline define struct $Nil $Link)
 (def 'ONE (def "18" 'any))  # Short number '1'
 
 
-## Cross-compiler local ##
-(symbols 'cc 'llvm 'pico)
+## Cross-compiler private ##
+(symbols 'priv 'llvm 'pico)
 
 (local) (*Strings *Ssa *Lbl *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi +phi
 br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
@@ -34,7 +34,7 @@ Beg End *Safe)
 (import any inc dec ++ #{>>>}#)
 
 (de *Err
-   (and *Dbg (symbols '(cc llvm pico))) )
+   (and *Dbg (symbols '(priv llvm pico))) )
 
 
 # Generate LLVM-IR
@@ -58,7 +58,7 @@ Beg End *Safe)
 
 (de log (Exe)
    (when *Lbl
-      (let L (chop (symbols '(llvm pico cc) (sym Exe)))
+      (let L (chop (symbols '(llvm pico priv) (sym Exe)))
          (and (nth L 65) (con @ "..."))
          (link (cons NIL L)) ) ) )
 
@@ -546,7 +546,7 @@ Beg End *Safe)
 
 
 ## Cross compiler overridden ##
-(symbols '(cc pico llvm))
+(symbols '(priv pico llvm))
 
 (de llvm~de Lst
    (define
@@ -760,7 +760,7 @@ Beg End *Safe)
                      (T (quit "Bad type" V)) )
                   (setq X (def (pack "%" *Ssa) V)) ) ) )
          (T
-            (ssa (inc '*Ssa) @Op2 " " V " 0, " X)
+            (ssa (inc '*Ssa) @Op2 " " (val X) " 0, " X)
             (def (pack "%" *Ssa) V) ) ) )
    (llvm~+ + "add")
    (llvm~- - "sub" "-") )
@@ -1246,7 +1246,7 @@ Beg End *Safe)
 
 
 ## Composite ##
-(symbols '(llvm cc pico))
+(symbols '(llvm priv pico))
 
 (local) (caar cadr cdar cddr eval run link pop drop
 save safe evList)
