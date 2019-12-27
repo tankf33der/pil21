@@ -1,10 +1,23 @@
-# 26dec19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
-(compile) (mark gc cons)
+(compile) (mark gc cons consSym boxNum box64 consNum)
 
-(de void mark (X)
-   #{..}#
-   (mark X) )
+(de void mark (Exe)
+   (let X 0
+      (loop
+         (until (cnt? Exe)
+            (let P (any (& Exe -16))
+               (? (=0 (& P 1)))  # Already marked
+               (set 2 P (& (cdr P) -2))  # Mark cell
+               (? (big? Exe)
+                  (let Y (cdr P)
+                     (until (cnt? Y)
+                        (let Z (big Y)
+                           (? (=0 (& (val Z) 1)))  # Marked
+                           (set Z (& (val Z) -2))  # Mark
+                           (setq Y Z) ) ) ) )  # Next digit
+               )
+            ) ) ) )
 
 (de void gc ()
    #{..}#
@@ -29,8 +42,7 @@
 (de cons (Car Cdr)
    (let P (val $Avail)
       (when (=0 P)
-         (save Car Cdr
-            (gc) )
+         (save Car (save Cdr (gc)))
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Car)
@@ -42,8 +54,7 @@
       $Nil
       (let P (val $Avail)
          (when (=0 P)
-            (save Name Val
-               (gc) )
+            (save Name (save Val (gc)))
             (setq P (val $Avail)) )
          (set $Avail (car P))
          (set P Name)
@@ -69,8 +80,7 @@
 (de consNum (Dig Big)
    (let P (val $Avail)
       (when (=0 P)
-         (save Big T
-            (gc) )
+         (save Big (gc))
          (setq P (val $Avail)) )
       (set $Avail (car P))
       (set P Dig)

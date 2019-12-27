@@ -1,3 +1,6 @@
-# 14sep19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
-(compile) ()
+(compile) (apply)
+
+(de apply (Exe Fun Lst)
+   )

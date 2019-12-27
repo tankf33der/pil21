@@ -1,4 +1,4 @@
-# 26dec19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
@@ -116,7 +116,7 @@ evSym equal compare natRet main)
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
    (unless (=0 X)
-      (link (push X T NIL)) )  # Save
+      (link (push X NIL)) )  # Save
    (let Msg (b8 240)
       (xprintf Msg 240 Fmt Arg)
       (unless (=0 (val Msg))
@@ -207,52 +207,54 @@ evSym equal compare natRet main)
    (let
       (X (cdr Lst)  # Arguments
          Y (car Exe)  # Parameters
-         Q (link (push $At (val $At) NIL (val $Bind) Lst)) )  # [@ [@] LINK Bind Exe]
+         Q (link (push (val $At) NIL $At (val $Bind) Lst)) )  # [[@] LINK @ Bind Exe]
       (while (pair Y)
          (link
-            (push  # [sym val]
-               (++ Y)  # Next parameter
+            (push  # [val LINK sym]
                (eval (++ X))  # Evaluate next argument
-               NIL ) ) )
+               NIL
+               (++ Y) ) ) )  # Next parameter
       (prog1
          (let P (val $Link)
             (if (== Y $At)  # VarArgs
                (let Next (push (val $Next))
-                  (if (atom X)
-                     (set $Next $Nil)
-                     (let L (link (push (eval (car X)) $Nil NIL))  # [arg1 next]
-                        (while (pair (>>> X))
-                           (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
-                              (set 2 L Z)
-                              (setq L Z) ) ) )
-                     (set $Next (val $Link)) )
+                  (cond
+                     ((atom X) (set $Next $Nil))
+                     (T
+                        (let L (link (push T NIL))  # [lst LINK]
+                           (set $Next
+                              (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
+                           (while (pair (>>> X))
+                              (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
+                                 (set 2 L Z)
+                                 (setq L Z) ) ) ) ) )
                   (set $Bind P)
                   (loop
-                     (let (S (val P)  V (val S))  # Symbol, old value
-                        (set S (val 2 P))  # Set new value
-                        (set 2 P V)  # Save old value
+                     (let (S (val 3 P)  V (val S))  # Symbol, old value
+                        (set S (val P))  # Set new value
+                        (set P V)  # Save old value
                         (? (== Q P))
-                        (setq P (val 3 P)) ) )
+                        (>>> P) ) )
                   (prog1
                      (run (cdr Exe))  # Run body
                      (set $Next (val Next)  $Link (val $Bind)) ) )
                (unless (== Y $Nil)
-                  (link (push Y (val Y) NIL))  # Last parameter
+                  (link (push (val Y) NIL Y))  # Last parameter
                   (set Y X) )  # Set to unevaluated argument(s)
                (set $Bind (val $Link))
                (loop
-                  (let (S (val P)  V (val S))  # Symbol, old value
-                     (set S (val 2 P))  # Set new value
-                     (set 2 P V)  # Save old value
+                  (let (S (val 3 P)  V (val S))  # Symbol, old value
+                     (set S (val P))  # Set new value
+                     (set P V)  # Save old value
                      (? (== Q P))
-                     (setq P (val 3 P)) ) )
+                     (>>> P) ) )
                (run (cdr Exe)) ) )  # Run body
          (let P (val $Link)
             (loop
-               (set (val P) (val 2 P))  # Restore values
+               (set (val 3 P) (val P))  # Restore values
                (? (== Q P))
-               (setq P (val 3 P)) )
-            (set $Link (val 3 P)) )
+               (>>> P) )
+            (drop P) )
          (set $Bind (val 4 Q)) ) ) )
 
 (de i1 sharedLib (Sym)
@@ -396,7 +398,7 @@ evSym equal compare natRet main)
                   (set Y (box64 (i64 P)))
                   P ) ) )
          Fun (eval (++ X))  # Eval function 'cnt2|sym2'
-         Args (link (push (eval (car X)) $Nil NIL))
+         Args (link (push (eval (car X)) NIL))
          L Args )  # [ret args]
       (while (pair (>>> X))
          (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
@@ -431,7 +433,7 @@ evSym equal compare natRet main)
 (de _rest (X)
    (if (atom (setq X (val $Next)))
       X
-      (let (Y (cons (car X) $Nil)  P (link (push Y T NIL)))
+      (let (Y (cons (car X) $Nil)  P (link (push Y NIL)))
          (while (pair (>>> X))
             (setq Y
                (set 2 Y (cons (car X) $Nil)) ) )

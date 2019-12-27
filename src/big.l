@@ -1,4 +1,4 @@
-# 18dec19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -169,7 +169,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
          (A (val (dig N))
             X (boxNum (shl A 1))
             Y (val (big N))
-            P (link (push X T NIL)) )
+            P (link (push X NIL)) )
          (while (big? Y)
             (let B (val (dig Y))
                (setq X
@@ -193,7 +193,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
             (let
                (B (val (dig X))
                   Y (boxNum (| (shr B 0 1) A))
-                  P (link (push Y T NIL)) )
+                  P (link (push Y NIL)) )
                (loop
                   (setq A B  N X)
                   (? (cnt? (setq X (val (big X)))))
@@ -253,7 +253,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                (setq B (add (val (dig A)) (int B)))
                (ifn @@
                   (consNum B N)  # No carry
-                  (let P (link (push (setq B (consNum B N)) T NIL))  # Else build new head
+                  (let P (link (push (setq B (consNum B N)) NIL))  # Else build new head
                      (loop
                         (? (cnt? N)
                            (setq N (add N (hex "10")))  # Add carry
@@ -270,7 +270,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                            (setq B (set (big B) (consNum D N))) ) )
                      (pop P) ) ) ) )
          # Both are big
-         (let P (link (push ZERO T NIL))  # Result
+         (let P (link (push ZERO NIL))  # Result
             (pop P) ) ) ) )
 
 # Subtract two (unsigned) numbers
@@ -314,7 +314,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 (de symToNum (Name (i32 . Scl) (i32 . Sep) (i32 . Ign))
    (let
       (P (push 0 (i64 Name))  # [cnt name]
-         Num (push ZERO T NIL)  # Result
+         Num (push ZERO NIL)  # Result
          B (numByte P)
          Sign NO
          Frac NO )
@@ -463,7 +463,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
    (let (X Exe  A (eval (car (>>> X))))
       (if (nil? A)
          A
-         (let R (link (push (needNum Exe A) ZERO NIL))
+         (let R (link (push (needNum Exe A) NIL))
             (while (pair (>>> X))
                (let B (eval (car X))
                   (? (nil? B) (set R B))
@@ -475,7 +475,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
    (let (X Exe  A (eval (car (>>> X))))
       (if (nil? A)
          A
-         (let R (link (push (needNum Exe A) ZERO NIL))
+         (let R (link (push (needNum Exe A) NIL))
             (while (pair (>>> X))
                (let B (eval (car X))
                   (? (nil? B) (set R B))

@@ -1,4 +1,4 @@
-# 26dec19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -1286,25 +1286,25 @@ save safe evList)
 
 (pico~de link (P)
    (log (up))
-   (set 3 P (val $Link))
+   (set 2 P (val $Link))
    (set $Link P) )
 
 (pico~de pop (P)
    (log (up))
    (prog1
       (val P)
-      (set $Link (val 3 P)) ) )
+      (set $Link (cdr P)) ) )
 
 (pico~de drop (P)
    (log (up))
-   (set $Link (val 3 P)) )
+   (set $Link (cdr P)) )
 
-(pico~de save (X Y . Prg2)
+(pico~de save (X . Prg2)
    (log (up))
-   (pico~let P (push X Y NIL)
+   (pico~let P (push X NIL)
       (link P)
       (use *Safe
-         (pico~push '*Safe Y X)
+         (pico~push '*Safe X)
          (prog1
             (pico~run Prg2)
             (drop P) ) ) ) )

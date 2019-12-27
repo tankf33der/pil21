@@ -1,4 +1,4 @@
-# 18dec19 Software Lab. Alexander Burger
+# 27dec19 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -229,7 +229,7 @@ prin prin1 repl loadAll)
 (de i64 waitFd (Exe (i32 . Fd) (i64 . Ms))
    (let
       (Task (val $Task)
-         P (link (push (val $At) ZERO NIL))
+         P (link (push (val $At) NIL))
          Tim (getTime) )
       (loop
          (let
@@ -406,7 +406,7 @@ prin prin1 repl loadAll)
    $Nil )
 
 (de rdAtom ((i32 . C))
-   (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+   (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
       (byteNum C P)
       (setq C (val $Chr))
       (while (and (gt0 C) (=0 (strchr $Delim C)))
@@ -424,7 +424,7 @@ prin prin1 repl loadAll)
 (de rdList ()
    (call $Get)
    (let
-      (P (push NIL T NIL)
+      (P (push T NIL)
          X
          (loop T
             (let C (skip)
@@ -505,13 +505,13 @@ prin prin1 repl loadAll)
          #   )
          ((== C (char "`"))
             (call $Get)
-            (save (read0 Top) T
+            (save (read0 Top)
                (eval (safe 1)) ) )
          ((== C (char "\""))
             (if (== (setq C (call $Get)) (char "\""))
                (prog (call $Get) $Nil)  # Empty string
                (unless (testEsc C) (eofErr))
-               (let (P (push 4 ZERO T NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+               (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
                   (loop
                      (charNum (val $Chr) P)
                      (? (== (setq C (call $Get)) (char "\"")))
@@ -721,7 +721,7 @@ prin prin1 repl loadAll)
    $Nil )
 
 (de repl (Exe (i32 . Pr) X)
-   (let (Safe (link (push T T NIL))  P (b8 (ioFrame T)))
+   (let (Safe (link (push T NIL))  P (b8 (ioFrame T)))
       (rdOpen Exe X P)
       (pushInFiles P)
       (setq X $Nil)
