@@ -225,8 +225,8 @@ evSym equal compare natRet main)
                            (set $Next
                               (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
                            (while (pair (>>> X))
-                              (set 2 L  # [argN next]
-                                 (setq L (push (eval (car X)) $Nil)) ) ) ) ) )
+                              (setq L  # [argN next]
+                                 (set 2 L (push (eval (car X)) $Nil)) ) ) ) ) )
                   (set $Bind P)
                   (loop
                      (let (S (val 3 P)  V (val S))  # Symbol, old value
