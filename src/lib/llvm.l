@@ -1,4 +1,4 @@
-# 27dec19 Software Lab. Alexander Burger
+# 28dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -10,7 +10,7 @@
 
 (local) (priv void null i1 i1* i1** i8 i8* i8** i8*** i32 i32* i32** i64 i64*
 i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
-globals array table symTab inline define struct $Nil $Link)
+globals array table symTab inline define struct $Nil $Link drop)
 
 (import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex)
 
@@ -422,7 +422,7 @@ Beg End *Safe)
 (de define (Ext Ret Sym Args Body)
    (and Body (prinl))
    (setq *Ssa -1)
-   (off *Bind *Phi *?)
+   (off *Bind *Phi *? *Safe)
    (with Sym
       (setq *Ret
          (if Ret
@@ -480,6 +480,7 @@ Beg End *Safe)
             (make
                (label *Lbl)
                (let? R (run Body)
+                  (and *Safe (drop @))
                   (if (== void *Ret)
                      (link "ret void")
                      (link (pack "ret " *Ret " " R)) ) ) )
@@ -959,19 +960,21 @@ Beg End *Safe)
 (asm ()
    (Lst
       (use *Bind
-         (let X (++ Lst)
-            (if (pair X)
-               (recur ()
-                  (let (Var (++ X)  Val (eval (++ X)))
-                     (and (atom Val) (+bind Lst Var))
-                     (bind Var
-                        (set Var Val)
-                        (if X (recurse) (run Lst)) ) ) )
-               (let Val (eval (++ Lst))
-                  (and (atom Val) (+bind Lst X))
-                  (bind X
-                     (set X Val)
-                     (run Lst) ) ) ) ) ) )
+         (let (X (++ Lst)  *Safe)
+            (prog1
+               (if (pair X)
+                  (recur ()
+                     (let (Var (++ X)  Val (eval (++ X)))
+                        (and (atom Val) (+bind Lst Var))
+                        (bind Var
+                           (set Var Val)
+                           (if X (recurse) (run Lst)) ) ) )
+                  (let Val (eval (++ Lst))
+                     (and (atom Val) (+bind Lst X))
+                     (bind X
+                        (set X Val)
+                        (run Lst) ) ) )
+               (and @ *Safe (drop @)) ) ) ) )
    (llvm~let) )
 
 # Stack operations
@@ -1238,6 +1241,7 @@ Beg End *Safe)
 
 (asm ()
    ((X)
+      (and *Safe (drop @))
       (if (== void *Ret)
          (link "ret void")
          (link (pack "ret " *Ret " " X)) )
@@ -1248,8 +1252,7 @@ Beg End *Safe)
 ## Composite ##
 (symbols '(llvm priv pico))
 
-(local) (caar cadr cdar cddr eval run link pop drop
-save safe evList)
+(local) (caar cadr cdar cddr eval run link pop save evList)
 
 (pico~de caar (X)
    (log (up))
@@ -1289,25 +1292,22 @@ save safe evList)
    (set 2 P (val $Link))
    (set $Link P) )
 
+(pico~de drop (P)
+   (log (up))
+   (set $Link (cdr P)) )
+
 (pico~de pop (P)
    (log (up))
    (prog1
       (val P)
       (set $Link (cdr P)) ) )
 
-(pico~de drop (P)
-   (log (up))
-   (set $Link (cdr P)) )
-
-(pico~de save (X . Prg2)
+(pico~de save (X . @)
    (log (up))
    (pico~let P (push X NIL)
-      (link P)
-      (use *Safe
-         (pico~push '*Safe X)
-         (prog1
-            (pico~run Prg2)
-            (drop P) ) ) ) )
-
-(pico~de safe (N)
-   (get *Safe N) )
+      (default *Safe P)
+      (set 2 P (val $Link))
+      (pico~while (args)
+         (setq P (push (next) P)) )
+      (set $Link P) )
+   X )

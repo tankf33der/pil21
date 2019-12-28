@@ -1,4 +1,4 @@
-# 27dec19 Software Lab. Alexander Burger
+# 28dec19 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
 intern isIntern findSym preStr subStr)
@@ -235,8 +235,7 @@ intern isIntern findSym preStr subStr)
 
 # (sub? 'any1 'any2) -> any2 | NIL
 (de _subQ (X)
-   (save (evSym (>>> X)) T
-      (let Z (evSym (>>> X))
-         (if (subStr (safe 1) Z)
-            Z
-            $Nil ) ) ) )
+   (let (P (save (evSym (>>> X)))  Z (evSym (>>> X)))
+      (if (subStr P Z)
+         Z
+         $Nil ) ) )

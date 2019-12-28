@@ -1,8 +1,8 @@
-# 27dec19 Software Lab. Alexander Burger
+# 28dec19 Software Lab. Alexander Burger
 
 (compile) (redefine evMethod)
 
-(de redefine (Ex S X)
+(de redefine (Exe S X)
    (set S X)
    )
 
@@ -126,9 +126,8 @@
 
 # (throw 'sym 'any)
 (de _throw (Exe)
-   (let (X (cdr Exe)  Tag (eval (++ X)))
-      (save Tag
-         (set $Thrown (eval (car X))) )
+   (let (X (cdr Exe)  Tag (save (eval (++ X))))
+      (set $Thrown (eval (car X)))
       (let Ctch (catchFrame (val $Catch))
          (until (=0 (Ctch))
             (when (or (== $T (Ctch tag)) (== Tag (Ctch tag)))

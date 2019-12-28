@@ -1,4 +1,4 @@
-# 27dec19 Software Lab. Alexander Burger
+# 28dec19 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
@@ -225,9 +225,8 @@ evSym equal compare natRet main)
                            (set $Next
                               (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
                            (while (pair (>>> X))
-                              (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
-                                 (set 2 L Z)
-                                 (setq L Z) ) ) ) ) )
+                              (set 2 L  # [argN next]
+                                 (setq L (push (eval (car X)) $Nil)) ) ) ) ) )
                   (set $Bind P)
                   (loop
                      (let (S (val 3 P)  V (val S))  # Symbol, old value
@@ -261,18 +260,18 @@ evSym equal compare natRet main)
    NO )
 
 (de evListSave (Fun Exe)
-   (save Fun T  # Save computed function
-      (loop T
-         (unless (=0 (val $Signal))
-            (sighandler Exe) )
-         (? (num? Fun) (subr Fun Exe))
-         (? (pair Fun) (evExpr Fun Exe))
-         (let V (val Fun)
-            (? (== V (val V))
-               (if (sharedLib Fun)
-                  (subr (val Fun) Exe)
-                  (undefined Fun Exe) ) )
-            (setq Fun V) ) ) ) )
+   (save Fun)  # Save computed function
+   (loop T
+      (unless (=0 (val $Signal))
+         (sighandler Exe) )
+      (? (num? Fun) (subr Fun Exe))
+      (? (pair Fun) (evExpr Fun Exe))
+      (let V (val Fun)
+         (? (== V (val V))
+            (if (sharedLib Fun)
+               (subr (val Fun) Exe)
+               (undefined Fun Exe) ) )
+         (setq Fun V) ) ) )
 
 (de evList (Exe)
    (let Fun (car Exe)
