@@ -1,23 +1,37 @@
-# 27dec19 Software Lab. Alexander Burger
+# 28dec19 Software Lab. Alexander Burger
 
 (compile) (mark gc cons consSym boxNum box64 consNum)
 
-(de void mark (Exe)
-   (let X 0
+(de void mark (E)
+   (let X 0  # Clear TOS
       (loop
-         (until (cnt? Exe)
-            (let P (any (& Exe -16))
-               (? (=0 (& P 1)))  # Already marked
+         (until (cnt? E)
+            (let P (any (& E -16))  # Cell pointer
+               (? (=0 (& (cdr P) 1)))  # Already marked
                (set 2 P (& (cdr P) -2))  # Mark cell
-               (? (big? Exe)
-                  (let Y (cdr P)
+               (? (big? E)
+                  (let Y (val (big E))
                      (until (cnt? Y)
-                        (let Z (big Y)
-                           (? (=0 (& (val Z) 1)))  # Marked
-                           (set Z (& (val Z) -2))  # Mark
+                        (let Z (val (big Y))  # Mark big digits
+                           (set (big Y) (& Z -2))  # Mark
                            (setq Y Z) ) ) ) )  # Next digit
-               )
-            ) ) ) )
+               (let Y E  # Previous item
+                  (setq E (val P))  # Get CAR
+                  (set P (| X 1))  # Keep TOS first visit
+                  (setq X Y) ) ) )  # TOS on previous
+         (let P NIL
+            (loop
+               (setq P (any (& X -16)))  # TOS cell pointer
+               (and (=0 P) (ret))  # Empty
+               (? (=0 (& (val P) 1)))  # Second visit
+               (let Tmp X
+                  (setq X (cdr P))  # TOS up
+                  (set 2 P E)  # Restore CDR
+                  (setq E Tmp) ) )  # E up
+            (let Y (val P)  # Up pointer
+               (set P E)  # Restore CAR
+               (setq E (cdr P))  # Get CDR
+               (set 2 P (& Y -2)) ) ) ) ) )  # Store up pointer
 
 (de void gc ()
    #{..}#
