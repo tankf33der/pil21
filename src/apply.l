@@ -1,23 +1,20 @@
-# 28dec19 Software Lab. Alexander Burger
+# 29dec19 Software Lab. Alexander Burger
 
-(compile) (apply)
-
-(de apply (Exe Fun Lst)
-   $T )
+(compile) ()
 
 # (apply 'fun 'lst ['any ..]) -> any
-(de _apply (Exe)
-   (let
-      (X (cdr Exe)
-         Fun (save (eval (++ X)))
-         Lst (eval (++ X))
-         P (link (push Lst NIL)) )
-      (when (pair X)
-         (let Q Lst
-            (setq Lst
-               (setq P
-                  (set P (push (eval (++ X)) Q)) ) )
-            (while (pair X)
-               (setq P
-                  (set 2 P (push (eval (++ X)) Q)) ) ) ) )
-      (apply Exe Fun Lst) ) )
+(de _apply (X)
+   (>>> X)
+   (let Exe (save (push NIL $Nil ZERO (eval (++ X))))
+      (set Exe (ofs Exe 3))
+      (let (Lst (save+ (eval (++ X)))  P Exe)
+         (while (pair X)
+            (setq P
+               (set 2 P
+                  (push NIL $Nil ZERO (eval (++ X))) ) )
+            (set P (ofs P 3)) )
+         (while (pair Lst)
+            (setq P
+               (set 2 P (push NIL $Nil ZERO (++ Lst))) )
+            (set P (ofs P 3)) )
+         (evList Exe) ) ) )

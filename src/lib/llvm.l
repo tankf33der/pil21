@@ -1,4 +1,4 @@
-# 28dec19 Software Lab. Alexander Burger
+# 29dec19 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -26,10 +26,10 @@ globals array table symTab inline define struct $Nil $Link drop)
 ## Cross-compiler private ##
 (symbols 'priv 'llvm 'pico)
 
-(local) (*Strings *Ssa *Lbl *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi +phi
-br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe Prg
-Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False
-Beg End *Safe)
+(local) (*Strings *Ssa *Lbl *Log *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi
++phi br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe
+Prg Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True
+False Beg End *Safe)
 
 (import any inc dec ++ #{>>>}#)
 
@@ -56,9 +56,9 @@ Beg End *Safe)
    (for L *Strings
       (prinl (caddr L) " = " (cdddr L)) ) )
 
-(de log (Exe)
-   (when *Lbl
-      (let L (chop (symbols '(llvm pico priv) (sym Exe)))
+(de log ()
+   (when *Log
+      (let L (chop (symbols '(llvm pico priv) (sym (up 2))))
          (and (nth L 65) (con @ "..."))
          (link (cons NIL L)) ) ) )
 
@@ -68,7 +68,7 @@ Beg End *Safe)
          (bind (car Lst)
             (mapc set (car Lst) (cdr L))
             (cons (caadr Lst)
-               '(log (up))
+               '(log)
                (let @@ '@@
                   (fill (cdadr Lst)) ) ) ) ) ) )
 
@@ -413,7 +413,7 @@ Beg End *Safe)
       (let ((@Args . @Body) Lst)
          (fill
             '(@Args
-               (log (up))
+               (log)
                (use *Bind
                   (for Var '@Args
                      (+bind '@Body Var) )
@@ -422,7 +422,8 @@ Beg End *Safe)
 (de define (Ext Ret Sym Args Body)
    (and Body (prinl))
    (setq *Ssa -1)
-   (off *Bind *Phi *? *Safe)
+   (off *Bind *Phi *?)
+   (setq *Safe (list NIL))
    (with Sym
       (setq *Ret
          (if Ret
@@ -459,7 +460,7 @@ Beg End *Safe)
                   (list 'mapcar
                      ''((Typ) (pack Typ " " (next)))
                      (lit (: args)) ) )
-               (link '(log (up)))
+               (link '(log))
                (let L
                   (list
                      "call " (lit *Ret) " @" (lit Sym)
@@ -475,12 +476,12 @@ Beg End *Safe)
                         (== void *Ret)
                         (list 'def '(pack "%" *Ssa) (lit Ret)) ) ) ) ) ) ) )
    (when Body
-      (let *Lbl 1
+      (let (*Lbl 1  *Log T)
          (for X
             (make
                (label *Lbl)
                (let? R (run Body)
-                  (and *Safe (drop @))
+                  (and (find prog (reverse *Safe)) (drop @))
                   (if (== void *Ret)
                      (link "ret void")
                      (link (pack "ret " *Ret " " R)) ) ) )
@@ -960,7 +961,7 @@ Beg End *Safe)
 (asm ()
    (Lst
       (use *Bind
-         (let (X (++ Lst)  *Safe)
+         (let (X (++ Lst)  *Safe (cons NIL *Safe))
             (prog1
                (if (pair X)
                   (recur ()
@@ -974,7 +975,7 @@ Beg End *Safe)
                      (bind X
                         (set X Val)
                         (run Lst) ) ) )
-               (and @ *Safe (drop @)) ) ) ) )
+               (and @ (pico~car *Safe) (drop @)) ) ) ) )
    (llvm~let) )
 
 # Stack operations
@@ -1241,7 +1242,7 @@ Beg End *Safe)
 
 (asm ()
    ((X)
-      (and *Safe (drop @))
+      (and (find prog (reverse *Safe)) (drop @))
       (if (== void *Ret)
          (link "ret void")
          (link (pack "ret " *Ret " " X)) )
@@ -1252,34 +1253,39 @@ Beg End *Safe)
 ## Composite ##
 (symbols '(llvm priv pico))
 
-(local) (caar cadr cdar cddr eval run link pop save evList)
+(local) (caar cadr cdar cddr eval run link pop save save+ evList)
 
 (pico~de caar (X)
-   (log (up))
-   (car (car X)) )
+   (log)
+   (pico~let *Log NIL
+      (car (car X)) ) )
 
 (pico~de cadr (X)
-   (log (up))
-   (car (cdr X)) )
+   (log)
+   (pico~let *Log NIL
+      (car (cdr X)) ) )
 
 (pico~de cdar (X)
-   (log (up))
-   (cdr (car X)) )
+   (log)
+   (pico~let *Log NIL
+      (cdr (car X)) ) )
 
 (pico~de cddr (X)
-   (log (up))
-   (cdr (cdr X)) )
+   (log)
+   (pico~let *Log NIL
+      (cdr (cdr X)) ) )
 
 (pico~de eval (X)
-   (log (up))
-   (cond T
-      ((num? X) X)
-      ((sym? X) (car X))
-      (T (evList X)) ) )
+   (log)
+   (pico~let *Log NIL
+      (cond T
+         ((num? X) X)
+         ((sym? X) (car X))
+         (T (evList X)) ) ) )
 
 (pico~de run (Bnd2)
-   (log (up))
-   (pico~let *Bind (cons 'Bnd2 *Bind)
+   (log)
+   (pico~let (*Bind (cons 'Bnd2 *Bind)  *Log)
       (loop T
          (? (atom (cdr Bnd2))
             (eval (car Bnd2)) )
@@ -1288,24 +1294,37 @@ Beg End *Safe)
          (setq Bnd2 (cdr Bnd2)) ) ) )
 
 (pico~de link (P)
-   (log (up))
-   (set 2 P (val $Link))
-   (set $Link P) )
+   (log)
+   (pico~let *Log NIL
+      (set 2 P (val $Link))
+      (set $Link P) ) )
 
 (pico~de drop (P)
-   (log (up))
-   (set $Link (cdr P)) )
-
-(pico~de pop (P)
-   (log (up))
-   (prog1
-      (val P)
+   (log)
+   (pico~let *Log NIL
       (set $Link (cdr P)) ) )
 
+(pico~de pop (P)
+   (log)
+   (pico~let *Log NIL
+      (prog1
+         (val P)
+         (set $Link (cdr P)) ) ) )
+
 (pico~de save (X . @)
-   (log (up))
-   (pico~let P (push X NIL)
-      (default *Safe P)
+   (log)
+   (pico~let (P (push X NIL)  *Log)
+      (pico~unless (pico~car *Safe)
+         (pico~set *Safe P) )
+      (set 2 P (val $Link))
+      (pico~while (args)
+         (setq P (push (next) P)) )
+      (set $Link P) )
+   X )
+
+(pico~de save+ (X . @)
+   (log)
+   (pico~let (P (push X NIL)  *Log)
       (set 2 P (val $Link))
       (pico~while (args)
          (setq P (push (next) P)) )
