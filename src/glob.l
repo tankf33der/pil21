@@ -1,4 +1,4 @@
-# 28dec19 Software Lab. Alexander Burger
+# 29dec19 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -129,6 +129,8 @@
    (NIL "load" _load)
    # Mapping
    (NIL "apply" _apply)
+   (NIL "map" _map)
+   (NIL "mapcar" _mapcar)
    # Control flow
    (NIL "de" _de)
    (NIL "dm" _dm)

@@ -414,16 +414,16 @@ False Beg End *Safe)
          (fill
             '(@Args
                (log)
-               (use *Bind
-                  (for Var '@Args
-                     (+bind '@Body Var) )
-                  . @Body ) ) ) ) ) )
+               (let *Log NIL
+                  (use *Bind
+                     (for Var '@Args
+                        (+bind '@Body Var) )
+                     . @Body ) ) ) ) ) ) )
 
 (de define (Ext Ret Sym Args Body)
    (and Body (prinl))
    (setq *Ssa -1)
-   (off *Bind *Phi *?)
-   (setq *Safe (list NIL))
+   (off *Bind *Phi *? *Safe)
    (with Sym
       (setq *Ret
          (if Ret
@@ -481,7 +481,7 @@ False Beg End *Safe)
             (make
                (label *Lbl)
                (let? R (run Body)
-                  (and (find prog (reverse *Safe)) (drop @))
+                  (and *Safe (drop @))
                   (if (== void *Ret)
                      (link "ret void")
                      (link (pack "ret " *Ret " " R)) ) ) )
@@ -961,7 +961,7 @@ False Beg End *Safe)
 (asm ()
    (Lst
       (use *Bind
-         (let (X (++ Lst)  *Safe (cons NIL *Safe))
+         (let (X (++ Lst)  Safe *Safe)
             (prog1
                (if (pair X)
                   (recur ()
@@ -975,7 +975,9 @@ False Beg End *Safe)
                      (bind X
                         (set X Val)
                         (run Lst) ) ) )
-               (and @ (pico~car *Safe) (drop @)) ) ) ) )
+               (when (and @ *Safe (not Safe))
+                  (drop *Safe)
+                  (off *Safe) ) ) ) ) )
    (llvm~let) )
 
 # Stack operations
@@ -1242,7 +1244,7 @@ False Beg End *Safe)
 
 (asm ()
    ((X)
-      (and (find prog (reverse *Safe)) (drop @))
+      (and *Safe (drop @))
       (if (== void *Ret)
          (link "ret void")
          (link (pack "ret " *Ret " " X)) )
@@ -1253,7 +1255,7 @@ False Beg End *Safe)
 ## Composite ##
 (symbols '(llvm priv pico))
 
-(local) (caar cadr cdar cddr eval run link pop save save+ evList)
+(local) (caar cadr cdar cddr eval run link pop save evList)
 
 (pico~de caar (X)
    (log)
@@ -1314,17 +1316,7 @@ False Beg End *Safe)
 (pico~de save (X . @)
    (log)
    (pico~let (P (push X NIL)  *Log)
-      (pico~unless (pico~car *Safe)
-         (pico~set *Safe P) )
-      (set 2 P (val $Link))
-      (pico~while (args)
-         (setq P (push (next) P)) )
-      (set $Link P) )
-   X )
-
-(pico~de save+ (X . @)
-   (log)
-   (pico~let (P (push X NIL)  *Log)
+      (default *Safe P)
       (set 2 P (val $Link))
       (pico~while (args)
          (setq P (push (next) P)) )
