@@ -1,4 +1,4 @@
-# 28dec19 Software Lab. Alexander Burger
+# 31dec19 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -460,24 +460,24 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 # (+ 'num ..) -> num
 (de _add (Exe)
-   (let (X Exe  A (eval (car (>>> X))))
+   (let (X (cdr Exe)  A (eval (++ X)))
       (if (nil? A)
          A
          (let R (link (push (needNum Exe A) NIL))
-            (while (pair (>>> X))
-               (let B (eval (car X))
+            (while (pair X)
+               (let B (eval (++ X))
                   (? (nil? B) (set R B))
                   (set R (addu (val R) (needNum Exe B))) ) )
             (pop R) ) ) ) )
 
 # (- 'num ..) -> num
 (de _sub (Exe)
-   (let (X Exe  A (eval (car (>>> X))))
+   (let (X (cdr Exe)  A (eval (++ X)))
       (if (nil? A)
          A
          (let R (link (push (needNum Exe A) NIL))
-            (while (pair (>>> X))
-               (let B (eval (car X))
+            (while (pair X)
+               (let B (eval (++ X))
                   (? (nil? B) (set R B))
                   (set R (subu (val R) (needNum Exe B))) ) )
             (pop R) ) ) ) )

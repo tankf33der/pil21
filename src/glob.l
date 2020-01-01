@@ -1,4 +1,4 @@
-# 29dec19 Software Lab. Alexander Burger
+# 01jan20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -138,6 +138,9 @@
    (NIL "if" _if)
    (NIL "catch" _catch)
    (NIL "throw" _throw)
+   (NIL "finally" _finally)
+   (NIL "co" _co)
+   (NIL "yield" _yield)
    (NIL "bye" _bye)
    # List processing
    (NIL "car" _car)
@@ -182,9 +185,10 @@
    ($Thrown $Nil)                # Thrown value
    ($Cls 0)                      # Method class
    ($Key 0)                      # Method key
-   ($Apply 0)                    # Apply frames
    ($Make 0)                     # 'make' environment
    ($Yoke 0)
+   ($Coroutines i8* null)        # Coroutines
+   ($CoFrames i8* null)          # Coroutine frames
    ($Task $Nil)                  # Task list
    ($Protect 0)                  # Signal protection
    ($Trace 0) )                  # Trace level

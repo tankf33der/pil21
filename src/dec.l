@@ -1,43 +1,73 @@
-# 20dec19 Software Lab. Alexander Burger
+# 01jan20 Software Lab. Alexander Burger
 
-(compile) (inFile outFile child ioFrame catchFrame)
+(compile) (inFile outFile dbFile ioFrame catchFrame coFrame coroutine child)
 
+# I/O
 (struct inFile
-   (fd 4 i32)
-   (ix 4 i32)
-   (cnt 4 i32)
-   (next 4 i32)
-   (line 8 i64)
-   (src 8 i64)
-   (name 8 i8*)
-   (buf BUFSIZ i8) )
+   (fd 4 i32)           # File descriptor
+   (ix 4 i32)           # Buffer index
+   (cnt 4 i32)          # Buffer byte count
+   (next 4 i32)         # Saved next character
+   (name 8 i8*)         # Current file name
+   (line 8 i64)         # Current line number
+   (src 8 i64)          # Source start line
+   (buf BUFSIZ i8) )    # Buffer
 
 (struct outFile
-   (fd 4 i32)
-   (ix 4 i32)
-   (buf BUFSIZ i8)
-   (tty 8 i1) )
+   (fd 4 i32)           # File descriptor
+   (ix 4 i32)           # Buffer index
+   (buf BUFSIZ i8)      # Buffer
+   (tty 1 i1) )         # TTY flag
 
-(struct child
-   (buf 8 i8*)
-   (pid 4 i32)
-   (hear 4 i32)
-   (tell 4 i32)
-   (ofs 4 i32)
-   (cnt 4 i32) )
+(struct dbFile
+   (fd 4 i32)           # File descriptor
+   (db 4 i32)           # File number
+   (sh 4 i32)           # Block shift
+   (siz 4 i32)          # Block size (64 << sh)
+   (mark 8 i8*)         # Mark bit vector
+   (mrks 4 i32)         # Mark vector size
+   (flu 4 i32)          # Free list use count
+   (lck 1 i1)           # Lock flag
+   (drt 1 i1) )         # Dirty flag
 
 (struct ioFrame
-   (link 8 i8*)
-   (fd 4 i32)
-   (pid 4 i32)
-   (fun 8 i8*) )
+   (link 8 i8*)         # Frame link
+   (fd 4 i32)           # File descriptor
+   (pid 4 i32)          # Process ID
+   (fun 8 i8*) )        # Function pointer
 
+# Catch/throw
 (struct catchFrame
-   (link 8 i8*)
-   (tag 8 any)
-   (fin 8 any)
-   (env (env T) i8)
-   (rst 0 i8) )
+   (link 8 i8*)         # Frame link
+   (tag 8 any)          # Catch tag
+   (fin 8 any)          # 'finally' expression
+   (env (env T) i8)     # Saved environment
+   (rst 0 i8) )         # Restart jmp_buf (JmpBufSize)
+
+# Coroutines
+(struct coFrame
+   (link 8 i8*)         # Frame link
+   (co 8 i8**)          # Coroutine pointer
+   (lim 8 i8*)          # Stack limit
+   (at 8 any)           # Saved [@]
+   (env (env T) i8) )   # Saved environment
+
+(struct coroutine
+   (tag 8 any)          # Coroutine tag
+   (next 8 i8*)         # Next coroutine
+   (stk 8 i8**)         # Saved stack pointer
+   (at 8 any)           # Saved [@]
+   (env (env T) i8)     # Saved environment
+   (rst 0 i8) )         # Restart jmp_buf (JmpBufSize)
+
+# Family IPC
+(struct child
+   (buf 8 i8*)          # Buffer pointer
+   (pid 4 i32)          # Process ID
+   (hear 4 i32)         # Hear pipe
+   (tell 4 i32)         # Tell pipe
+   (ofs 4 i32)          # Buffer offset
+   (cnt 4 i32) )        # Buffer byte count
 
 # System
 (compile) (malloc realloc free getpid isatty read write strdup strcmp strchr

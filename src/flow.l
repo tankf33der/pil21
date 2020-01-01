@@ -1,4 +1,4 @@
-# 28dec19 Software Lab. Alexander Burger
+# 01jan20 Software Lab. Alexander Burger
 
 (compile) (redefine evMethod)
 
@@ -135,6 +135,26 @@
                (longjmp (Ctch (rst)) 1) )
             (setq Ctch (catchFrame (Ctch link))) ) )
       (err Exe Tag ($ "Tag not found") null) ) )
+
+# (finally exe . prg) -> any
+(de _finally (Exe)
+   $Nil )
+
+# (co 'sym [. prg]) -> any
+(de _co (Exe)
+   (let (X (cdr Exe)  Tag (eval (++ X)))
+      (when (pair X)  # 'prg'
+         (let Co (b8 (coFrame T))
+
+            (let Stk (coroutine (b8 (+ (val JmpBufSize) (coroutine T))))
+               0 )
+
+            ) )
+      $Nil ) )
+
+# (yield 'any ['sym]) -> any
+(de _yield (Exe)
+   $Nil )
 
 # (bye ['cnt])
 (de _bye (X)
