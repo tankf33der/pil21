@@ -1,4 +1,4 @@
-# 28dec19 Software Lab. Alexander Burger
+# 04jan20 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
@@ -55,7 +55,7 @@ evSym equal compare natRet main)
    (finish N) )
 
 # Memory
-(de i8* alloc ((i8* . Ptr) (i64 . Siz))
+(de i8* alloc ((i8* . Ptr) (i32 . Siz))
    (let P (realloc Ptr Siz)  # Reallocate pointer
       (when (=0 P)
          (giveup ($ "No memory")) )
@@ -127,7 +127,7 @@ evSym equal compare natRet main)
                   (unless (=0 Tag)
                      (while (pair Tag)
                         (when (subStr (car Tag) (val $Msg))
-                           (set $Thrown
+                           (set $Ret
                               (if (nil? (car Tag))
                                  (val $Msg)
                                  (car Tag) ) )

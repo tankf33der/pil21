@@ -1,4 +1,4 @@
-# 01jan20 Software Lab. Alexander Burger
+# 02jan20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -7,8 +7,10 @@
 (var $Home i8* null)                   # Home directory
 (var $Heaps 0)                         # Heap list
 (var $Avail 0)                         # Avail list
-(var $Ret2 0)                          # Second return value
-(var $Ret3 0)                          # Third return value
+(var $Coroutines i8* null)             # Coroutines
+(var $StkSize i32 STACK)               # Coroutine stack segment size
+(var $StkLimit i8* null)               # Stack limit: StackN-Size+4096
+(var $Ret 0)                           # Secondary return value
 (var $TtyPid i32 0)                    # Terminal process ID
 (var $InFDs i32 0)                     # Number of input files
 (var $InFiles i8** null)               # Input files
@@ -171,6 +173,7 @@
    ($Link 0)                     # Link register
    ($Bind 0)                     # Bind frames
    ($Catch i8* null)             # Catch frames
+   ($CoFrames i8* null)          # Coroutine frames
    ($InFrames i8* null)          # Input frames
    ($OutFrames i8* null)         # Output frames
    ($ErrFrames i8* null)         # Error frames
@@ -182,13 +185,10 @@
    ($OutFile i8* null)           # Output file
    ($Intern $Pico1)              # Current namespaces of internal symbols
    ($Next $Nil)                  # Next vararg
-   ($Thrown $Nil)                # Thrown value
    ($Cls 0)                      # Method class
    ($Key 0)                      # Method key
    ($Make 0)                     # 'make' environment
    ($Yoke 0)
-   ($Coroutines i8* null)        # Coroutines
-   ($CoFrames i8* null)          # Coroutine frames
    ($Task $Nil)                  # Task list
    ($Protect 0)                  # Signal protection
    ($Trace 0) )                  # Trace level

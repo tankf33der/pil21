@@ -1,6 +1,6 @@
-# 01jan20 Software Lab. Alexander Burger
+# 04jan20 Software Lab. Alexander Burger
 
-(compile) (inFile outFile dbFile ioFrame catchFrame coFrame coroutine child)
+(compile) (inFile outFile dbFile ioFrame catchFrame coroutine coFrame child)
 
 # I/O
 (struct inFile
@@ -45,20 +45,18 @@
    (rst 0 i8) )         # Restart jmp_buf (JmpBufSize)
 
 # Coroutines
-(struct coFrame
-   (link 8 i8*)         # Frame link
-   (co 8 i8**)          # Coroutine pointer
-   (lim 8 i8*)          # Stack limit
-   (at 8 any)           # Saved [@]
-   (env (env T) i8) )   # Saved environment
-
 (struct coroutine
    (tag 8 any)          # Coroutine tag
    (next 8 i8*)         # Next coroutine
-   (stk 8 i8**)         # Saved stack pointer
+   (prg 8 any)          # Code body
+   (lim 8 i8*)          # Stack limit
    (at 8 any)           # Saved [@]
    (env (env T) i8)     # Saved environment
    (rst 0 i8) )         # Restart jmp_buf (JmpBufSize)
+
+(struct coFrame
+   (link 8 i8*)         # Frame link
+   (crt 8 i8*) )        # Coroutine
 
 # Family IPC
 (struct child
@@ -74,7 +72,7 @@
 strrchr dlerror close setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
-(de T i8* realloc (i8* i64))
+(de T i8* realloc (i8* i32))
 (de T void free (i8*))
 (de T i32 getpid ())
 (de T i32 isatty (i32))

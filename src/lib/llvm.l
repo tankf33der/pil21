@@ -1,4 +1,4 @@
-# 29dec19 Software Lab. Alexander Burger
+# 03jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -518,33 +518,35 @@ False Beg End *Safe)
                @N
                (let @P (or P (llvm~b8 @N))
                   (curry (@P) Args
-                     (nond
-                        (Args '@P)
-                        ((or
-                              (asoq (car Args) '@L)
-                              (and
-                                 (pair (car Args))
-                                 (asoq (car @) '@L) ) )
-                           (quit "Bad struct item" (car Args)) )
-                        (NIL
-                           (let P (llvm~ofs '@P (cadr @))
-                              (let Q ((ptr (caddr @)) P)
-                                 (if (atom (car Args))
-                                    (if (cadr Args)
-                                       (llvm~set Q (eval @))
-                                       (llvm~val Q) )
-                                    (ifn (cdar Args)
-                                       P
-                                       (let A (cadar Args)
-                                          (setq P
-                                             (llvm~ofs P
-                                                (if (sym? A) (; A offset) (eval A)) ) ) )
-                                       (ifn (cddar Args)
+                     (log)
+                     (let *Log NIL
+                        (nond
+                           (Args '@P)
+                           ((or
+                                 (asoq (car Args) '@L)
+                                 (and
+                                    (pair (car Args))
+                                    (asoq (car @) '@L) ) )
+                              (quit "Bad struct item" (car Args)) )
+                           (NIL
+                              (let P (llvm~ofs '@P (cadr @))
+                                 (let Q ((ptr (caddr @)) P)
+                                    (if (atom (car Args))
+                                       (if (cadr Args)
+                                          (llvm~set Q (eval @))
+                                          (llvm~val Q) )
+                                       (ifn (cdar Args)
                                           P
-                                          (let Q ((ptr (caddar Args)) P)
-                                             (if (cadr Args)
-                                                (llvm~set Q (eval @))
-                                                (llvm~val Q) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
+                                          (let A (cadar Args)
+                                             (setq P
+                                                (llvm~ofs P
+                                                   (if (sym? A) (; A offset) (eval A)) ) ) )
+                                          (ifn (cddar Args)
+                                             P
+                                             (let Q ((ptr (caddar Args)) P)
+                                                (if (cadr Args)
+                                                   (llvm~set Q (eval @))
+                                                   (llvm~val Q) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
 
 
 ## Cross compiler overridden ##
