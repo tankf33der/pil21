@@ -175,7 +175,10 @@
                         (let Dst (coroutine P)
                            (Cf crt (Dst))
                            (longjmp (Dst (rst)) 1) ) )
-                     (let Dst (coroutine (b8 (+ (val $StkSize) (coroutine T))))
+                     (setq P (findCo 0))  # Find unused coroutine
+                     (when (=0 P)
+                        (setq P (b8 (+ (val $StkSize) (coroutine T)))) )
+                     (let Dst (coroutine P)
                         (Dst tag Tag)
                         (Dst next (val $Coroutines))
                         (Dst prg X)
