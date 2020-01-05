@@ -1,6 +1,6 @@
-# 04jan20 Software Lab. Alexander Burger
+# 05jan20 Software Lab. Alexander Burger
 
-(compile) (inFile outFile dbFile ioFrame catchFrame coroutine coFrame child)
+(compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
 # I/O
 (struct inFile
@@ -37,7 +37,7 @@
    (fun 8 i8*) )        # Function pointer
 
 # Catch/throw
-(struct catchFrame
+(struct caFrame
    (link 8 i8*)         # Frame link
    (tag 8 any)          # Catch tag
    (fin 8 any)          # 'finally' expression

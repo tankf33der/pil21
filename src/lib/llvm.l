@@ -1,4 +1,4 @@
-# 03jan20 Software Lab. Alexander Burger
+# 05jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -12,7 +12,8 @@
 i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
 globals array table symTab inline define struct $Nil $Link drop)
 
-(import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex)
+(import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex !
+show bt)
 
 (def 'void 'void)
 (def 'null 'null)
@@ -27,7 +28,7 @@ globals array table symTab inline define struct $Nil $Link drop)
 (symbols 'priv 'llvm 'pico)
 
 (local) (*Strings *Ssa *Lbl *Log *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi
-+phi br label +lbl +bind type func ptr pointee store A B C I L M N P V X Y Exe
++phi br label +lbl +bind type func ptr pointee store A B C I L M N P Q V X Y Exe
 Prg Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True
 False Beg End *Safe)
 
@@ -533,19 +534,19 @@ False Beg End *Safe)
                                  (let Q ((ptr (caddr @)) P)
                                     (if (atom (car Args))
                                        (if (cadr Args)
-                                          (llvm~set Q (eval @))
+                                          (llvm~set Q (eval @ 1 '(*Log)))
                                           (llvm~val Q) )
                                        (ifn (cdar Args)
                                           P
                                           (let A (cadar Args)
                                              (setq P
                                                 (llvm~ofs P
-                                                   (if (sym? A) (; A offset) (eval A)) ) ) )
+                                                   (if (sym? A) (; A offset) (eval A 1 '(*Log))) ) ) )
                                           (ifn (cddar Args)
                                              P
                                              (let Q ((ptr (caddar Args)) P)
                                                 (if (cadr Args)
-                                                   (llvm~set Q (eval @))
+                                                   (llvm~set Q (eval @ 1 '(*Log)))
                                                    (llvm~val Q) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )
 
 
@@ -606,6 +607,8 @@ False Beg End *Safe)
                (ssa (inc '*Ssa) "bitcast " (func V) "* " X " to " '@Typ) )
             ((memq V '(any i64))
                (ssa (inc '*Ssa) "inttoptr i64 " X " to " '@Typ) )
+            ((== 'null V)
+               (ssa (inc '*Ssa) "inttoptr i64 0 to " '@Typ) )
             ((sub? "*" V)
                (unless (== V '@Typ)
                   (ssa (inc '*Ssa) "bitcast " V " " X " to " '@Typ) ) )
@@ -765,7 +768,7 @@ False Beg End *Safe)
                   (setq X (def (pack "%" *Ssa) V)) ) ) )
          (T
             (ssa (inc '*Ssa) @Op2 " " (val X) " 0, " X)
-            (def (pack "%" *Ssa) V) ) ) )
+            (def (pack "%" *Ssa) (val X)) ) ) )
    (llvm~+ + "add")
    (llvm~- - "sub" "-") )
 

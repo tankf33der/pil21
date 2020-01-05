@@ -1,4 +1,4 @@
-# 04jan20 Software Lab. Alexander Burger
+# 05jan20 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
@@ -17,19 +17,19 @@ evSym equal compare natRet main)
 
 # Unwind stack
 (de void unwind ((i8* . Catch))
-   (let (Ctch (catchFrame (val $Catch))  P (val $Bind))
-      (until (=0 (Ctch))
-         (until (or (=0 P) (== P (Ctch (env $Bind any))))
+   (let (Ca: (caFrame (val $Catch))  P (val $Bind))
+      (until (=0 (Ca:))
+         (until (or (=0 P) (== P (Ca: (env $Bind any))))
             (loop
                (set (val P) (val 2 P))  # Restore values
                (? (== $At (val P)))
                (setq P (val 3 P)) )
             (setq P (val 3 P)) )
          # ...
-         (memcpy (env) (Ctch (env)) (env T))
-         (eval (Ctch fin))  # Evaluate 'finally' expression
-         (let F (== (Ctch) Catch)
-            (set $Catch (Ctch link))
+         (memcpy (env) (Ca: (env)) (env T))
+         (eval (Ca: fin))  # Evaluate 'finally' expression
+         (let F (== (Ca:) Catch)
+            (set $Catch (Ca: link))
             (and F (ret)) ) )
       (until (=0 P)
          (loop
@@ -121,34 +121,35 @@ evSym equal compare natRet main)
       (xprintf Msg 240 Fmt Arg)
       (unless (=0 (val Msg))
          (set $Msg (mkStr Msg))
-         (let Ctch (catchFrame (val $Catch))
-            (until (=0 (Ctch))
-               (let Tag (Ctch tag)
-                  (unless (=0 Tag)
-                     (while (pair Tag)
-                        (when (subStr (car Tag) (val $Msg))
-                           (set $Ret
-                              (if (nil? (car Tag))
-                                 (val $Msg)
-                                 (car Tag) ) )
-                           (unwind (Ctch))
-                           (longjmp (Ctch (rst)) 1) )
-                        (>>> Tag) ) )
-                  (setq Ctch (catchFrame (Ctch link))) ) ) ) )
+         (let Ca (val $Catch)
+            (until (=0 Ca)
+               (let Ca: (caFrame Ca)
+                  (let Tag (Ca: tag)
+                     (unless (=0 Tag)
+                        (while (pair Tag)
+                           (when (subStr (car Tag) (val $Msg))
+                              (set $Ret
+                                 (if (nil? (car Tag))
+                                    (val $Msg)
+                                    (car Tag) ) )
+                              (unwind (Ca:))
+                              (longjmp (Ca: (rst)) 1) )
+                           (>>> Tag) ) ) )
+                  (setq Ca (Ca: link)) ) ) ) )
       (set $Chr (set $ExtN 0))
       (set $Break NO)
       (set $Alarm (set $Sigio $Nil))
       (set $Line (set 2 $Line 0))
-      (let Out (ioFrame (b8 (ioFrame T)))
-         (Out fd 2)  # Stderr
-         (Out pid 0)
-         (pushOutFiles (Out))
-         (let File (inFile (val $InFile))
-            (unless (or (=0 (File)) (=0 (File name)))
+      (let Io: (ioFrame (b8 (ioFrame T)))
+         (Io: fd 2)  # Stderr
+         (Io: pid 0)
+         (pushOutFiles (Io:))
+         (let In: (inFile (val $InFile))
+            (unless (or (=0 (In:)) (=0 (In: name)))
                (call $Put (char "["))
-               (outString (File name))
+               (outString (In: name))
                (call $Put (char ":"))
-               (outWord (File src))
+               (outWord (In: src))
                (call $Put (char "]"))
                (space) ) )
          (unless (=0 Exe)
