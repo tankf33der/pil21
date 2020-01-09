@@ -171,9 +171,12 @@
             (loop
                (let Crt: (coroutine Crt)
                   (when (== Tag (Crt: tag))  # Found running coroutine
-                     (memcpy (env) (Crt: (env)) (env T))  # Resume it
-                     (set $At (Crt: at))
-                     (longjmp (Crt: (rst)) 1) )
+                     (when (=0 (setjmp (Src: (rst))))
+                        (set $Ret $Nil)
+                        (longjmp (Crt: (rst)) 1) )
+                     (memcpy (env) (Src: (env)) (env T))
+                     (set $At (Src: at))
+                     (ret (val $Ret)) )
                   (when (=0 (Crt: tag))
                      (setq P Crt) )  # Remember possible free slot
                   (? (=0 (Crt: next)))
@@ -234,8 +237,6 @@
          (memcpy (Src: (env)) (env) (env T))
          (when (=0 (setjmp (Src: (rst))))
             (set $Ret Val)
-            (memcpy (env) (Dst: (env)) (env T))
-            (set $At (Dst: at))
             (longjmp (Dst: (rst)) 1) )
          (memcpy (env) (Src: (env)) (env T))
          (set $At (Src: at))
