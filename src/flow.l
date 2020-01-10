@@ -1,6 +1,6 @@
-# 09jan20 Software Lab. Alexander Burger
+# 10jan20 Software Lab. Alexander Burger
 
-(compile) (redefine evMethod)
+(compile) (redefine evMethod saveCoEnv loadCoEnv)
 
 (de redefine (Exe S X)
    (set S X)
@@ -140,6 +140,18 @@
 (de _finally (Exe)
    $Nil )
 
+# Coroutines
+(de void saveCoEnv ((i8* . Src))
+   (let Src: (coroutine Src)
+      (Src: at (val $At))
+      (memcpy (Src: (env)) (env) (env T)) ) )
+
+(de loadCoEnv ((i8* . Src))
+   (let Src: (coroutine Src)
+      (memcpy (env) (Src: (env)) (env T))
+      (set $At (Src: at))
+      (val $Ret) ) )
+
 # (co 'sym [. prg]) -> any
 (de _co (Exe)
    (let (X (cdr Exe)  Tag (eval (++ X)))
@@ -163,53 +175,55 @@
                   (? (=0 (setq Crt (Crt: next)))) ) )
             $Nil )
          (let
-            (Src: (coroutine ((coFrame (val $CoFrames)) crt))
+            (Src ((coFrame (val $CoFrames)) crt)
                Crt (val $Coroutines)
                P (i8* null) )
-            (Src: at (val $At))
-            (memcpy (Src: (env)) (env) (env T))
+            (saveCoEnv Src)
             (loop
                (let Crt: (coroutine Crt)
                   (when (== Tag (Crt: tag))  # Found running coroutine
-                     (when (=0 (setjmp (Src: (rst))))
-                        (set $Ret $Nil)
-                        (longjmp (Crt: (rst)) 1) )
-                     (memcpy (env) (Src: (env)) (env T))
-                     (set $At (Src: at))
-                     (ret (val $Ret)) )
+                     (unless (=0 (setjmp ((coroutine Src) (rst))))
+                        (ret
+                           (loadCoEnv
+                              ((coFrame (val (i8** (val $CoFrames)))) crt) ) ) )
+                     (set $Ret $Nil)
+                     (longjmp (Crt: (rst)) 1) )
                   (when (=0 (Crt: tag))
                      (setq P Crt) )  # Remember possible free slot
                   (? (=0 (Crt: next)))
                   (setq Crt (Crt: next)) ) )
-            (when (=0 (setjmp (Src: (rst))))
-               (cond  # Start new coroutine
-                  ((=0 P)  # Found no free slot
-                     (setq P
-                        (b8
-                           (+
-                              (if (== Crt (val $Coroutines))
-                                 (* 4 (val $StkSize))  # First coroutine
-                                 (+ (i32 (- (stack) Crt)) (val $StkSize)) )  # Allocate below last
-                              (coroutine T) ) ) )
-                     ((coroutine Crt) next P)
-                     ((coroutine P) next null) )
-                  (T (stack P)) )  # Use free slot
-               (let (Co: (coFrame (b8 (coFrame T)))  Dst: (coroutine P))
-                  (Co: link (val $CoFrames))
-                  (Co: crt P)
-                  (set $CoFrames (Co:))
-                  (Dst: tag Tag)
-                  (Dst: prg X)
-                  (Dst: lim null)
-                  (set  # Init local env
-                     $Make 0
-                     $Yoke 0
-                     #{$StkLimit (- .. 4096 (val $StkSize)))}# )
-                  (set $Ret (run X))
-                  (Dst: tag 0) ) )  # Mark as unused
-            (memcpy (env) (Src: (env)) (env T))
-            (set $At (Src: at)) )
-         (val $Ret) ) ) )
+            (unless (=0 (setjmp ((coroutine Src) (rst))))
+               (ret
+                  (loadCoEnv
+                     ((coFrame (val (i8** (val $CoFrames)))) crt) ) ) )
+            (cond  # Start new coroutine
+               ((=0 P)  # Found no free slot
+                  (stack
+                     (if (== Crt (val $Coroutines))
+                        (ofs (stack) (* 4 (val $StkSize)))  # First coroutine
+                        (ofs Crt (val $StkSize)) ) )  # Allocate below last
+                  (setq P (b8 (+ (val JmpBufSize) (coroutine T))))
+                  ((coroutine Crt) next P)
+                  ((coroutine P) next null) )
+               (T (stack P)) )  # Use free slot
+            (let (Co: (coFrame (b8 (coFrame T)))  Dst: (coroutine P))
+               (Co: link (val $CoFrames))
+               (Co: crt P)
+               (set $CoFrames (Co:))
+               (Dst: tag Tag)
+               (Dst: prg X)
+               (Dst: lim null)
+               (set  # Init local env
+                  $Make 0
+                  $Yoke 0
+                  #{$StkLimit (- .. 4096 (val $StkSize)))}# )
+               (set $Ret (run X))
+               (Dst: tag 0) )  # Mark as unused
+            (longjmp
+               ((coroutine
+                     ((coFrame (val (i8** (val $CoFrames)))) crt) )
+                  (rst) )
+               1 ) ) ) ) )
 
 # (yield 'any ['sym]) -> any
 (de _yield (Exe)
@@ -232,15 +246,12 @@
                      (when (=0 (setq Crt ((coroutine Crt) next)))
                         (err Exe Tag ($ "Coroutine not found") null) ) )
                   Crt ) )
-            Src: (coroutine (Co: crt)) )
-         (Src: at (val $At))
-         (memcpy (Src: (env)) (env) (env T))
-         (when (=0 (setjmp (Src: (rst))))
+            Src (Co: crt) )
+         (saveCoEnv Src)
+         (when (=0 (setjmp ((coroutine Src) (rst))))
             (set $Ret Val)
             (longjmp (Dst: (rst)) 1) )
-         (memcpy (env) (Src: (env)) (env T))
-         (set $At (Src: at))
-         (val $Ret) ) ) )
+         (loadCoEnv Src) ) ) )
 
 # (bye ['cnt])
 (de _bye (X)
