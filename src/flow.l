@@ -150,6 +150,7 @@
    (let Src: (coroutine Src)
       (memcpy (env) (Src: (env)) (env T))
       (set $At (Src: at))
+      (Src: at 0)
       (val $Ret) ) )
 
 # (co 'sym [. prg]) -> any
@@ -161,6 +162,7 @@
             (Main: next null)
             (Main: prg $Nil)
             (Main: lim null)
+            (Main: at 0)
             (set $Coroutines (Main:))
             (let Co: (coFrame (alloc null (coFrame T)))
                (Co: link null)
@@ -213,6 +215,7 @@
                (Dst: tag Tag)
                (Dst: prg X)
                (Dst: lim null)
+               (Dst: at 0)
                (set  # Init local env
                   $Make 0
                   $Yoke 0
