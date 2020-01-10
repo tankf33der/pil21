@@ -1,4 +1,4 @@
-# 05jan20 Software Lab. Alexander Burger
+# 10jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -1320,7 +1320,7 @@ False Beg End *Safe)
 
 (pico~de save (X . @)
    (log)
-   (pico~let (P (push X NIL)  *Log)
+   (pico~let (*Log NIL  P (push X NIL))
       (default *Safe P)
       (set 2 P (val $Link))
       (pico~while (args)

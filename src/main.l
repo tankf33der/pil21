@@ -1,8 +1,8 @@
-# 05jan20 Software Lab. Alexander Burger
+# 10jan20 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
-numErr cntErr needNum needCnt xCnt undefined evExpr evListSave evList evCnt
-evSym equal compare natRet main)
+numErr cntErr needNum needCnt xCnt undefined evExpr evList evCnt evSym equal
+compare natRet main)
 
 (begin "base")
 (load "vers.l" "defs.l" "glob.l" "dec.l")
@@ -260,20 +260,6 @@ evSym equal compare natRet main)
 (de i1 sharedLib (Sym)
    NO )
 
-(de evListSave (Fun Exe)
-   (save Fun)  # Save computed function
-   (loop T
-      (unless (=0 (val $Signal))
-         (sighandler Exe) )
-      (? (num? Fun) (subr Fun Exe))
-      (? (pair Fun) (evExpr Fun Exe))
-      (let V (val Fun)
-         (? (== V (val V))
-            (if (sharedLib Fun)
-               (subr (val Fun) Exe)
-               (undefined Fun Exe) ) )
-         (setq Fun V) ) ) )
-
 (de evList (Exe)
    (let Fun (car Exe)
       (cond T
@@ -290,7 +276,19 @@ evSym equal compare natRet main)
                         (subr (val Fun) Exe)
                         (undefined Fun Exe) ) )
                   (setq Fun V) ) ) )
-         (T (evListSave (evList Fun) Exe)) ) ) )  # List: Evaluate
+         (T  # List: Evaluate
+            (let F (save (evList Fun))  # Save computed function
+               (loop T
+                  (unless (=0 (val $Signal))
+                     (sighandler Exe) )
+                  (? (num? F) (subr F Exe))
+                  (? (pair F) (evExpr F Exe))
+                  (let V (val F)
+                     (? (== V (val V))
+                        (if (sharedLib F)
+                           (subr (val F) Exe)
+                           (undefined F Exe) ) )
+                     (setq F V) ) ) ) ) ) ) )
 
 (de evCnt (Exe X)
    (xCnt Exe (eval (car X))) )
