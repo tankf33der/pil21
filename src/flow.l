@@ -1,4 +1,4 @@
-# 10jan20 Software Lab. Alexander Burger
+# 11jan20 Software Lab. Alexander Burger
 
 (compile) (redefine evMethod saveCoEnv loadCoEnv)
 
@@ -184,6 +184,8 @@
             (loop
                (let Crt: (coroutine Crt)
                   (when (== Tag (Crt: tag))  # Found running coroutine
+                     (when (=0 ((coroutine Crt) at))
+                        (err Exe Tag ($ "Reentrant coroutine") null) )
                      (unless (=0 (setjmp ((coroutine Src) (rst))))
                         (ret
                            (loadCoEnv
@@ -248,6 +250,8 @@
                   (until (== Tag ((coroutine Crt) tag))
                      (when (=0 (setq Crt ((coroutine Crt) next)))
                         (err Exe Tag ($ "Coroutine not found") null) ) )
+                  (when (=0 ((coroutine Crt) at))
+                     (err Exe Tag ($ "Reentrant coroutine") null) )
                   Crt ) )
             Src (Co: crt) )
          (saveCoEnv Src)
