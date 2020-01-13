@@ -1,4 +1,4 @@
-# 31dec19 Software Lab. Alexander Burger
+# 13jan20 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -19,7 +19,27 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
       (set P (shr C 8))
       (i8 C) ) )
 
-#! numChar
+(de i32 numChar ((i64* . P))
+   (let C (i32 (numByte P))
+      (cond T
+         ((>= 127 C) C)  # Single byte
+         ((== C (hex "FF")) (i32 TOP))  # Infinite
+         (T
+            (|
+               (shl
+                  (if (=0 (& C (hex "20")))
+                     (& C (hex "1F"))
+                     (|
+                        (shl
+                           (if (=0 (& C (hex "10")))
+                              (& C (hex "0F"))
+                              (|
+                                 (shl (& C (hex "7")) 6)
+                                 (& (i32 (numByte P)) (hex "3F")) ) )
+                           6 )
+                        (& (i32 (numByte P)) (hex "3F")) ) )
+                  6 )
+               (& (i32 (numByte P)) (hex "3F")) ) ) ) ) )
 
 (de void byteNum ((i32 . C) (i64* . P))
    (let (Cnt (val P)  Name (val 2 P))
@@ -56,20 +76,20 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 (de void charNum ((i32 . C) (i64* . P))
    (cond
-      ((> 128 C) (byteNum C P))  # Single byte
+      ((>= 127 C) (byteNum C P))  # Single byte
       ((== TOP C) (byteNum (hex "FF") P))  # Infinite
       (T
          (cond
             ((> (hex "800") C)  # Double-byte
-               (byteNum (| (hex "C0") (& (hex "1F") (shr C 6))) P) )  # 10xxxxx 10xxxxxx
+               (byteNum (| (hex "C0") (& (shr C 6) (hex "1F"))) P) )  # 10xxxxx 10xxxxxx
             ((> (hex "10000") C)  # Three bytes
-               (byteNum (| (hex "E0") (& (hex "0F") (shr C 12))) P)  # 1110xxxx 10xxxxxx 10xxxxxx
-               (byteNum (| (hex "80") (& (hex "3F") (shr C 6))) P) )
+               (byteNum (| (hex "E0") (& (shr C 12) (hex "0F"))) P)  # 1110xxxx 10xxxxxx 10xxxxxx
+               (byteNum (| (hex "80") (& (shr C 6) (hex "3F"))) P) )
             (T
-               (byteNum (| (hex "F0") (& (hex "07") (shr C 18))) P)  # 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-               (byteNum (| (hex "80") (& (hex "3F") (shr C 12))) P)
-               (byteNum (| (hex "80") (& (hex "3F") (shr C 6))) P) ) )
-         (byteNum (| (hex "80") (& (hex "3F") (shr C 6))) P) ) ) )
+               (byteNum (| (hex "F0") (& (shr C 18) (hex "07"))) P)  # 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+               (byteNum (| (hex "80") (& (shr C 12) (hex "3F"))) P)
+               (byteNum (| (hex "80") (& (shr C 6) (hex "3F"))) P) ) )
+         (byteNum (| (hex "80") (& C (hex "3F"))) P) ) ) )
 
 ### Destructive primitives ###
 # Remove leading zeroes

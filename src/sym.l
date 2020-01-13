@@ -1,7 +1,7 @@
-# 02jan20 Software Lab. Alexander Burger
+# 13jan20 Software Lab. Alexander Burger
 
-(compile) (name bufSize pathSize bufString pathString mkStr pack xSym cmpLong
-intern isIntern findSym preStr subStr)
+(compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
+pack xSym cmpLong intern isIntern findSym preStr subStr)
 
 (de name (Tail)
    (setq Tail (any (& (i64 Tail) -9)))  # Clear 'extern' tag
@@ -23,7 +23,7 @@ intern isIntern findSym preStr subStr)
    (bufSize Sym) )  #!
 
 (de i8* bufString (X (i8* . P))
-   (let (Q (push 0 (i64 (name (val (tail X)))))  B (numByte Q))  # [cnt name]
+   (let (Q (push 0 (name (val (tail X))))  B (numByte Q))  # [cnt name]
       (prog1 P
          (until (=0 (set P B))
             (inc 'P)
@@ -38,13 +38,27 @@ intern isIntern findSym preStr subStr)
       (let C (val Str)
          (if (=0 C)
             $Nil
-            (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+            (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
                (byteNum (i32 C) P)
                (until (=0 (setq C (val (inc 'Str))))
                   (byteNum (i32 C) P) )
                (prog1
                   (consSym (val Q) 0)
                   (drop Q) ) ) ) ) ) )
+
+(de i8 firstByte (Tail)
+   (if (sym? Tail)  # External symbol
+      0
+      (let Name (name Tail)  # Else get name
+         (i8 (if (cnt? Name) (int Name) (dig Name))) ) ) )
+
+(de i32 firstChar (Sym)
+   (if (nil? Sym)
+      0
+      (let Tail (val (tail Sym))
+         (if (sym? Tail)  # External symbol
+            0
+            (numChar (push 0 (name Tail))) ) ) ) )  # Else get name
 
 (de void pack (X (i64* . P))
    (when (pair X)
@@ -57,14 +71,14 @@ intern isIntern findSym preStr subStr)
       ((sym? (val (tail X)))  # External symbol
          )
       (T
-         (let (Q (push 0 (i64 (name (val (tail X)))))  B (numByte Q))  # [cnt name]
+         (let (Q (push 0 (name (val (tail X))))  B (numByte Q))  # [cnt name]
             (loop
                (byteNum (i32 B) P)
                (? (=0 (setq B (numByte Q)))) ) ) ) ) )
 
 (de xSym (X)
    (if (or (num? X) (pair X))
-      (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+      (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
          (pack X P)
          (prog1
             (consSym (val Q) 0)
@@ -222,7 +236,7 @@ intern isIntern findSym preStr subStr)
    (or
       (nil? X)
       (== ZERO (setq X (name (val (tail X)))))
-      (let (P (push 0 (i64 (name (val (tail Y)))))  B NIL)
+      (let (P (push 0 (name (val (tail Y))))  B NIL)
          (loop T
             (? (=0 (setq B (numByte P))) NO)
             (let (Cnt (val P)  Nm (val 2 P))
@@ -239,3 +253,81 @@ intern isIntern findSym preStr subStr)
       (if (subStr P Z)
          Z
          $Nil ) ) )
+
+# (low? 'any) -> sym | NIL
+(de _lowQ (X)
+   (cond T
+      ((num? (setq X (eval (cadr X)))) $Nil)
+      ((sym? X)
+         (let C (firstChar X)
+            (if (> C (hex "FFFF"))  # Too big
+               $Nil
+               (if (isLowc C) X $Nil) ) ) )
+      (T $Nil) ) )
+
+# (upp? 'any) -> sym | NIL
+(de _uppQ (X)
+   (cond T
+      ((num? (setq X (eval (cadr X)))) $Nil)
+      ((sym? X)
+         (let C (firstChar X)
+            (if (> C (hex "FFFF"))  # Too big
+               $Nil
+               (if (isUppc C) X $Nil) ) ) )
+      (T $Nil) ) )
+
+# (lowc 'any) -> any
+(de _lowc (X)
+   (if
+      (or
+         (num? (setq X (eval (cadr X))))
+         (pair X)
+         (nil? X) )
+      X
+      (let Tail (val (tail X))
+         (if (sym? Tail)  # External symbol
+            X
+            (let
+               (P (push 4 ZERO NIL)  # [cnt name link]
+                  Q (link (ofs P 1))
+                  R (push 0 (name Tail) NIL)  # [cnt name link]
+                  C (numChar R) )
+               (link (ofs R 1))
+               (loop
+                  (charNum (toLowerCase C) P)
+                  (? (=0 (setq C (numChar R)))) )
+               (prog1
+                  (consSym (val Q) 0)
+                  (drop Q) ) ) ) ) ) )
+
+# (uppc 'any) -> any
+(de _uppc (X)
+   (if
+      (or
+         (num? (setq X (eval (cadr X))))
+         (pair X)
+         (nil? X) )
+      X
+      (let Tail (val (tail X))
+         (if (sym? Tail)  # External symbol
+            X
+            (let
+               (P (push 4 ZERO NIL)  # [cnt name link]
+                  Q (link (ofs P 1))
+                  R (push 0 (name Tail) NIL)  # [cnt name link]
+                  C (numChar R) )
+               (link (ofs R 1))
+               (loop
+                  (cond
+                     ((== C (char "ß"))
+                        (charNum (char "S") P)
+                        (charNum (char "S") P) )
+                     (T (charNum (toUpperCase C) P)) )
+                  (? (=0 (setq C (numChar R)))) )
+               (prog1
+                  (consSym (val Q) 0)
+                  (drop Q) ) ) ) ) ) )
+
+# (fold 'any ['cnt]) -> sym
+(de _fold (X)
+   $Nil )

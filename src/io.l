@@ -1,4 +1,4 @@
-# 05jan20 Software Lab. Alexander Burger
+# 13jan20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -406,7 +406,7 @@ prin prin1 repl loadAll)
    $Nil )
 
 (de rdAtom ((i32 . C))
-   (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+   (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
       (byteNum C P)
       (setq C (val $Chr))
       (while (and (gt0 C) (=0 (strchr $Delim C)))
@@ -511,7 +511,7 @@ prin prin1 repl loadAll)
             (if (== (setq C (call $Get)) (char "\""))
                (prog (call $Get) $Nil)  # Empty string
                (unless (testEsc C) (eofErr))
-               (let (P (push 4 ZERO NIL)  Q (link (any (ofs P 1))))  # [cnt name cell]
+               (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
                   (loop
                      (charNum (val $Chr) P)
                      (? (== (setq C (call $Get)) (char "\"")))

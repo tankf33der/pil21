@@ -1,4 +1,4 @@
-# 10jan20 Software Lab. Alexander Burger
+# 13jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -1303,6 +1303,8 @@ False Beg End *Safe)
 (pico~de link (P)
    (log)
    (pico~let *Log NIL
+      (pico~when (pico~== 'i64* (pico~val P))
+         (setq P (any P)) )
       (set 2 P (val $Link))
       (set $Link P) ) )
 

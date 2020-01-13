@@ -1,4 +1,4 @@
-# 02jan20 Software Lab. Alexander Burger
+# 12jan20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -117,6 +117,11 @@
    # Symbol functions
    (NIL "pre?" _preQ)
    (NIL "sub?" _subQ)
+   (NIL "low?" _lowQ)
+   (NIL "upp?" _uppQ)
+   (NIL "lowc" _lowc)
+   (NIL "uppc" _uppc)
+   (NIL "fold" _fold)
    # Input/Output
    (NIL "read" _read)
    (NIL "in" _in)

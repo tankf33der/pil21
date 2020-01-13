@@ -1,4 +1,4 @@
-# 05jan20 Software Lab. Alexander Burger
+# 13jan20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -119,6 +119,13 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i8* dlOpen (i8*))
 (de T i8* ffiPrep (i8* i8* i64))
 (de T i64 ffiCall (i8* i64))
+
+# Case mappings
+(de T i1 isLowc (i32))
+(de T i1 isUppc (i32))
+(de T i1 isLetterOrDigit (i32))
+(de T i32 toUpperCase (i32))
+(de T i32 toLowerCase (i32))
 
 ### Forward references
 (compile) (evList mkStr subStr read0 pushOutFiles newline space outWord
