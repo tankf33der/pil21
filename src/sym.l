@@ -1,4 +1,4 @@
-# 13jan20 Software Lab. Alexander Burger
+# 16jan20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym cmpLong intern isIntern findSym preStr subStr)
@@ -258,22 +258,14 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
 (de _lowQ (X)
    (cond T
       ((num? (setq X (eval (cadr X)))) $Nil)
-      ((sym? X)
-         (let C (firstChar X)
-            (if (> C (hex "FFFF"))  # Too big
-               $Nil
-               (if (isLowc C) X $Nil) ) ) )
+      ((sym? X) (if (isLowc (firstChar X)) X $Nil))
       (T $Nil) ) )
 
 # (upp? 'any) -> sym | NIL
 (de _uppQ (X)
    (cond T
       ((num? (setq X (eval (cadr X)))) $Nil)
-      ((sym? X)
-         (let C (firstChar X)
-            (if (> C (hex "FFFF"))  # Too big
-               $Nil
-               (if (isUppc C) X $Nil) ) ) )
+      ((sym? X) (if (isUppc (firstChar X)) X $Nil))
       (T $Nil) ) )
 
 # (lowc 'any) -> any
@@ -293,9 +285,9 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
                   R (push 0 (name Tail) NIL)  # [cnt name link]
                   C (numChar R) )
                (link (ofs R 1))
-               (loop
+               (until (=0 C)
                   (charNum (toLowerCase C) P)
-                  (? (=0 (setq C (numChar R)))) )
+                  (setq C (numChar R)) )
                (prog1
                   (consSym (val Q) 0)
                   (drop Q) ) ) ) ) ) )
@@ -317,17 +309,37 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
                   R (push 0 (name Tail) NIL)  # [cnt name link]
                   C (numChar R) )
                (link (ofs R 1))
-               (loop
+               (until (=0 C)
                   (cond
                      ((== C (char "ß"))
                         (charNum (char "S") P)
                         (charNum (char "S") P) )
                      (T (charNum (toUpperCase C) P)) )
-                  (? (=0 (setq C (numChar R)))) )
+                  (setq C (numChar R)) )
                (prog1
                   (consSym (val Q) 0)
                   (drop Q) ) ) ) ) ) )
 
 # (fold 'any ['cnt]) -> sym
-(de _fold (X)
-   $Nil )
+(de _fold (Exe)
+   (let (X (cdr Exe)  Y (eval (++ X)))
+      (if (or (num? Y) (pair Y) (nil? Y))
+         Y
+         (let Tail (val (tail Y))
+            (if (sym? Tail)  # External symbol
+               Y
+               (let
+                  (N (if (atom X) 0 (evCnt Exe X))
+                     P (push 4 ZERO NIL)  # [cnt name link]
+                     Q (link (ofs P 1))
+                     R (push 0 (name Tail) NIL)  # [cnt name link]
+                     C (numChar R) )
+                  (link (ofs R 1))
+                  (until (=0 C)
+                     (when (isLetterOrDigit C)
+                        (? (=0 (dec 'N)))
+                        (charNum (toLowerCase C) P) )
+                     (setq C (numChar R)) )
+                  (prog1
+                     (consSym (val Q) 0)
+                     (drop Q) ) ) ) ) ) ) )

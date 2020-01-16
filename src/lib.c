@@ -1,4 +1,4 @@
-// 13jan20 Software Lab. Alexander Burger
+// 16jan20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -742,17 +742,32 @@ static int16_t Lower[] = {
 
 static inline int32_t charType(int32_t c) {return Data[Blocks[c>>5]+c & 0xFFFF] & 0x1F;}
 
-int isLowc(int32_t c) {return charType(c) == CHAR_LOWERCASE;}
-int isUppc(int32_t c) {return charType(c) == CHAR_UPPERCASE;}
+int isLowc(int32_t c) {
+   if (c > 0xFFFF)
+      return 0;
+   return charType(c) == CHAR_LOWERCASE;
+}
+
+int isUppc(int32_t c) {
+   if (c > 0xFFFF)
+      return 0;
+   return charType(c) == CHAR_UPPERCASE;
+}
 
 int isLetterOrDigit(int32_t c) {
-   return (1 << charType(c)) & (CHAR_DIGIT | CHAR_LETTER);
+   if (c > 0xFFFF)
+      return 0;
+   return (1 << charType(c) & (CHAR_DIGIT | CHAR_LETTER)) != 0;
 }
 
 int32_t toUpperCase(int32_t c) {
+   if (c > 0xFFFF)
+      return c;
    return c + Upper[Data[Blocks[c>>5]+c & 0xFFFF] >> 7];
 }
 
 int32_t toLowerCase(int32_t c) {
+   if (c > 0xFFFF)
+      return c;
    return c + Lower[Data[Blocks[c>>5]+c & 0xFFFF] >> 7];
 }
