@@ -1,4 +1,4 @@
-# 11jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) (redefine evMethod saveCoEnv loadCoEnv)
 
@@ -7,19 +7,19 @@
    )
 
 # (quote . any) -> any
-(de _quote (X)
-   (cdr X) )
+(de _quote (Exe)
+   (cdr Exe) )
 
 # (de sym . any) -> sym
-(de _de (X)
-   (let S (cadr X)
-      (redefine X S (cddr X))
+(de _de (Exe)
+   (let S (cadr Exe)
+      (redefine Exe S (cddr Exe))
       S ) )
 
 # (dm sym . fun|cls2) -> sym
 # (dm (sym . cls) . fun|cls2) -> sym
 # (dm (sym sym2 [. cls]) . fun|cls2) -> sym
-(de _dm (X)
+(de _dm (Exe)
    $Nil )
 
 # Apply METH to CDR of list
@@ -88,31 +88,32 @@
          (set $Bind (val 4 Q)) ) ) )
 
 # (meth 'obj ['any ..]) -> any
-(de _meth (X)
-   X )
+(de _meth (Exe)
+   Exe )
 
 # (and 'any ..) -> any
-(de _and (X)
-   (>>> X)
-   (loop T
-      (let A (eval (car X))
-         (? (nil? A) A)
-         (set $At A)
-         (? (atom (>>> X)) A) ) ) )
+(de _and (Exe)
+   (let X (cdr Exe)
+      (loop T
+         (let A (eval (++ X))
+            (? (nil? A) A)
+            (set $At A)
+            (? (atom X) A) ) ) ) )
 
 # (if 'any1 any2 . prg) -> any
-(de _if (X)
-   (>>> X)
-   (let A (eval (++ X))
-      (if (nil? A)
-         (run (cdr X))
-         (set $At A)
-         (eval (car X)) ) ) )
+(de _if (Exe)
+   (let X (cdr Exe)
+      (let A (eval (++ X))
+         (if (nil? A)
+            (run (cdr X))
+            (set $At A)
+            (eval (car X)) ) ) ) )
 
 # (catch 'any . prg) -> any
-(de _catch (X)
-   (let Ca: (caFrame (b8 (+ (val JmpBufSize) (caFrame T))))
-      (>>> X)
+(de _catch (Exe)
+   (let
+      (X (cdr Exe)
+         Ca: (caFrame (b8 (+ (val JmpBufSize) (caFrame T)))) )
       (Ca: tag (eval (++ X)))
       (Ca: link (val $Catch))
       (set $Catch (Ca:))
@@ -261,8 +262,8 @@
          (loadCoEnv Src) ) ) )
 
 # (bye ['cnt])
-(de _bye (X)
-   (let N (eval (cadr X))
+(de _bye (Exe)
+   (let N (eval (cadr Exe))
       (bye
          (if (nil? N)
             0

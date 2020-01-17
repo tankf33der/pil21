@@ -1,4 +1,4 @@
-# 13jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -556,11 +556,11 @@ prin prin1 repl loadAll)
 
 # (in 'any . prg) -> any
 (de _in (Exe)
-   (let (P (b8 (ioFrame T))  X (cdr Exe))
-      (rdOpen Exe (eval (car X)) P)
+   (let (X (cdr Exe)  P (b8 (ioFrame T)))
+      (rdOpen Exe (eval (++ X)) P)
       (pushInFiles P)
       (prog1
-         (run (cdr X))
+         (run X)
          (popInFiles) ) ) )
 
 # (out 'any . prg) -> any
@@ -644,16 +644,14 @@ prin prin1 repl loadAll)
                ((isIntern X Nm
                      (val (car (val $Intern)))
                      (cdr (val $Intern)) )
-                  (let (P (push 0 (i64 Nm))  B (numByte P))  # [cnt name]
-                     (loop
-                        (call $Put (i32 B))
-                        (? (=0 (setq B (numByte P)))) ) ) )
+                  (let (P (push 0 (i64 Nm))  B NIL)  # [cnt name]
+                     (until (=0 (setq B (numByte P)))
+                        (call $Put (i32 B)) ) ) )
                (T  # Transient
                   (call $Put (char "\""))
-                  (let (P (push 0 (i64 Nm))  B (numByte P))  # [cnt name]
-                     (loop
-                        (call $Put (i32 B))
-                        (? (=0 (setq B (numByte P)))) ) )
+                  (let (P (push 0 (i64 Nm))  B NIL)  # [cnt name]
+                     (until (=0 (setq B (numByte P)))
+                        (call $Put (i32 B)) ) )
                   (call $Put (char "\"")) ) ) ) )
       ((and (== (car X) $Quote) (<> X (cdr X)))
          (call $Put (char "'"))
@@ -676,11 +674,11 @@ prin prin1 repl loadAll)
    $Nil )
 
 # (prin 'any ..) -> any
-(de _prin (X)
+(de _prin (Exe)
    $Nil )
 
 # (prinl 'any ..) -> any
-(de _prinl (X)
+(de _prinl (Exe)
    $Nil )
 
 # (space ['cnt]) -> cnt
@@ -688,36 +686,24 @@ prin prin1 repl loadAll)
    $Nil )
 
 # (print 'any ..) -> any
-(de _print (X)
-   (let Y (eval (car (>>> X)))
-      (print Y)
-      (while (pair (>>> X))
-         (space)
-         (print (setq Y (eval (car X)))) )
+(de _print (Exe)
+   (let (X (cdr Exe)  Y NIL)
+      (loop
+         (print (setq Y (eval (++ X))))
+         (? (atom X))
+         (space) )
       Y ) )
 
 # (printsp 'any ..) -> any
-(de _printsp (X)
-   (let Y NIL
-      (>>> X)
-      (loop
-         (print (setq Y (eval (car X))))
-         (space)
-         (? (atom (>>> X))) )
-      Y ) )
+(de _printsp (Exe)
+   (prog1 (_print Exe) (space)) )
 
 # (println 'any ..) -> any
 (de _println (X)
-   (let Y (eval (car (>>> X)))
-      (print Y)
-      (while (pair (>>> X))
-         (space)
-         (print (setq Y (eval (car X)))) )
-      (newline)
-      Y ) )
+   (prog1 (_print Exe) (newline)) )
 
 # (flush) -> flg
-(de _flush (X)
+(de _flush (Exe)
    $Nil )
 
 (de repl (Exe (i32 . Pr) X)
@@ -786,9 +772,9 @@ prin prin1 repl loadAll)
 (de _load (Exe)
    (let X (cdr Exe)
       (loop T
-         (let Y (eval (car X))
-            (setq Y
-               (if (== $T Y)
+         (let Y
+            (let Z (eval (++ X))
+               (if (== $T Z)
                   (loadAll Exe)
-                  (repl Exe (char ">") Y) ) )
-            (? (atom (>>> X)) Y) ) ) ) )
+                  (repl Exe (char ">") Z) ) )
+            (? (atom X) Y) ) ) ) )

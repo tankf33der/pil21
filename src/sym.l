@@ -1,4 +1,4 @@
-# 16jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym cmpLong intern isIntern findSym preStr subStr)
@@ -23,11 +23,10 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
    (bufSize Sym) )  #!
 
 (de i8* bufString (X (i8* . P))
-   (let (Q (push 0 (name (val (tail X))))  B (numByte Q))  # [cnt name]
+   (let (Q (push 0 (name (val (tail X)))))  # [cnt name]
       (prog1 P
-         (until (=0 (set P B))
-            (inc 'P)
-            (setq B (numByte Q)) ) ) ) )
+         (until (=0 (set P (numByte Q)))
+            (inc 'P) ) ) ) )
 
 (de i8* pathString (X (i8* . P))
    (bufString X P) )  #!
@@ -71,10 +70,9 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
       ((sym? (val (tail X)))  # External symbol
          )
       (T
-         (let (Q (push 0 (name (val (tail X))))  B (numByte Q))  # [cnt name]
-            (loop
-               (byteNum (i32 B) P)
-               (? (=0 (setq B (numByte Q)))) ) ) ) ) )
+         (let (Q (push 0 (name (val (tail X))))  B NIL)  # [cnt name]
+            (until (=0 (setq B (numByte Q)))
+               (byteNum (i32 B) P) ) ) ) ) )
 
 (de xSym (X)
    (if (or (num? X) (pair X))
@@ -248,77 +246,71 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
    $Nil )
 
 # (sub? 'any1 'any2) -> any2 | NIL
-(de _subQ (X)
-   (let (P (save (evSym (>>> X)))  Z (evSym (>>> X)))
+(de _subQ (Exe)
+   (let (X (cdr Exe)  P (save (evSym (++ X)))  Z (evSym (car X)))
       (if (subStr P Z)
          Z
          $Nil ) ) )
 
 # (low? 'any) -> sym | NIL
-(de _lowQ (X)
-   (cond T
-      ((num? (setq X (eval (cadr X)))) $Nil)
-      ((sym? X) (if (isLowc (firstChar X)) X $Nil))
-      (T $Nil) ) )
+(de _lowQ (Exe)
+   (let X (eval (cadr Exe))
+      (cond T
+         ((num? X) $Nil)
+         ((sym? X) (if (isLowc (firstChar X)) X $Nil))
+         (T $Nil) ) ) )
 
 # (upp? 'any) -> sym | NIL
-(de _uppQ (X)
-   (cond T
-      ((num? (setq X (eval (cadr X)))) $Nil)
-      ((sym? X) (if (isUppc (firstChar X)) X $Nil))
-      (T $Nil) ) )
+(de _uppQ (Exe)
+   (let X (eval (cadr Exe))
+      (cond T
+         ((num? (setq X (eval (cadr X)))) $Nil)
+         ((sym? X) (if (isUppc (firstChar X)) X $Nil))
+         (T $Nil) ) ) )
 
 # (lowc 'any) -> any
-(de _lowc (X)
-   (if
-      (or
-         (num? (setq X (eval (cadr X))))
-         (pair X)
-         (nil? X) )
-      X
-      (let Tail (val (tail X))
-         (if (sym? Tail)  # External symbol
-            X
-            (let
-               (P (push 4 ZERO NIL)  # [cnt name link]
-                  Q (link (ofs P 1))
-                  R (push 0 (name Tail) NIL)  # [cnt name link]
-                  C (numChar R) )
-               (link (ofs R 1))
-               (until (=0 C)
-                  (charNum (toLowerCase C) P)
-                  (setq C (numChar R)) )
-               (prog1
-                  (consSym (val Q) 0)
-                  (drop Q) ) ) ) ) ) )
+(de _lowc (Exe)
+   (let X (eval (cadr Exe))
+      (if (or (num? X) (pair X) (nil? X))
+         X
+         (let Tail (val (tail X))
+            (if (sym? Tail)  # External symbol
+               X
+               (let
+                  (P (push 4 ZERO NIL)  # [cnt name link]
+                     Q (link (ofs P 1))
+                     R (push 0 (name Tail) NIL)  # [cnt name link]
+                     C NIL )
+                  (link (ofs R 1))
+                  (until (=0 (setq C (numChar R)))
+                     (charNum (toLowerCase C) P) )
+                  (prog1
+                     (consSym (val Q) 0)
+                     (drop Q) ) ) ) ) ) ) )
 
 # (uppc 'any) -> any
-(de _uppc (X)
-   (if
-      (or
-         (num? (setq X (eval (cadr X))))
-         (pair X)
-         (nil? X) )
-      X
-      (let Tail (val (tail X))
-         (if (sym? Tail)  # External symbol
-            X
-            (let
-               (P (push 4 ZERO NIL)  # [cnt name link]
-                  Q (link (ofs P 1))
-                  R (push 0 (name Tail) NIL)  # [cnt name link]
-                  C (numChar R) )
-               (link (ofs R 1))
-               (until (=0 C)
-                  (cond
-                     ((== C (char "ß"))
-                        (charNum (char "S") P)
-                        (charNum (char "S") P) )
-                     (T (charNum (toUpperCase C) P)) )
-                  (setq C (numChar R)) )
-               (prog1
-                  (consSym (val Q) 0)
-                  (drop Q) ) ) ) ) ) )
+(de _uppc (Exe)
+   (let X (eval (cadr Exe))
+      (if (or (num? X) (pair X) (nil? X))
+         X
+         (let Tail (val (tail X))
+            (if (sym? Tail)  # External symbol
+               X
+               (let
+                  (P (push 4 ZERO NIL)  # [cnt name link]
+                     Q (link (ofs P 1))
+                     R (push 0 (name Tail) NIL)  # [cnt name link]
+                     C NIL )
+                  (link (ofs R 1))
+                  (until (=0 (setq C (numChar R)))
+                     (cond
+                        ((== C (char "ß"))
+                           (charNum (char "S") P)
+                           (charNum (char "S") P) )
+                        (T (charNum (toUpperCase C) P)) ) )
+                  (prog1
+                     (consSym (val Q) 0)
+                     (drop Q) ) ) ) ) ) ) )
 
 # (fold 'any ['cnt]) -> sym
 (de _fold (Exe)
@@ -333,13 +325,12 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
                      P (push 4 ZERO NIL)  # [cnt name link]
                      Q (link (ofs P 1))
                      R (push 0 (name Tail) NIL)  # [cnt name link]
-                     C (numChar R) )
+                     C NIL )
                   (link (ofs R 1))
-                  (until (=0 C)
+                  (until (=0 (setq C (numChar R)))
                      (when (isLetterOrDigit C)
-                        (? (=0 (dec 'N)))
-                        (charNum (toLowerCase C) P) )
-                     (setq C (numChar R)) )
+                        (charNum (toLowerCase C) P)
+                        (? (=0 (dec 'N))) ) )
                   (prog1
                      (consSym (val Q) 0)
                      (drop Q) ) ) ) ) ) ) )

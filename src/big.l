@@ -1,4 +1,4 @@
-# 13jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -335,13 +335,12 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
    (let
       (P (push 0 (i64 Name))  # [cnt name]
          Num (push ZERO NIL)  # Result
-         B (numByte P)
          Sign NO
-         Frac NO )
-      (while (>= (char " ") B)  # Skip white space
+         Frac NO
+         B NIL )
+      (while (>= (char " ") (setq B (numByte P)))  # Skip white space
          (when (=0 B)  # None
-            (ret 0) )
-         (setq B (numByte P)) )
+            (ret 0) ) )
       (cond
          ((== B (char "+"))
             (goto 1) )
@@ -353,7 +352,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
       (when (>= (setq B (- B (char "0"))) 10)
          (ret 0) )
       (set (link Num) (cnt (i64 B)))
-      (while (n0 (setq B (numByte P)))
+      (until (=0 (setq B (numByte P)))
          (when (>= (setq B (- B (char "0"))) 10)
             (drop Num)
             (ret 0) )
@@ -504,8 +503,8 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 # (inc 'num) -> num
 # (inc 'var ['num]) -> num
-(de _inc (X)
-   (let (L (cdr X)  A (save (eval (car L))))
+(de _inc (Exe)
+   (let (X (cdr Exe)  A (save (eval (++ X))))
       (if (nil? A)
          A
          (if (num? A)
@@ -515,8 +514,8 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 # (dec 'num) -> num
 # (dec 'var ['num]) -> num
-(de _dec (X)
-   (let (L (cdr X)  A (save (eval (car L))))
+(de _dec (Exe)
+   (let (X (cdr Exe)  A (save (eval (++ X))))
       (if (nil? A)
          A
          (if (num? A)

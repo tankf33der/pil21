@@ -1,4 +1,4 @@
-# 10jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evList evCnt evSym equal
@@ -396,10 +396,10 @@ compare natRet main)
                   (set Y (box64 (i64 P)))
                   P ) ) )
          Fun (eval (++ X))  # Eval function 'cnt2|sym2'
-         Args (link (push (eval (car X)) NIL))
+         Args (link (push (eval (++ X)) NIL))
          L Args )  # [ret args]
-      (while (pair (>>> X))
-         (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
+      (while (pair X)
+         (let Z (push (eval (++ X)) $Nil NIL)  # [argN next]
             (set 2 L Z)
             (setq L Z) ) )
       (prog1
@@ -419,27 +419,29 @@ compare natRet main)
          (drop Args) ) ) )
 
 # (args) -> flg
-(de _args (X)
+(de _args (Exe)
    (if (pair (val $Next)) $T $Nil) )
 
 # (next) -> any
-(de _next (X)
-   (set $Next (cdr (setq X (val $Next))))
-   (car X) )
+(de _next (Exe)
+   (let X (val $Next)
+      (set $Next (cdr X))
+      (car X) ) )
 
 # (rest) -> lst
-(de _rest (X)
-   (if (atom (setq X (val $Next)))
-      X
-      (let (Y (cons (car X) $Nil)  P (link (push Y NIL)))
-         (while (pair (>>> X))
-            (setq Y
-               (set 2 Y (cons (car X) $Nil)) ) )
-         (pop P) ) ) )
+(de _rest (Exe)
+   (let X (val $Next)
+      (if (atom X)
+         X
+         (let (Y (cons (++ X) $Nil)  P (link (push Y NIL)))
+            (while (pair X)
+               (setq Y
+                  (set 2 Y (cons (++ X) $Nil)) ) )
+            (pop P) ) ) ) )
 
 # (version ['flg]) -> lst
-(de _version (X)
-   (when (nil? (eval (cadr X)))
+(de _version (Exe)
+   (when (nil? (eval (cadr Exe)))
       (outWord (int (val $Y)))
       (call $Put (char "."))
       (outWord (int (val $M)))

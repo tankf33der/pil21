@@ -1,6 +1,7 @@
-# 29sep19 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) ()
 
-(de _udp (X)
-   X )
+(de _udp (Exe)
+   (let X (cdr Exe)
+      X ) )

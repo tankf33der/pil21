@@ -1,48 +1,45 @@
-# 27dec19 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
 (compile) ()
 
 # (car 'var) -> any
-(de _car (X)
-   (car (eval (cadr X))) )
+(de _car (Exe)
+   (car (eval (cadr Exe))) )
 
 # (cdr 'lst) -> any
-(de _cdr (X)
-   (cdr (eval (cadr X))) )
+(de _cdr (Exe)
+   (cdr (eval (cadr Exe))) )
 
 # (cons 'any ['any ..]) -> lst
-(de _cons (X)
-   (let (Y (cons (eval (car (>>> X))) $Nil)  P (link (push Y NIL)))
-      (while (pair (cdr (>>> X)))
+(de _cons (Exe)
+   (let (X (cdr Exe)  Y (cons (eval (++ X)) $Nil)  P (link (push Y NIL)))
+      (while (pair (cdr X))
          (setq Y
-            (set 2 Y (cons (eval (car X)) $Nil)) ) )
+            (set 2 Y (cons (eval (++ X)) $Nil)) ) )
       (set 2 Y (eval (car X)))
       (pop P) ) )
 
 # (list 'any ['any ..]) -> lst
-(de _list (X)
-   (let (Y (cons (eval (car (>>> X))) $Nil)  P (link (push Y NIL)))
-      (while (pair (>>> X))
+(de _list (Exe)
+   (let (X (cdr Exe)  Y (cons (eval (++ X)) $Nil)  P (link (push Y NIL)))
+      (while (pair X)
          (setq Y
-            (set 2 Y (cons (eval (car X)) $Nil)) ) )
+            (set 2 Y (cons (eval (++ X)) $Nil)) ) )
       (pop P) ) )
 
 # (= 'any ..) -> flg
-(de _equal (X)
-   (let (A (eval (car (>>> X)))  P (link (push A NIL)))
-      (while (pair (>>> X))
-         (let B (eval (car X))
-            (unless (equal A B)
-               (drop P)
-               (ret $Nil) ) ) )
-      (drop P)
+(de _equal (Exe)
+   (let (X (cdr Exe)  A (save (eval (++ X))))
+      (while (pair X)
+         (unless (equal A (eval (++ X)))
+            (ret $Nil) ) )
       $T ) )
 
 # (>= 'any ..) -> flg
-(de _ge (X)
-   (let (A (eval (car (>>> X)))  P (link (push A NIL)))
-      (while (pair (>>> X))
-         (let B (eval (car X))
+(de _ge (Exe)
+   (let (X (cdr Exe)  A (eval (++ X))  P (link (push A NIL)))
+      (while (pair X)
+         (let B (eval (++ X))
             (when (lt0 (compare A B))
                (drop P)
                (ret $Nil) )

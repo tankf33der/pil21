@@ -1,4 +1,4 @@
-# 10jan20 Software Lab. Alexander Burger
+# 17jan20 Software Lab. Alexander Burger
 
    ### Primary data types ###
 
@@ -172,7 +172,7 @@
                fun  <---+
                zero     |
          +---- cdr      |
-         |     car  ----+  <-- Exe
+         |     car  ----+  <-- E
          |
          |     val1 <---+
          |     zero     |
