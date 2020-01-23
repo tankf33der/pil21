@@ -1,4 +1,4 @@
-# 17jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -145,7 +145,7 @@ prin prin1 repl loadAll)
 (de i32 slow ((i8* . In))
    (let In: (inFile In)
       (In: ix (In: cnt 0))
-      (loop T
+      (loop
          (let N (i32 (read (In: fd) (In: (buf)) BUFSIZ))
             (? (ge0 N) (In: cnt N)) )
          (? (<> (xErrno) EINTR) 0)
@@ -155,7 +155,7 @@ prin prin1 repl loadAll)
 (de i32 slowNb ((i8* . In))
    (let In: (inFile In)
       (In: ix (In: cnt 0))
-      (loop T
+      (loop
          (let
             (Flg (nonBlocking (In: fd))
                N (i32 (read (In: fd) (In: (buf)) BUFSIZ)) )
@@ -171,23 +171,21 @@ prin prin1 repl loadAll)
             (sighandler 0) ) ) ) )
 
 (de i1 wrBytes ((i32 . Fd) (i8* . P) (i32 . Cnt))
-   (loop T
+   (loop
       (let N (i32 (write Fd P (i64 Cnt)))
-         (cond
-            ((lt0 N)
-               (let E (xErrno)
-                  (? (== E EBADF) NO)
-                  (? (== E EPIPE) NO)
-                  (? (== E ECONNRESET) NO)
-                  (unless (== E EINTR)
-                     (when (== Fd 2)  # Stderr
-                        (bye 2) )
-                     (writeErr ($ "bytes write: %s")) )
-                  (unless (=0 (val $Signal))
-                     (sighandler 0) ) ) )
-            (T
-               (? (=0 (setq Cnt (- Cnt N))) YES)
-               (setq P (ofs P N)) ) ) ) ) )
+         (if (lt0 N)
+            (let E (xErrno)
+               (? (== E EBADF) NO)
+               (? (== E EPIPE) NO)
+               (? (== E ECONNRESET) NO)
+               (unless (== E EINTR)
+                  (when (== Fd 2)  # Stderr
+                     (bye 2) )
+                  (writeErr ($ "bytes write: %s")) )
+               (unless (=0 (val $Signal))
+                  (sighandler 0) ) )
+            (? (=0 (setq Cnt (- Cnt N))) YES)
+            (setq P (ofs P N)) ) ) ) )
 
 (de i1 flush ((i8* . Out))
    (if (=0 Out)
@@ -299,7 +297,7 @@ prin prin1 repl loadAll)
 (de i32 _getStdin ()
    (let In: (inFile (val $InFile))
       (set $Chr
-         (cond T
+         (cond
             ((=0 (In:)) -1)  # EOF
             ((n0 (In: fd))  # Not stdin
                (if
@@ -330,7 +328,7 @@ prin prin1 repl loadAll)
                      (i32 B) ) ) ) ) ) ) )
 
 (de i32 getChar ((i32 . C))
-   (cond T
+   (cond
       ((>= 127 C) C)  # Single byte
       ((== C (hex "FF")) (i32 TOP))  # Infinite
       (T
@@ -366,7 +364,7 @@ prin prin1 repl loadAll)
          (setq C (comment)) ) ) )
 
 (de i1 testEsc ((i32 . C))
-   (loop T
+   (loop
       (? (lt0 C) NO)
       (? (== C (char "\^"))  # Control character
          (setq C (call $Get))
@@ -416,9 +414,7 @@ prin prin1 repl loadAll)
          (setq C (call $Get)) )
       (prog1
          (let (Nm (val Q)  Num (symToNum Nm 0 (char ".") 0))
-            (cond T
-               ((n0 Num) Num)
-               (T (findSym Nm)) ) )
+            (if (n0 Num) Num (findSym Nm)) )
          (drop Q) ) ) )
 
 (de rdList ()
@@ -426,7 +422,7 @@ prin prin1 repl loadAll)
    (let
       (P (push T NIL)
          X
-         (loop T
+         (loop
             (let C (skip)
                (when (== C (char ")"))  # Empty list
                   (call $Get)
@@ -479,7 +475,7 @@ prin prin1 repl loadAll)
 
 (de read0 ((i1 . Top))
    (let C (skip)
-      (cond T
+      (cond
          ((lt0 C)
             (unless Top (eofErr))
             $Nil )
@@ -733,23 +729,22 @@ prin prin1 repl loadAll)
                         (call $Get) ) ) ) )
             (? (nil? Y))
             (set Safe Y)
-            (cond
-               ((or
-                     (<> (val $InFile) (val (val $InFiles)))
-                     (n0 (val $Chr))
-                     (=0 Pr) )
-                  (setq X (eval Y)) )
-               (T
-                  (flushAll)
-                  (let A (val $At)
-                     (set 2 Safe A)
-                     (setq X (set $At (eval Y)))
-                     (set $At3 (val $At2))
-                     (set $At2 A) )
-                  (outString ($ "-> "))
-                  (flushAll)
-                  (print X)
-                  (newline) ) ) ) )
+            (if
+               (or
+                  (<> (val $InFile) (val (val $InFiles)))
+                  (n0 (val $Chr))
+                  (=0 Pr) )
+               (setq X (eval Y))
+               (flushAll)
+               (let A (val $At)
+                  (set 2 Safe A)
+                  (setq X (set $At (eval Y)))
+                  (set $At3 (val $At2))
+                  (set $At2 A) )
+               (outString ($ "-> "))
+               (flushAll)
+               (print X)
+               (newline) ) ) )
       (popInFiles)
       (drop Safe)
       X ) )
@@ -771,7 +766,7 @@ prin prin1 repl loadAll)
 # (load 'any ..) -> any
 (de _load (Exe)
    (let X (cdr Exe)
-      (loop T
+      (loop
          (let Y
             (let Z (eval (++ X))
                (if (== $T Z)

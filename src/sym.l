@@ -1,4 +1,4 @@
-# 17jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym cmpLong intern isIntern findSym preStr subStr)
@@ -84,12 +84,12 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
       X ) )
 
 (de i32 cmpLong (X Y)
-   (loop T
+   (loop
       (? (n0 (sub (val (dig X)) (val (dig Y))))
          (if @@ (i32 -1) (i32 +1)) )
       (setq X (val (big X))  Y (val (big Y)))
       (? (cnt? X)
-         (cond T
+         (cond
             ((big? Y) (i32 -1))
             ((== Y X) (i32 0))
             ((> Y X) (i32 -1))
@@ -225,7 +225,7 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
 
 (de i1 preStr (Nm (i8 . B) (i64* . P))
    (let (Q (push 0 (i64 Nm))  C (numByte Q))
-      (loop T
+      (loop
          (? (<> B C) NO)
          (? (=0 (setq C (numByte Q))) YES)
          (? (=0 (setq B (numByte P))) NO) ) ) )
@@ -235,7 +235,7 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
       (nil? X)
       (== ZERO (setq X (name (val (tail X)))))
       (let (P (push 0 (name (val (tail Y))))  B NIL)
-         (loop T
+         (loop
             (? (=0 (setq B (numByte P))) NO)
             (let (Cnt (val P)  Nm (val 2 P))
                (? (preStr X B P) YES)
@@ -255,7 +255,7 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
 # (low? 'any) -> sym | NIL
 (de _lowQ (Exe)
    (let X (eval (cadr Exe))
-      (cond T
+      (cond
          ((num? X) $Nil)
          ((sym? X) (if (isLowc (firstChar X)) X $Nil))
          (T $Nil) ) ) )
@@ -263,7 +263,7 @@ pack xSym cmpLong intern isIntern findSym preStr subStr)
 # (upp? 'any) -> sym | NIL
 (de _uppQ (Exe)
    (let X (eval (cadr Exe))
-      (cond T
+      (cond
          ((num? (setq X (eval (cadr X)))) $Nil)
          ((sym? X) (if (isUppc (firstChar X)) X $Nil))
          (T $Nil) ) ) )

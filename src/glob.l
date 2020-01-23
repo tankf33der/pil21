@@ -1,4 +1,4 @@
-# 12jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -7,6 +7,7 @@
 (var $Home i8* null)                   # Home directory
 (var $Heaps 0)                         # Heap list
 (var $Avail 0)                         # Avail list
+(var $Extern 0)                        # External symbol tree
 (var $Coroutines i8* null)             # Coroutines
 (var $StkSize i32 STACK)               # Coroutine stack segment size
 (var $StkLimit i8* null)               # Stack limit: StackN-Size+4096
@@ -33,6 +34,7 @@
 (var $Children i32 0)                  # Number of children
 (var $Child i8* null)                  # Child array
 (var $ExtN i32 0)                      # External symbol offset
+(var $ExtCnt i32 1)                    # External symbol count
 (var $Break i1 NO)                     # Breakpoint
 (var $GcCount i64 CELLS)               # Collector count
 
@@ -170,8 +172,54 @@
    (NIL $Nil)           # Long transient names
    ($Alarm $Nil)        # Alarm handler
    ($Sigio $Nil)        # Sigio handler
-   ($Extern $Nil)       # External symbol tree
-   )
+   ($Lisp $Nil)         # Lisp callbacks: tag+fun
+   (NIL $Nil)
+   (NIL $Nil)           # 2
+   (NIL $Nil)
+   (NIL $Nil)           # 3
+   (NIL $Nil)
+   (NIL $Nil)           # 4
+   (NIL $Nil)
+   (NIL $Nil)           # 5
+   (NIL $Nil)
+   (NIL $Nil)           # 6
+   (NIL $Nil)
+   (NIL $Nil)           # 7
+   (NIL $Nil)
+   (NIL $Nil)           # 8
+   (NIL $Nil)
+   (NIL $Nil)           # 9
+   (NIL $Nil)
+   (NIL $Nil)           # 10
+   (NIL $Nil)
+   (NIL $Nil)           # 11
+   (NIL $Nil)
+   (NIL $Nil)           # 12
+   (NIL $Nil)
+   (NIL $Nil)           # 13
+   (NIL $Nil)
+   (NIL $Nil)           # 14
+   (NIL $Nil)
+   (NIL $Nil)           # 15
+   (NIL $Nil)
+   (NIL $Nil)           # 16
+   (NIL $Nil)
+   (NIL $Nil)           # 17
+   (NIL $Nil)
+   (NIL $Nil)           # 18
+   (NIL $Nil)
+   (NIL $Nil)           # 19
+   (NIL $Nil)
+   (NIL $Nil)           # 20
+   (NIL $Nil)
+   (NIL $Nil)           # 21
+   (NIL $Nil)
+   (NIL $Nil)           # 22
+   (NIL $Nil)
+   (NIL $Nil)           # 23
+   (NIL $Nil)
+   (NIL $Nil)           # 24
+   ($LispEnd $Nil) )
 
 # Environment
 (table env

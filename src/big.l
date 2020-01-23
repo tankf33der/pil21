@@ -1,4 +1,4 @@
-# 17jan20 Software Lab. Alexander Burger
+# 22jan20 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -21,7 +21,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 (de i32 numChar ((i64* . P))
    (let C (i32 (numByte P))
-      (cond T
+      (cond
          ((>= 127 C) C)  # Single byte
          ((== C (hex "FF")) (i32 TOP))  # Infinite
          (T
@@ -312,7 +312,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 
 (de i32 cmpu (X Y)
    (if (cnt? X)  # X is short
-      (cond T
+      (cond
          ((big? Y) (i32 -1))  # Y is big
          ((== Y X) (i32 0))  # X = Y
          ((> Y X) (i32 -1))
@@ -360,7 +360,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
             (addu
                (tenfold (val Num))
                (cnt (i64 B)) ) ) )
-      (cond T
+      (cond
          ((== ZERO (setq Num (pop Num))) ZERO)
          (Sign (sign Num))
          (T Num) ) ]
@@ -428,7 +428,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                      (? (=0 (setq Mask (shl Mask 1)))) ) )
                (? (cnt? Num))
                (setq Num (val (big Num))) ) )
-         (cond T
+         (cond
             ((ge0 Scl)  # Build symbol
                (when Sign
                   (byteNum (char "-") P) )

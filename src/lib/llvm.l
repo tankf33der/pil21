@@ -1,4 +1,4 @@
-# 13jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -27,7 +27,7 @@ show bt)
 ## Cross-compiler private ##
 (symbols 'priv 'llvm 'pico)
 
-(local) (*Strings *Ssa *Lbl *Log *Curr *? *Exit *Bind *Phi *Ret log asm ssa phi
+(local) (*Strings *Ssa *Lbl *Log *Curr *Exit *Bind *Phi *Ret log asm ssa phi
 +phi br label +lbl +bind type func ptr pointee store A B C I L M N P Q V X Y Exe
 Prg Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True
 False Beg End *Safe)
@@ -112,18 +112,29 @@ False Beg End *Safe)
          (or
             (not (name (car L)))
             (memq (car L) *Bind) )
-         (set
-            (car L)  # Var
-            (set
-               (cdr L)  # Ssa
-               (def
-                  (pack "%" (inc '*Ssa))
-                  (or
-                     (pick
-                        '((X)
-                           (and (sym? (cdr X)) (val (cdr X))) )
-                        (cddr L) )
-                     'i64 ) ) ) ) ) ) )
+         (let Typ
+            (or
+               (pick
+                  '((X)
+                     (and (sym? (cdr X)) (val (cdr X))) )
+                  (cddr L) )
+               'i64 )
+            (if
+               (fully
+                  '((X)
+                     (cond
+                        ((=T (cdr X)))
+                        ((num? (cdr X))
+                           (memq Typ '(i8 i32 i64 any)) )
+                        (T
+                           (== (type Typ) (type (val (cdr X)))) ) ) )
+                  (cddr L) )
+               (set
+                  (car L)  # Var
+                  (set
+                     (cdr L)  # Ssa
+                     (def (pack "%" (inc '*Ssa)) Typ) ) )
+               void ) ) ) ) )
 
 (de +lbl ()
    (inc '*Lbl) )
@@ -424,7 +435,7 @@ False Beg End *Safe)
 (de define (Ext Ret Sym Args Body)
    (and Body (prinl))
    (setq *Ssa -1)
-   (off *Bind *Phi *? *Safe)
+   (off *Bind *Phi *Safe)
    (with Sym
       (setq *Ret
          (if Ret
@@ -1107,42 +1118,28 @@ False Beg End *Safe)
 
 (asm (@Flg @Lbl1 @Lbl2 @Lbl3 @Lbl4 @Lbl5 @Lbl6)
    (Lst
-      (let (End (+lbl)  Flg)
-         (if (and (=T (car Lst)) (asoq @Flg Lst))
-            (let Var (box)
-               (for Prg (cdr Lst)
-                  (if (== @Flg (car Prg))
-                     (when (set Var (run (cdr Prg)))
-                        (phi End Var)
-                        (br End) )
-                     (setq Flg (eval (++ Prg)))
-                     (let (Body (+lbl)  Skip (+lbl))
+      (let (Var (box)  End (+lbl)  Flg)
+         (for Prg Lst
+            (if (== @Flg (car Prg))
+               (when (set Var (run (cdr Prg)))
+                  (phi End Var)
+                  (br End) )
+               (setq Flg (eval (++ Prg)))
+               (let Skip (+lbl)
+                  (if Prg
+                     (let Body (+lbl)
                         (br Flg @Lbl1 @Lbl2)
                         (label Body)
                         (when (set Var (run Prg))
                            (phi End Var)
-                           (br End) )
-                        (label Skip) ) ) )
-               (label End) )
-            (while (cdr Lst)
-               (let Prg (++ Lst)
-                  (setq Flg (eval (++ Prg)))
-                  (let Skip (+lbl)
-                     (if Prg
-                        (let Body (+lbl)
-                           (br Flg @Lbl1 @Lbl2)
-                           (label Body)
-                           (and (run Prg) (br End)) )
-                        (br Flg @Lbl3 @Lbl4) )
-                     (label Skip) ) ) )
-            (if (== @Flg (caar Lst))
-               (when (run (cdar Lst))
-                  (br End) )
-               (setq Flg (eval (caar Lst)))
-               (let Body (+lbl)
-                  (br Flg @Lbl5 @Lbl6)
-                  (label Body)
-                  (and (run (cdar Lst)) (br End)) ) )
+                           (br End) ) )
+                     (br Flg @Lbl3 @Lbl4) )
+                  (label Skip) ) ) )
+         (if (== @Flg (car (last Lst)))
+            (label End)
+            (set Var 0)
+            (phi End Var)
+            (br End)
             (label End)
             T ) ) )
    (llvm~cond T Body Skip End Skip Body End)
@@ -1150,7 +1147,7 @@ False Beg End *Safe)
 
 (asm ()
    (Lst
-      (let (True (+lbl)  End (if (asoq T Lst) (+lbl) True)  X (eval (++ Lst)))
+      (let (Var (box)  True (+lbl)  End (if (asoq T Lst) (+lbl) True)  X (eval (++ Lst)))
          (link
             (pack
                "switch " (type (val X)) " " X
@@ -1170,9 +1167,10 @@ False Beg End *Safe)
             (link "]")
             (for Prg Lst
                (label (if (=T (++ Prg)) True (++ Lbl)))
-               (and (run Prg) (br End)) ) )
-         (label End)
-         T ) )
+               (when (set Var (if Prg (run @) 0))
+                  (phi End Var)
+                  (br End) ) ) )
+         (label End) ) )
    (llvm~case) )
 
 (asm ()
@@ -1184,10 +1182,13 @@ False Beg End *Safe)
                (br Flg True False)
                (label True)
                (let? X (run Prg)
-                  (when (and *? (cdr *Exit))
+                  (when (cdr *Exit)
                      (set @ X)
                      (phi (car *Exit) @) )
                   (br (car *Exit)) ) )
+            (when (cdr *Exit)
+               (set @ 0)
+               (phi (car *Exit) @) )
             (br Flg (car *Exit) False) )
          (label False) )
       T )
@@ -1198,7 +1199,7 @@ False Beg End *Safe)
       (let Beg (+lbl)
          (br Beg)
          (label Beg)
-         (let (Flg (eval (++ Prg))  Body (+lbl)  *Exit (cons (+lbl))  *?)
+         (let (Flg (eval (++ Prg))  Body (+lbl)  *Exit (cons (+lbl)))
             (br Flg @Lbl1 @Lbl2)
             (label Body)
             (and (run Prg) (br Beg))
@@ -1209,11 +1210,19 @@ False Beg End *Safe)
 
 (asm ()
    (Prg
-      (let (Beg (+lbl)  *? (and (=T (car Prg)) (++ Prg))  *Exit)
+      (let (Beg (+lbl)  *Exit)
          (br Beg)
          (label Beg)
          (and (run Prg) (br Beg))
-         (and *Exit (label (car *Exit))) ) )
+         (cond
+            (*Exit (label (car *Exit)))
+            ((fish
+                  '((X)
+                     (and
+                        (== 'llvm~goto (car (pair X)))
+                        (not (memq (- (cadr X)) (made))) ) )
+                  Prg )
+               (label (+lbl)) ) ) ) )
    (llvm~loop) )
 
 (asm ()
@@ -1285,7 +1294,7 @@ False Beg End *Safe)
 (pico~de eval (X)
    (log)
    (pico~let *Log NIL
-      (cond T
+      (cond
          ((num? X) X)
          ((sym? X) (car X))
          (T (evList X)) ) ) )
@@ -1293,7 +1302,7 @@ False Beg End *Safe)
 (pico~de run (Bnd2)
    (log)
    (pico~let (*Bind (cons 'Bnd2 *Bind)  *Log)
-      (loop T
+      (loop
          (? (atom (cdr Bnd2))
             (eval (car Bnd2)) )
          (when (pair (car Bnd2))

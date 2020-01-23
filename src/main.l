@@ -1,4 +1,4 @@
-# 17jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
 numErr cntErr needNum needCnt xCnt undefined evExpr evList evCnt evSym equal
@@ -17,20 +17,21 @@ compare natRet main)
 
 # Unwind stack
 (de void unwind ((i8* . Catch))
-   (let (Ca: (caFrame (val $Catch))  P (val $Bind))
-      (until (=0 (Ca:))
-         (until (or (=0 P) (== P (Ca: (env $Bind any))))
-            (loop
-               (set (val P) (val 2 P))  # Restore values
-               (? (== $At (val P)))
+   (let (Ca (val $Catch)  P (val $Bind))
+      (until (=0 Ca)
+         (let Ca: (caFrame Ca)
+            (until (or (=0 P) (== P (Ca: (env $Bind any))))
+               (loop
+                  (set (val P) (val 2 P))  # Restore values
+                  (? (== $At (val P)))
+                  (setq P (val 3 P)) )
                (setq P (val 3 P)) )
-            (setq P (val 3 P)) )
-         # ...
-         (memcpy (env) (Ca: (env)) (env T))
-         (eval (Ca: fin))  # Evaluate 'finally' expression
-         (let F (== (Ca:) Catch)
+            # ...
+            (memcpy (env) (Ca: (env)) (env T))
+            (eval (Ca: fin))  # Evaluate 'finally' expression
             (set $Catch (Ca: link))
-            (and F (ret)) ) )
+            (and (== Ca Catch) (ret))
+            (setq Ca (Ca: link)) ) )
       (until (=0 P)
          (loop
             (set (val P) (val 2 P))  # Restore values
@@ -219,15 +220,14 @@ compare natRet main)
          (let P (val $Link)
             (if (== Y $At)  # VarArgs
                (let Next (push (val $Next))
-                  (cond
-                     ((atom X) (set $Next $Nil))
-                     (T
-                        (let L (link (push T NIL))  # [lst LINK]
-                           (set $Next
-                              (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
-                           (while (pair (>>> X))
-                              (setq L  # [argN next]
-                                 (set 2 L (push (eval (car X)) $Nil)) ) ) ) ) )
+                  (if (atom X)
+                     (set $Next $Nil)
+                     (let L (link (push T NIL))  # [lst LINK]
+                        (set $Next
+                           (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
+                        (while (pair (>>> X))
+                           (setq L  # [argN next]
+                              (set 2 L (push (eval (car X)) $Nil)) ) ) ) )
                   (set $Bind P)
                   (loop
                      (let (S (val 3 P)  V (val S))  # Symbol, old value
@@ -262,10 +262,10 @@ compare natRet main)
 
 (de evList (Exe)
    (let Fun (car Exe)
-      (cond T
+      (cond
          ((num? Fun) Exe)  # Number: Return list
          ((sym? Fun)  # Symbol: Find function
-            (loop T
+            (loop
                (unless (=0 (val $Signal))
                   (sighandler Exe) )
                (let V (val Fun)  # Get VAL
@@ -278,7 +278,7 @@ compare natRet main)
                   (setq Fun V) ) ) )
          (T  # List: Evaluate
             (let F (save (evList Fun))  # Save computed function
-               (loop T
+               (loop
                   (unless (=0 (val $Signal))
                      (sighandler Exe) )
                   (? (num? F) (subr F Exe))
@@ -301,7 +301,7 @@ compare natRet main)
 # Comparisons
 (de i1 equal (X Y)
    (: 1
-      (cond T
+      (cond
          ((== X Y) YES)
          ((cnt? X) NO)
          ((big? X)
@@ -311,7 +311,7 @@ compare natRet main)
                   (when (sign? Y)
                      (ret NO) )
                   (setq X (pos X)  Y (pos Y)) )
-               (loop T
+               (loop
                   (? (<> (val (dig X)) (val (dig Y))) NO)
                   (?
                      (==
@@ -321,28 +321,27 @@ compare natRet main)
                   (? (cnt? X) NO)
                   (? (cnt? Y) NO) ) ) )
          ((sym? X)
-            (cond T
+            (cond
                ((num? Y) NO)
                ((pair Y) NO)
                ((== ZERO (setq X (name (val (tail X))))) NO)
                ((== ZERO (setq Y (name (val (tail Y))))) NO)
                (T (goto 1)) ) )
          ((atom Y) NO)
-         (T
-            NO ) ) ) )
+         (T NO) ) ) )
 
 (de i32 compare (X Y)
-   (cond T
+   (cond
       ((== X Y) (i32 0))
       ((nil? X) (i32 -1))
       ((== X $T) (i32 +1))
       ((num? X)
-         (cond T
+         (cond
             ((num? Y) (cmpNum X Y))
             ((nil? Y) (i32 +1))
             (T (i32 -1)) ) )
       ((sym? X)
-         (cond T
+         (cond
             ((or (num? Y) (nil? Y))
                (i32 +1) )
             ((or (pair Y) (== Y $T))
@@ -354,7 +353,7 @@ compare natRet main)
          (if (== Y $T) (i32 -1) (i32 +1)) )
       (T
          (let (A X  B Y)
-            (loop T
+            (loop
                (let N (compare (car X) (car Y))
                   (? (n0 N) N) )
                (? (atom (>>> X))
@@ -367,7 +366,7 @@ compare natRet main)
 (load "io.l" "apply.l" "flow.l" "subr.l" "net.l")
 
 (de natRet (Spec Val)
-   (cond T
+   (cond
       ((== Spec $I) (cnt Val))
       ((== Spec $N) (box64 Val))
       ((== Spec $S) (mkStr (i8* Val)))
@@ -379,7 +378,7 @@ compare natRet main)
       (X (cdr Exe)
          Y (eval (++ X))  # Eval library 'cnt1|sym1'
          Lib
-         (cond T
+         (cond
             ((cnt? Y) (i8* (int Y)))
             ((big? Y) (i8* (val (dig Y))))
             (T
@@ -406,7 +405,7 @@ compare natRet main)
          (natRet
             (car Args)
             (ffiCall
-               (cond T
+               (cond
                   ((cnt? Fun) (i8* (int Fun)))
                   ((big? Fun) (i8* (val (dig Fun))))
                   (T

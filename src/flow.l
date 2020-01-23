@@ -1,4 +1,4 @@
-# 17jan20 Software Lab. Alexander Burger
+# 23jan20 Software Lab. Alexander Burger
 
 (compile) (redefine evMethod saveCoEnv loadCoEnv)
 
@@ -39,16 +39,15 @@
          (let P (val $Link)
             (if (== Y $At)  # VarArgs
                (let Next (push (val $Next))
-                  (cond
-                     ((atom X) (set $Next $Nil))
-                     (T
-                        (let L (link (push T NIL))  # [lst LINK]
-                           (set $Next
-                              (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
-                           (while (pair (>>> X))
-                              (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
-                                 (set 2 L Z)
-                                 (setq L Z) ) ) ) ) )
+                  (if (atom X)
+                     (set $Next $Nil)
+                     (let L (link (push T NIL))  # [lst LINK]
+                        (set $Next
+                           (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
+                        (while (pair (>>> X))
+                           (let Z (push (eval (car X)) $Nil NIL)  # [argN next]
+                              (set 2 L Z)
+                              (setq L Z) ) ) ) )
                   (set $Bind P)
                   (loop
                      (let (S (val 3 P)  V (val S))  # Symbol, old value
@@ -94,7 +93,7 @@
 # (and 'any ..) -> any
 (de _and (Exe)
    (let X (cdr Exe)
-      (loop T
+      (loop
          (let A (eval (++ X))
             (? (nil? A) A)
             (set $At A)
@@ -129,12 +128,13 @@
 (de _throw (Exe)
    (let (X (cdr Exe)  Tag (eval (++ X)))
       (set $Ret (eval (car X)))
-      (let Ca: (caFrame (val $Catch))
-         (until (=0 (Ca:))
-            (when (or (== $T (Ca: tag)) (== Tag (Ca: tag)))
-               (unwind (Ca:))
-               (longjmp (Ca: (rst)) 1) )
-            (setq Ca: (caFrame (Ca: link))) ) )
+      (let Ca (val $Catch)
+         (until (=0 Ca)
+            (let Ca: (caFrame Ca)
+               (when (or (== $T (Ca: tag)) (== Tag (Ca: tag)))
+                  (unwind Ca)
+                  (longjmp (Ca: (rst)) 1) )
+               (setq Ca (Ca: link)) ) ) )
       (err Exe Tag ($ "Tag not found") null) ) )
 
 # (finally exe . prg) -> any
@@ -201,16 +201,15 @@
                (ret
                   (loadCoEnv
                      ((coFrame (val (i8** (val $CoFrames)))) crt) ) ) )
-            (cond  # Start new coroutine
-               ((=0 P)  # Found no free slot
-                  (stack
-                     (if (== Crt (val $Coroutines))
-                        (ofs (stack) (* 4 (val $StkSize)))  # First coroutine
-                        (ofs Crt (val $StkSize)) ) )  # Allocate below last
-                  (setq P (b8 (+ (val JmpBufSize) (coroutine T))))
-                  ((coroutine Crt) next P)
-                  ((coroutine P) next null) )
-               (T (stack P)) )  # Use free slot
+            (ifn (=0 P)  # Start new coroutine
+               (stack P)  # Use free slot
+               (stack  # Found no free slot
+                  (if (== Crt (val $Coroutines))
+                     (ofs (stack) (* 4 (val $StkSize)))  # First coroutine
+                     (ofs Crt (val $StkSize)) ) )  # Allocate below last
+               (setq P (b8 (+ (val JmpBufSize) (coroutine T))))
+               ((coroutine Crt) next P)
+               ((coroutine P) next null) )
             (let (Co: (coFrame (b8 (coFrame T)))  Dst: (coroutine P))
                (Co: link (val $CoFrames))
                (Co: crt P)
