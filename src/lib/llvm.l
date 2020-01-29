@@ -1,4 +1,4 @@
-# 23jan20 Software Lab. Alexander Burger
+# 28jan20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -636,12 +636,14 @@ False Beg End *Safe)
       (if (num? X)
          (def (format X) 'any)
          (let V (val X)
-            (if (== 'i64 V)
-               (def (name X) 'any)
-               (casq V
-                  ((i1* i8* i32* i64*)
-                     (ssa (inc '*Ssa) "ptrtoint " V " " X " to i64") )
-                  (T (quit "Bad type" V)) ) )
+            (cond
+               ((pre? "@$" X)
+                  (ssa (inc '*Ssa) "ptrtoint i64* " X " to i64") )
+               ((== 'i64 V)
+                  (def (name X) 'any) )
+               ((memq V '(i1* i8* i32* i64*))
+                  (ssa (inc '*Ssa) "ptrtoint " V " " X " to i64") )
+               (T (quit "Bad type" V)) )
             (def (pack "%" *Ssa) 'any) ) ) )
    (llvm~any) )
 
@@ -745,16 +747,15 @@ False Beg End *Safe)
    (llvm~=0 "eq")
    (llvm~n0 "ne") )
 
-(asm (@Pred1 @Pred2)
+(asm (@Pred)
    ((X)
-      (ssa (inc '*Ssa) "icmp "
-         (if (== 'i32 (val X)) @Pred1 @Pred2)
+      (ssa (inc '*Ssa) "icmp " @Pred
          " " (type (val X)) " " X ", 0" )
       (def (pack "%" *Ssa) 'i1) )
-   (llvm~gt0 "sgt" "ugt")
-   (llvm~ge0 "sge" "uge")
-   (llvm~le0 "sle" "sle")
-   (llvm~lt0 "slt" "slt") )
+   (llvm~gt0 "sgt")
+   (llvm~ge0 "sge")
+   (llvm~le0 "sle")
+   (llvm~lt0 "slt") )
 
 # Arithmetics
 (asm (@Op1 @Op2 @Sgn)

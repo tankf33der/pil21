@@ -1,4 +1,4 @@
-# 23jan20 Software Lab. Alexander Burger
+# 27jan20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
 initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
@@ -737,7 +737,7 @@ prin prin1 repl loadAll)
                (setq X (eval Y))
                (flushAll)
                (let A (val $At)
-                  (set 2 Safe A)
+                  (set Safe A)
                   (setq X (set $At (eval Y)))
                   (set $At3 (val $At2))
                   (set $At2 A) )

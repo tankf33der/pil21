@@ -1,37 +1,34 @@
-# 23jan20 Software Lab. Alexander Burger
+# 29jan20 Software Lab. Alexander Burger
 
 (compile) (mark gc cons consSym boxNum box64 consNum)
 
-(de void mark (E)
-   (let X 0  # Clear TOS
+(de void mark (Exe)
+   (let Tos 0  # Clear
       (loop
-         (until (cnt? E)
-            (let P (any (& E -16))  # Cell pointer
-               (? (=0 (& (cdr P) 1)))  # Already marked
-               (set 2 P (& (cdr P) -2))  # Mark cell
-               (? (big? E)
-                  (let Y (cdr P)
-                     (until (cnt? Y)
-                        (let Z (val (big Y))  # Mark big digits
-                           (set (big Y) (& Z -2))  # Mark
-                           (setq Y Z) ) ) ) )  # Next digit
-               (let Y E  # Previous item
-                  (setq E (val P))  # Get CAR
-                  (set P (| X 1))  # Keep TOS first visit
-                  (setq X Y) ) ) )  # TOS on previous
-         (let P NIL
-            (loop
-               (setq P (any (& X -16)))  # TOS cell pointer
+         (until (cnt? Exe)
+            (let (P (any (& Exe -16))  Q (cdr P))  # Cell pointer
+               (? (=0 (& Q 1)))  # Already marked
+               (set 2 P (setq Q (& Q -2)))  # Mark cell
+               (? (big? Exe)
+                  (until (cnt? Q)
+                     (setq Q
+                        (set (big Q) (& (val (big Q)) -2)) ) ) )  # Mark big digits
+               (let X Exe  # Current item
+                  (setq Exe (val P))  # Get CAR
+                  (set P (| Tos 1))  # First visit
+                  (setq Tos X) ) ) )  # TOS on previous
+         (loop
+            (let P (any (& Tos -16))  # TOS cell pointer
                (and (=0 P) (ret))  # Empty
-               (? (=0 (& (val P) 1)))  # Second visit
-               (let Tmp X
-                  (setq X (cdr P))  # TOS up
-                  (set 2 P E)  # Restore CDR
-                  (setq E Tmp) ) )  # E up
-            (let Y (val P)  # Up pointer
-               (set P E)  # Restore CAR
-               (setq E (cdr P))  # Get CDR
-               (set 2 P (& Y -2)) ) ) ) ) )  # Store up pointer
+               (let Q (val P)  # Up pointer
+                  (? (n0 (& Q 1))  # Second visit
+                     (set P Exe)  # Restore CAR
+                     (setq Exe (cdr P))  # Get CDR
+                     (set 2 P (& Q -2)) ) )  # Store up pointer
+               (let X Tos
+                  (setq Tos (cdr P))  # TOS up
+                  (set 2 P Exe)  # Restore CDR
+                  (setq Exe X) ) ) ) ) ) )  # Go up
 
 (de void gc ()
    (set $DB ZERO)  # Cut off DB root
@@ -57,8 +54,8 @@
       (loop
          (mark (val P))  # Mark
          (? (== P $LispEnd))
-         (>>> P) ) )  # Next global
-   (mark $Intern)  # Current namespaces
+         (setq P (ofs P 1)) ) )  # Next global
+   (mark (val $Intern))  # Current namespaces
    (let P (val $Link)  # Stack(s)
       (until (=0 P)
          (mark (val P))  # Mark item
@@ -71,7 +68,7 @@
             (mark (Ca: fin))  # Mark 'fin'
             (mark (Ca: (env $Intern any)))
             (setq Ca (Ca: link)) ) ) )
-   (let Crt (val $Coroutines)  # Coroutines
+   (let Crt (val $Coroutines)
       (until (=0 Crt)
          (let Crt: (coroutine Crt)
             (unless (or (=0 (Crt: tag)) (=0 (Crt: at)))
@@ -92,17 +89,18 @@
                         (mark (Ca: (env $Intern any)))
                         (setq Ca (Ca: link)) ) ) )
                (setq Crt (Crt: next)) ) ) ) )
-   (let (P (val $Extern)  X 0)  # Externals
+   (let (Tos 0  P (val $Extern))  # Externals
       (loop
          (loop
-            (set 2 P (& (cdr P) -2))  # Clear mark bit
-            (let (Y (cdr P)  Z (cdr Y))  # Right subtree
-               (set 2 Y (& Z -2))  # Clear mark bit
-               (? (atom Z))
-               (let Tmp P  # Go right
-                  (setq P Z)  # Invert tree
-                  (set 2 Y X)  # TOS
-                  (setq X Tmp) ) ) )
+            (let X (any (& (cdr P) -2))
+               (set 2 P X)  # Clear mark bit
+               (let Y (any (& (cdr X) -2))  # Right subtree
+                  (set 2 X Y)  # Clear mark bit
+                  (? (atom Y))
+                  (let Z P  # Go right
+                     (setq P Y)  # Invert tree
+                     (set 2 X Tos)
+                     (setq Tos Z) ) ) ) )
          (loop
             (let S (val P)  # Get external symbol
                (unless (=0 (& (val S) 1))  # Not marked
@@ -114,23 +112,22 @@
                      (add N N)  # Get carry
                      (when @@  # Dirty or deleted
                         (mark S) ) ) ) )
-            (let (Y (cdr P)  Z (car Y))  # Left subtree
-               (? (atom Z)
-                  (let Tmp P  # Go left
-                     (setq P Z)  # Invert tree
-                     (set Y X)  # TOS
-                     (setq X (sym Tmp)) ) ) )  # First visit
+            (let (X (cdr P)  Y (car X))  # Left subtree
+               (? (pair Y)
+                  (let Z P  # Go left
+                     (setq P Y)  # Invert tree
+                     (set X Tos)
+                     (setq Tos (| Z 8)) ) ) )  # First visit
             (loop
-               (when (=0 X)  # TOS
-                  (goto 1) )
-               (? (sym? X)  # Second visit
-                  (let Y (cdr X)  # Nodes
-                     (setq X (cdr Y))  # TOS on up link
+               (and (=0 Tos) (goto 1))
+               (? (=0 (& Tos 8))  # Second visit
+                  (let (X Tos  Y (cdr X))  # Nodes
+                     (setq Tos (cdr Y))  # TOS on up link
                      (set 2 Y P)
                      (setq P X) ) )
-               (setq X (& X -9))  # Clear 'sym' bit
-               (let Y (cdr X)  # Nodes
-                  (setq X (car Y))
+               (setq Tos (& Tos -9))  # Clear visit bit
+               (let (X Tos  Y (cdr X))  # Nodes
+                  (setq Tos (car Y))
                   (set Y P)
                   (setq P X) ) ) ) ) )
    (: 1
@@ -139,46 +136,114 @@
          (set
             $Db1 $Nil  # Clear
             (tail $Db1) DB1 ) ) )  # Set to "not loaded"
-   (let (P (val $Extern)  X 0)  # Externals
+   (let (Tos 0  P (val $Extern))  # Externals
       (: 2
          (loop
             (loop
-               (let (Y (cdr P)  Z (cdr Y))  # Right subtree
-                  (? (atom Z))
-                  (let Tmp P  # Go right
-                     (setq P Z)  # Invert tree
-                     (set 2 Y X)  # TOS
-                     (setq X Tmp) ) ) )
+               (let (X (cdr P)  Y (cdr X))  # Right subtree
+                  (? (atom Y))
+                  (let Z P  # Go right
+                     (setq P Y)  # Invert tree
+                     (set 2 X Tos)
+                     (setq Tos Z) ) ) )
             (loop
                (unless (=0 (& (val (val P)) 1))  # External symbol not marked
-                  (set $ExtCnt (- (val $ExtCnt) 1))
-                  #!
-                  )
+                  (set $ExtCnt (- (val $ExtCnt) 1))  # Remove it
+                  (let X (cdr P)
+                     (when (atom X)  # No subtrees
+                        (set 2 P (| X 1))  # Set mark bit again
+                        (setq P X)  # Use NIL
+                        (goto 4) )  # Already traversed
+                     (when (atom (car X))  # No left branch
+                        (set 2 P (| X 1))  # Set mark bit again
+                        (setq P (cdr X))  # Use right branch
+                        (set 2 X (| P 1))
+                        (goto 4) )  # Already traversed
+                     (when (atom (cdr X))  # No right branch
+                        (set 2 P (| X 1))  # Set mark bit again
+                        (setq P (car X))  # Use left branch
+                        (set 2 X (| (cdr X) 1))
+                        (goto 2) )
+                     (let Y (cdr (>>> X))  # X on right branch
+                        (when (atom (car Y))  # No left sub-branches
+                           (set
+                              P (car X)  # Insert right sub-branch
+                              2 (cdr P) (cdr Y) )
+                           (goto 3) )
+                        (setq Y (car Y))  # Left sub-branch
+                        (loop
+                           (let Z (cdr Y)
+                              (? (atom Z)  # No more left branches
+                                 (set  # Insert left sub-branch
+                                    P (car Y)
+                                    (cdr X) (cdr Z) ) )
+                              (setq X Y  Y (car Z)) ) ) ) ) )  # Go down left
                (: 3
-                  (let (Y (cdr P)  Z (car Y))  # Left subtree
-                     (? (atom Z)
-                        (let Tmp P  # Go left
-                           (setq P Z)  # Invert tree
-                           (set Y X)  # TOS
-                           (setq X (sym Tmp)) ) ) ) )  # First visit
+                  (let (X (cdr P)  Y (car X))  # Left subtree
+                     (? (pair Y)
+                        (let Z P  # Go left
+                           (setq P Y)  # Invert tree
+                           (set X Tos)
+                           (setq Tos (| Z 8)) ) ) ) )  # First visit
                (: 4
                   (loop
-                     (when (=0 X)  # TOS
-                        (goto 5) )
-                     (? (sym? X)  # Second visit
-                        (let Y (cdr X)  # Nodes
-                           (setq X (cdr Y))  # TOS on up link
+                     (and (=0 Tos) (goto 5))
+                     (? (=0 (& Tos 8))  # Second visit
+                        (let (X Tos  Y (cdr X))  # Nodes
+                           (setq Tos (cdr Y))  # TOS on up link
                            (set 2 Y P)
                            (setq P X) ) )
-                     (setq X (& X -9))  # Clear 'sym' bit
-                     (let Y (cdr X)  # Nodes
-                        (setq X (car Y))
+                     (let (X (& Tos -9)  Y (cdr X))  # Clear visit bit
+                        (setq Tos (car Y))
                         (set Y P)
                         (setq P X) ) ) ) ) ) )
       (: 5 (set $Extern P)) )
+   # Clean up
+   (let Crt (val $Coroutines)
+      (until (=0 Crt)
+         (let Crt: (coroutine Crt)
+            (unless
+               (or
+                  (=0 (Crt: tag))  # Unused
+                  (=0 (Crt: at))  # Running
+                  (=0 (& (Crt: tag) 1)) )  # 'tag' marked
+               (Crt: tag 0) )  # Mark as unused
+            (setq Crt (Crt: next)) ) ) )
    # Sweep
-   #!
-   )
+   (let (Avail 0  Heap (val $Heaps)  Cnt (val $GcCount))
+      (if (=0 Cnt)
+         (let H (any $Heaps)  # Try to free heaps
+            (loop
+               (let (A Avail  P (ofs Heap (- HEAP 2)))  # P on last cell in chunk
+                  (setq Cnt CELLS)
+                  (loop
+                     (unless (=0 (& (cdr P) 1))  # Free cell
+                        (set P Avail)  # Link avail
+                        (setq Avail P)
+                        (dec 'Cnt) )
+                     (? (== P Heap))
+                     (setq P (ofs P -2)) )  # Back one cell
+                  (ifn (=0 Cnt)
+                     (setq Heap (val (setq H (ofs Heap HEAP))))  # Next heap
+                     (setq Avail A  Heap (val (inc HEAP) Heap))  # Reset avail list
+                     (free (i8* (val H)))  # Free empty heap
+                     (set H Heap) ) )  # Store next heap in list link
+               (? (=0 Heap)) )
+            (set $Avail Avail) )
+         (loop
+            (let P (ofs Heap (- HEAP 2))  # P on last cell in chunk
+               (loop
+                  (unless (=0 (& (cdr P) 1))  # Free cell
+                     (set P Avail)  # Link avail
+                     (setq Avail P)
+                     (dec 'Cnt) )
+                  (? (== P Heap))
+                  (setq P (ofs P -2)) ) )  # Back one cell
+            (? (=0 (setq Heap (val (inc HEAP) Heap)))) )
+         (set $Avail Avail)
+         (while (ge0 Cnt)  # Ensure free cells
+            (heapAlloc)
+            (setq Cnt (- Cnt CELLS)) ) ) ) )
 
 # (gc ['cnt [cnt2]]) -> cnt | NIL
 (de _gc (Exe)
