@@ -1,4 +1,4 @@
-# 22jan20 Software Lab. Alexander Burger
+# 02feb20 Software Lab. Alexander Burger
 
 (compile) (numByte numChar byteNum charNum zapZero twiceBig twice half tenfold
 shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
@@ -94,14 +94,13 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 ### Destructive primitives ###
 # Remove leading zeroes
 (de zapZero (N)
-   (let (P (push N)  X P  Y P  Z (val (big N)))
-      (until (cnt? Z)  # Last cell
+   (let (P (push N)  X P  Y P  Z NIL)
+      (until (cnt? (setq Z (val (big N))))  # Last cell
          (unless (=0 (val (dig N)))  # Null digit?
             (setq X Y) )  # New null-tail
          (setq
             Y (big N)  # New short-tail
-            N (val Y)  # Next cell
-            Z (val (big N)) ) )
+            N (val Y) ) )  # Next cell
       (when (== Z ZERO)
          (nond
             ((=0 (setq N (val (dig N))))  # Final digit
@@ -130,16 +129,17 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
    N )
 
 (de twice (N)
-   (if (big? N)
-      (twiceBig N)
+   (if (cnt? N)
       (let X (add N N)  # Shift left
          (if @@  # Overflow
             (boxNum (shr N 3))  # Make big
-            (x| X 6) ) ) ) )  # Fix tag bit
+            (x| X 6) ) )  # Fix tag bit
+      (twiceBig N) ) )
 
 # Divide (unsigned) number by 2
 (de half (N)
-   (if (big? N)
+   (if (cnt? N)
+      (| (& (shr N 1) -10) 2)  # Clear lowest bit and tag
       (let (X N  A (shr (val (dig X)) 1)  Y (val (big X)))
          (if (big? Y)
             (let (B (val (dig Y))  Z (val (big Y)))
@@ -163,8 +163,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                (ret (cnt A)) )
             (set (dig X) A)
             (set (big X) (cnt Y)) )
-         N )
-      (| (& (shr N 1) -10) 2) ) )  # (not 9) Clear lowest bit and tag
+         N ) ) )
 
 # Multiply (unsigned) number by 10
 (de tenfold (N)
@@ -184,7 +183,11 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
 ### Non-destructive primitives ###
 # Multiply (unsigned) number by 2
 (de shlu (N)
-   (if (big? N)
+   (if (cnt? N)
+      (let X (add N N)  # Shift left
+         (if @@  # Overflow
+            (boxNum (shr N 3))  # Make big
+            (x| X 6) ) )  # Fix tag bit
       (let
          (A (val (dig N))
             X (boxNum (shl A 1))
@@ -199,15 +202,12 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
          (set (big X)
             (box64
                (| (shl (shr Y 4) 1) (shl 0 A 1)) ) )
-         (pop P) )
-      (let X (add N N)  # Shift left
-         (if @@  # Overflow
-            (boxNum (shr N 3))  # Make big
-            (x| X 6) ) ) ) )  # Fix tag bit
+         (pop P) ) ) )
 
 # Divide (unsigned) number by 2
 (de shru (N)
-   (if (big? N)
+   (if (cnt? N)
+      (| (& (shr N 1) -10) 2)  # Clear lowest bit and tag
       (let (A (shr (val (dig N)) 1)  X (val (big N)))
          (if (big? X)
             (let
@@ -241,27 +241,123 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                (cnt A)
                (prog1
                   (boxNum A)
-                  (set (big @) (cnt X)) ) ) ) )
-      (| (& (shr N 1) -10) 2) ) )  # (not 9) Clear lowest bit and tag
+                  (set (big @) (cnt X)) ) ) ) ) ) )
 
-#{
 # Bitwise AND of two (unsigned) numbers
-(de andu (N)
-   )
+(de andu (A B)
+   (if (cnt? A)
+      (& A
+         (if (cnt? B) B (cnt (val (dig B)))) )
+      # A is big
+      (if (cnt? B)
+         (& B (cnt (val (dig A))))
+         # Both are big
+         (let
+            (P
+               (boxNum
+                  (& (val (dig A)) (val (dig B))) )
+               R (link (push P NIL)) )
+            (loop
+               (setq A (val (big A))  B (val (big B)))
+               (? (cnt? A)
+                  (set (big P)
+                     (& A
+                        (if (cnt? B) B (cnt (val (dig B)))) ) ) )
+               (? (cnt? B)
+                  (set (big P)
+                     (& B (cnt (val (dig A)))) ) )
+               (setq P
+                  (set (big P)
+                     (consNum
+                        (& (val (dig A)) (val (dig B)))
+                        ZERO ) ) ) )
+            (zapZero (pop R)) ) ) ) )
 
 # Bitwise OR of two (unsigned) numbers
-(de oru (N)
-   )
+(de oru (A B)
+   (if (cnt? A)
+      (if (cnt? B)
+         (| A B)
+         (consNum
+            (| (int A) (val (dig B)))
+            (val (big B)) ) )
+      # A is big
+      (if (cnt? B)
+         (consNum
+            (| (int B) (val (dig A)))
+            (val (big A)) )
+         # Both are big
+         (let
+            (P
+               (boxNum
+                  (| (val (dig A)) (val (dig B))) )
+               R (link (push P NIL)) )
+            (loop
+               (setq A (val (big A))  B (val (big B)))
+               (? (cnt? A)
+                  (set (big P)
+                     (if (cnt? B)
+                        (| A B)
+                        (consNum
+                           (| (int A) (val (dig B)))
+                           (val (big B)) ) ) ) )
+               (? (cnt? B)
+                  (set (big P)
+                     (consNum
+                        (| (int B) (val (dig B)))
+                        (val (big A)) ) ) )
+               (setq P
+                  (set (big P)
+                     (consNum
+                        (| (val (dig A)) (val (dig B)))
+                        ZERO ) ) ) )
+            (pop R) ) ) ) )
 
 # Bitwise XOR of two (unsigned) numbers
-(de xoru (N)
-   )
-}#
+(de xoru (A B)
+   (if (cnt? A)
+      (if (cnt? B)
+         (| (x| A B) 2)
+         (zapZero
+            (consNum
+               (x| (int A) (val (dig B)))
+               (val (big B)) ) ) )
+      # A is big
+      (if (cnt? B)
+         (zapZero
+            (consNum
+               (x| (int B) (val (dig A)))
+               (val (big A)) ) )
+         # Both are big
+         (let
+            (P
+               (boxNum
+                  (x| (val (dig A)) (val (dig B))) )
+               R (link (push P NIL)) )
+            (loop
+               (setq A (val (big A))  B (val (big B)))
+               (? (cnt? A)
+                  (set (big P)
+                     (if (cnt? B)
+                        (| (x| A B) 2)
+                        (consNum
+                           (x| (int A) (val (dig B)))
+                           (val (big B)) ) ) ) )
+               (? (cnt? B)
+                  (set (big P)
+                     (consNum
+                        (x| (int B) (val (dig B)))
+                        (val (big A)) ) ) )
+               (setq P
+                  (set (big P)
+                     (consNum
+                        (x| (val (dig A)) (val (dig B)))
+                        ZERO ) ) ) )
+            (zapZero (pop R)) ) ) ) )
 
 # Add two (unsigned) numbers
 (de addu (A B)
    (if (cnt? A)
-      # A is short
       (if (cnt? B)
          (box64 (+ (int A) (int B)))
          (xchg 'A 'B)
@@ -290,8 +386,9 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
                            (setq B (set (big B) (consNum D N))) ) )
                      (pop P) ) ) ) )
          # Both are big
-         (let P (link (push ZERO NIL))  # Result
-            (pop P) ) ) ) )
+         (let R (link (push ZERO NIL))
+
+            (pop R) ) ) ) )
 
 # Subtract two (unsigned) numbers
 (de subu (A B)
@@ -363,7 +460,7 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
       (cond
          ((== ZERO (setq Num (pop Num))) ZERO)
          (Sign (sign Num))
-         (T Num) ) ]
+         (T Num) ) ) )
 
 (de i32 fmtWord ((i64 . N) (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
    (when (> N 9)
@@ -522,3 +619,39 @@ shlu shru andu oru xoru addu subu incs decs cmpu cmpNum symToNum fmtWord fmtNum)
             (decs A)
             ZERO
             ]
+
+# (& 'num ..) -> num
+(de _bitAnd (Exe)
+   (let (X (cdr Exe)  A (eval (++ X)))
+      (if (nil? A)
+         A
+         (let R (link (push (pos (needNum Exe A)) NIL))
+            (while (pair X)
+               (let B (eval (++ X))
+                  (? (nil? B) (set R B))
+                  (set R (andu (val R) (pos (needNum Exe B)))) ) )
+            (pop R) ) ) ) )
+
+# (| 'num ..) -> num
+(de _bitOr (Exe)
+   (let (X (cdr Exe)  A (eval (++ X)))
+      (if (nil? A)
+         A
+         (let R (link (push (pos (needNum Exe A)) NIL))
+            (while (pair X)
+               (let B (eval (++ X))
+                  (? (nil? B) (set R B))
+                  (set R (oru (val R) (pos (needNum Exe B)))) ) )
+            (pop R) ) ) ) )
+
+# (x| 'num ..) -> num
+(de _bitXor (Exe)
+   (let (X (cdr Exe)  A (eval (++ X)))
+      (if (nil? A)
+         A
+         (let R (link (push (pos (needNum Exe A)) NIL))
+            (while (pair X)
+               (let B (eval (++ X))
+                  (? (nil? B) (set R B))
+                  (set R (xoru (val R) (pos (needNum Exe B)))) ) )
+            (pop R) ) ) ) )
