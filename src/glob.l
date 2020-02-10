@@ -1,4 +1,4 @@
-# 02feb20 Software Lab. Alexander Burger
+# 08feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -114,6 +114,10 @@
    (NIL "-" _sub)
    (NIL "inc" _inc)
    (NIL "dec" _dec)
+   (NIL "*" _mul)
+   (NIL "*/" _mulDiv)
+   (NIL "/" _div)
+   (NIL "%" _rem)
    (NIL "=" _equal)
    (NIL ">=" _ge)
    (NIL "&" _bitAnd)

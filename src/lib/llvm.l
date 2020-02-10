@@ -1,4 +1,4 @@
-# 08feb20 Software Lab. Alexander Burger
+# 10feb20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -12,7 +12,7 @@
 i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
 globals array table symTab inline define struct $Nil $Link drop)
 
-(import pico symbols T NIL @ @@ compile load setq xchg prog */ >> char hex !
+(import pico symbols T NIL @ @@ @@@ compile load setq xchg prog */ >> char hex !
 show bt)
 
 (def 'void 'void)
@@ -70,7 +70,7 @@ False Beg End *Safe)
             (mapc set (car Lst) (cdr L))
             (cons (caadr Lst)
                '(log)
-               (let @@ '@@
+               (let (@@ '@@  @@@ '@@@)
                   (fill (cdadr Lst)) ) ) ) ) ) )
 
 (de ssa (N . @)
@@ -157,7 +157,10 @@ False Beg End *Safe)
                      (== (car X) 'llvm~xchg)
                      (or
                         (and (== 'quote (caadr X)) (== Var (cdadr X)))
-                        (and (== 'quote (caaddr X)) (== Var (cdaddr X))) ) ) ) ) )
+                        (and (== 'quote (caaddr X)) (== Var (cdaddr X))) ) )
+                  (and
+                     (sym? (car X))
+                     (memq Var (; X 1 phi)) ) ) ) )
          Lst )
       (push '*Bind Var) ) )
 
@@ -421,16 +424,20 @@ False Beg End *Safe)
    (prinl "], align 16") )
 
 (de inline Lst
-   (def (++ Lst)
-      (let ((@Args . @Body) Lst)
-         (fill
-            '(@Args
-               (log)
-               (let *Log NIL
-                  (use *Bind
-                     (for Var '@Args
-                        (+bind '@Body Var) )
-                     . @Body ) ) ) ) ) ) )
+   (let L (and (lst? (car Lst)) (++ Lst))
+      (put
+         (def (++ Lst)
+            (let ((@Args . @Body) Lst)
+               (fill
+                  '(@Args
+                     (log)
+                     (let *Log NIL
+                        (use *Bind
+                           (for Var '@Args
+                              (+bind '@Body Var) )
+                           . @Body ) ) ) ) ) )
+         'phi
+         L ) ) )
 
 (de define (Ext Ret Sym Args Body)
    (and Body (prinl))
@@ -847,7 +854,7 @@ False Beg End *Safe)
       (ssa (inc '*Ssa) "mul i128 " X ", %" (dec *Ssa))
       (ssa (inc '*Ssa) "lshr i128 %" (dec *Ssa) ", 64")
       (ssa (inc '*Ssa) "trunc i128 %" (dec *Ssa) " to i64")
-      (setq @@ (def (pack "%" *Ssa) 'i64))
+      (setq @@@ (def (pack "%" *Ssa) 'i64))
       (ssa (inc '*Ssa) "trunc i128 %" (- *Ssa 3) " to i64")
       (def (pack "%" *Ssa) 'i64) )
    (llvm~mul) )
@@ -862,7 +869,7 @@ False Beg End *Safe)
          (ssa (inc '*Ssa) "zext i64 " Z " to i128")
          (setq Z (pack "%" *Ssa)) )
       (ssa (inc '*Ssa) "urem i128 %" Y ", " Z)
-      (setq @@ (def (pack "%" *Ssa) 'i64))
+      (setq @@@ (def (pack "%" *Ssa) 'i64))
       (ssa (inc '*Ssa) "udiv i128 %" Y ", " Z)
       (def (pack "%" *Ssa) 'i64) )
    (llvm~div) )

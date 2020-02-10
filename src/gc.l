@@ -1,4 +1,4 @@
-# 29jan20 Software Lab. Alexander Burger
+# 09feb20 Software Lab. Alexander Burger
 
 (compile) (mark gc cons consSym boxNum box64 consNum)
 
@@ -294,7 +294,7 @@
       (set 2 P ZERO)
       (big P) ) )
 
-(de box64 (N)
+(inline box64 (N)
    (if (=0 (& N (hex "F000000000000000")))  # Fit in short number
       (cnt N)
       (boxNum N) ) )
