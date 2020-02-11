@@ -1,19 +1,9 @@
-# 23jan20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
-(compile) (length unwind finish giveup bye alloc heapAlloc sig sighandler err
-numErr cntErr needNum needCnt xCnt undefined evExpr evList evCnt evSym equal
-compare natRet main)
+(compile) (unwind finish giveup bye)
 
 (begin "base")
 (load "vers.l" "defs.l" "glob.l" "dec.l")
-
-# Utilities
-(inline length (X)
-   (let N (i32 0)
-      (while (pair X)
-         (inc 'N)
-         (>>> X) )
-      N ) )
 
 # Unwind stack
 (de void unwind ((i8* . Catch))
@@ -56,6 +46,8 @@ compare natRet main)
    (finish N) )
 
 # Memory
+(compile) (alloc heapAlloc)
+
 (de i8* alloc ((i8* . Ptr) (i32 . Siz))
    (let P (realloc Ptr Siz)  # Reallocate pointer
       (when (=0 P)
@@ -77,6 +69,8 @@ compare natRet main)
          (set $Avail A) ) ) )
 
 # Signals
+(compile) (sig sighandler)
+
 (de void sig ((i32 . N))
    (let I (val $TtyPid)
       (ifn (=0 I)
@@ -114,6 +108,8 @@ compare natRet main)
       (set $Protect 0) ) )
 
 # Error handling
+(compile) (err numErr cntErr needNum needCnt xCnt)
+
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
    (unless (=0 X)
@@ -201,6 +197,8 @@ compare natRet main)
       (if (sign? X) (- N) N) ) )
 
 # Evaluation
+(compile) (undefined evExpr sharedLib evList evCnt evSym)
+
 (de NIL undefined (Fun Exe)
    (err Exe Fun ($ "Undefined") null) )
 
@@ -299,6 +297,8 @@ compare natRet main)
 (load "gc.l" "big.l" "sym.l" "db.l")
 
 # Comparisons
+(compile) (equal compare)
+
 (de i1 equal (X Y)
    (: 1
       (cond
@@ -364,6 +364,9 @@ compare natRet main)
                   (i32 0) ) ) ) ) ) )
 
 (load "io.l" "apply.l" "flow.l" "subr.l" "net.l")
+
+# Native calls
+(compile) natRet
 
 (de natRet (Spec Val)
    (cond
@@ -452,6 +455,8 @@ compare natRet main)
          (cons (val $D) $Nil) ) ) )
 
 # Main entry point
+(compile) main
+
 (de i32 main ((i32 . Ac) (i8** . Av))
    (set $AV0 (val Av))  # Save command
    (set $AV (setq Av (ofs Av 1)))  # and argument vector

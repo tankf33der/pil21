@@ -1,4 +1,4 @@
-# 13jan20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -146,3 +146,51 @@ outString print repl)
 (de void outString (i8*))
 (de void print (any))
 (de repl (any i32 any))
+
+### Primitives
+(compile) (caar cadr cdar cddr int cnt sign sym length eval run)
+
+(inline caar (X)
+   (car (car X)) )
+
+(inline cadr (X)
+   (car (cdr X)) )
+
+(inline cdar (X)
+   (cdr (car X)) )
+
+(inline cddr (X)
+   (cdr (cdr X)) )
+
+(inline int (X)
+   (shr X 4) )
+
+(inline cnt (X)
+   (any (| (shl X 4) 2)) )
+
+(inline sign (X)
+   (any (| X 8)) )
+
+(inline sym (X)
+   (any (| X 8)) )
+
+(inline length (X)
+   (let N (i32 0)
+      (while (pair X)
+         (inc 'N)
+         (>>> X) )
+      N ) )
+
+(inline eval (X)
+   (cond
+      ((num? X) X)
+      ((sym? X) (car X))
+      (T (evList X)) ) )
+
+(inline run (Bnd2)
+   (loop
+      (? (atom (cdr Bnd2))
+         (eval (car Bnd2)) )
+      (when (pair (car Bnd2))
+         (evList (car Bnd2)) )
+     (setq Bnd2 (cdr Bnd2)) ) )

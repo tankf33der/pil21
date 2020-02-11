@@ -1,11 +1,6 @@
-# 27jan20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
-(compile) (openErr closeErr eofErr badInput writeErr selectErr closeOnExec
-initInFile initOutFile closeInFile closeOutFile pushInFiles pushOutFiles
-popInFiles popOutFiles slow slowNb wrBytes flush flushAll stdinByte hasData
-waitFd rdOpen wrOpen erOpen ctOpen getChar skipC comment skip testEsc anonymous
-rdAtom rdList read0 read1 token newline space outWord outNum outString print
-prin prin1 repl loadAll)
+(compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
 (de NIL openErr (Exe X)
    (err Exe X ($ "Open error: %s") (strErrno)) )
@@ -27,6 +22,9 @@ prin prin1 repl loadAll)
 
 (de NIL selectErr (Exe)
    (err Exe 0 ($ "Select error: %s") (strErrno)) )
+
+(compile) (closeOnExec initInFile initOutFile closeInFile closeOutFile
+pushInFiles pushOutFiles popInFiles popOutFiles)
 
 (de void closeOnExec (Exe (i32 . Fd))
    (when (lt0 (fcntlCloExec Fd))
@@ -142,6 +140,8 @@ prin prin1 repl loadAll)
 (de void popOutFiles ()
    )
 
+(compile) (slow slowNb wrBytes flush flushAll stdinByte)
+
 (de i32 slow ((i8* . In))
    (let In: (inFile In)
       (In: ix (In: cnt 0))
@@ -218,6 +218,8 @@ prin prin1 repl loadAll)
          (ret -1) )
       (bye 0) ) )
 
+(compile) (hasData waitFd)
+
 (de i1 hasData ((i32 . Fd))
    (and
       (> (val $InFDs) Fd)
@@ -261,6 +263,8 @@ prin prin1 repl loadAll)
       (set $At (pop P)  $Task Task)
       Ms ) )
 
+(compile) (rdOpen wrOpen erOpen ctOpen)
+
 (de void rdOpen (Exe X (i8* . P))
    (let Io: (ioFrame P)
       (cond
@@ -293,6 +297,8 @@ prin prin1 repl loadAll)
 
 (de void ctOpen (Exe X (i8* . Ctl))
    )
+
+(compile) (getChar skipC comment skip testEsc anonymous rdAtom rdList read0)
 
 (de i32 _getStdin ()
    (let In: (inFile (val $InFile))
@@ -527,6 +533,8 @@ prin prin1 repl loadAll)
             (call $Get)
             (rdAtom C) ) ) ) )
 
+(compile) (read1 token)
+
 (de read1 ((i32 . End))
    (when (=0 (val $Chr))
       (call $Get) )
@@ -576,11 +584,15 @@ prin prin1 repl loadAll)
                (Out: ix 0)
                (wrBytes (Out: fd) (Out: (buf)) I) ) ) ) ) )
 
+(compile) (newline space)
+
 (de void newline ()
    (call $Put (char "\n")) )
 
 (de void space ()
    (call $Put (char " ")) )
+
+(compile) (outWord outNum outOct outAo prExt outString)
 
 # Output decimal number
 (de void outWord ((i64 . N))
@@ -620,6 +632,8 @@ prin prin1 repl loadAll)
    (while (n0 (val S))
       (call $Put (i32 (val S)))
       (inc 'S) ) )
+
+(compile) (print prin prin1)
 
 (de void print (X)
    (unless (=0 (val $Signal))
@@ -701,6 +715,8 @@ prin prin1 repl loadAll)
 # (flush) -> flg
 (de _flush (Exe)
    $Nil )
+
+(compile) (repl loadAll)
 
 (de repl (Exe (i32 . Pr) X)
    (let (Safe (link (push T NIL))  P (b8 (ioFrame T)))

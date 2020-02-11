@@ -1,8 +1,6 @@
-# 10feb20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
-(compile) (pos neg numByte numChar byteNum charNum zapZero twiceBig twice half
-tenfold shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu divu remu incs
-decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
+(compile) (pos neg)
 
 (inline pos (N)
    (any (& N -9)) )
@@ -11,6 +9,8 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
    (if (== N ZERO) N (sign N)) )
 
 ### Bignum byte access ###
+(compile) (numByte numChar byteNum charNum)
+
 (de i8 numByte ((i64* . P))
    (let C (val P)  # Get cnt
       (when (=0 C)  # New round
@@ -99,6 +99,8 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
          (byteNum (| (hex "80") (& C (hex "3F"))) P) ) ) )
 
 ### Destructive primitives ###
+(compile) (zapZero twiceBig twice half tenfold)
+
 # Remove leading zeroes
 (de zapZero (N)
    (let (P (push N)  X P  Y P  Z NIL)
@@ -189,7 +191,9 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
                Hi (+ @@@ @@) ) )
          N ) ) )
 
-### Non-destructive primitives ###
+### Non-destructive unsigned primitives ###
+(compile) (shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu divu remu)
+
 # Multiply (unsigned) number by 2
 (de shlu (N)
    (if (cnt? N)
@@ -617,11 +621,66 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
 
 # Divide two (unsigned) numbers (Knuth Vol.2, p.257)
 (de divu (A B)
-   )
+   (cond
+      ((big? A)
+         (let
+            (R (link (push ZERO NIL))  # Quotient
+               P (boxNum (val (dig A)))
+               U (link (push P NIL))  # Dividend 'u'
+               Q B
+               V (link (push Q NIL))  # Divisor 'v'
+               V1 NIL
+               V2 0  # Last cell
+               M 0  # 'm'
+               N 1  # 'n'
+               D 0 )
+            # Copy dividend
+            (while (big? (setq A (val (big A))))
+               (setq P
+                  (set (big P) (boxNum (val (dig A)))) )
+               (inc 'M) )  # Calculate 'm'
+            (unless (== A ZERO)
+               (setq P (set (big P) (boxNum (int A))))
+               (inc 'M) )
+            # Copy divisor
+            (if (cnt? B)
+               (setq Q (set V (boxNum (int B))))
+               (setq Q
+                  (set V (boxNum (val (dig B)))) )
+               (while (big? (setq B (val (big B))))
+                  (setq
+                     V2 Q  # Keep last cell
+                     Q (set (big Q) (boxNum (val (dig B)))) )
+                  (dec 'M)  # Decrement 'm'
+                  (inc 'N) )  # Calculate 'n'
+               (unless (== B ZERO)
+                  (setq
+                     V2 Q  # Keep last cell
+                     Q (set (big Q) (boxNum (int B))))
+                  (dec 'M)
+                  (inc 'N) )
+               (when (lt0 M)
+                  (drop R)
+                  (ret ZERO) ) )
+            (set (big P) (boxNum 0))
+            (while (ge0 (val (dig Q)))  # Shift to max left position
+               (twiceBig (val U))
+               (twiceBig (val V))
+               (inc 'D) )
+            (setq V1 (val (dig Q)))
+            (unless (=0 V2)
+               (setq V2 (val (dig V2))) )
+            #! ....
+            (zapZero (pop R)) ) )
+      ((big? B) ZERO)
+      (T (cnt (/ (int A) (int B)))) ) )
 
 # Remainder of two (unsigned) numbers
 (de remu (A B)
    )
+
+### Non-destructive signed primitives ###
+(compile) (incs decs adds subs)
 
 # Increment a (signed) number
 (de incs (A)
@@ -658,6 +717,8 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
             (subu (pos A) (pos B)) ) ) ) )
 
 ### Comparisons ###
+(compile) (cmpu cmpNum)
+
 (de i32 cmpu (A B)
    (if (cnt? A)
       (cond
@@ -677,6 +738,9 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
       (ifn (sign? B)
          (i32 -1)
          (cmpu (pos B) (pos A)) ) ) )
+
+### Formatting ###
+(compile) (symToNum fmtWord fmtNum)
 
 # Make number from symbol
 (de symToNum (Name (i32 . Scl) (i32 . Sep) (i32 . Ign))
@@ -910,7 +974,27 @@ decs adds subs cmpu cmpNum symToNum fmtWord fmtNum)
 
 # (/ 'num ..) -> num
 (de _div (Exe)
-   ZERO )
+   (let (X (cdr Exe)  N (eval (++ X)))
+      (if (nil? N)
+         N
+         (let
+            (Sign (sign? (needNum Exe N))
+               R (link (push (setq N (pos N)) NIL))
+               Safe (link (push T NIL)) )
+            (loop
+               (? (atom X)
+                  (let N (pop R)
+                     (if Sign (neg N) N) ) )
+               (? (nil? (setq N (eval (++ X))))
+                  (drop R)
+                  N )
+               (when (== N ZERO)
+                  (err Exe X ($ "Div/0") null) )
+               (when (sign? (needNum Exe N))
+                  (setq Sign (not Sign)  N (pos N)) )
+               (set
+                  Safe N
+                  R (divu (val R) N) ) ) ) ) ) )
 
 # (% 'num ..) -> num
 (de _rem (Exe)

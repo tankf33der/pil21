@@ -1,4 +1,4 @@
-# 10feb20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -29,8 +29,8 @@ show bt)
 
 (local) (*Strings *Ssa *Lbl *Log *Curr *Exit *Bind *Phi *Ret log asm ssa phi
 +phi br label +lbl +bind type func ptr pointee store A B C I L M N P Q V X Y Exe
-Prg Prg2 Bnd2 Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True
-False Beg End *Safe)
+Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
+*Safe)
 
 (import any inc dec ++ #{>>>}#)
 
@@ -428,6 +428,13 @@ False Beg End *Safe)
       (put
          (def (++ Lst)
             (let ((@Args . @Body) Lst)
+               (bind
+                  (mapcar
+                     '((X) (cons X (name X)))
+                     @Args )
+                  (setq
+                     @Body (fill @Body @Args)
+                     @Args (mapcar val @Args) ) )
                (fill
                   '(@Args
                      (log)
@@ -657,27 +664,6 @@ False Beg End *Safe)
 (asm ()
    (Args (def (pack "@" (cadr Args)) (car Args)))
    (llvm~fun) )
-
-# (Un)Boxing
-(asm ()
-   ((X)
-      (ssa (inc '*Ssa) "lshr i64 " X ", 4")
-      (def (pack "%" *Ssa) 'i64) )
-   (llvm~int) )
-
-(asm ()
-   ((X)
-      (ssa (inc '*Ssa) "shl i64 " X ", 4")
-      (ssa (inc '*Ssa) "or i64 %" (dec *Ssa) ", 2")
-      (def (pack "%" *Ssa) 'any) )
-   (llvm~cnt) )
-
-(asm (@Tag)
-   ((X)
-      (ssa (inc '*Ssa) "or i64 " X ", " @Tag)
-      (def (pack "%" *Ssa) 'any) )
-   (llvm~sign 8)
-   (llvm~sym 8) )
 
 (asm (@Tag)
    ((X)
@@ -1285,45 +1271,7 @@ False Beg End *Safe)
 ## Composite ##
 (symbols '(llvm priv pico))
 
-(local) (caar cadr cdar cddr eval run link pop save evList)
-
-(pico~de caar (X)
-   (log)
-   (pico~let *Log NIL
-      (car (car X)) ) )
-
-(pico~de cadr (X)
-   (log)
-   (pico~let *Log NIL
-      (car (cdr X)) ) )
-
-(pico~de cdar (X)
-   (log)
-   (pico~let *Log NIL
-      (cdr (car X)) ) )
-
-(pico~de cddr (X)
-   (log)
-   (pico~let *Log NIL
-      (cdr (cdr X)) ) )
-
-(pico~de eval (X)
-   (log)
-   (pico~let *Log NIL
-      (cond
-         ((num? X) X)
-         ((sym? X) (car X))
-         (T (evList X)) ) ) )
-
-(pico~de run (Bnd2)
-   (log)
-   (pico~let (*Bind (cons 'Bnd2 *Bind)  *Log)
-      (loop
-         (? (atom (cdr Bnd2))
-            (eval (car Bnd2)) )
-         (when (pair (car Bnd2))
-            (evList (car Bnd2)) )
-         (setq Bnd2 (cdr Bnd2)) ) ) )
+(local) (link drop pop save)
 
 (pico~de link (P)
    (log)

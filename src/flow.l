@@ -1,6 +1,6 @@
-# 23jan20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
-(compile) (redefine evMethod saveCoEnv loadCoEnv)
+(compile) redefine
 
 (de redefine (Exe S X)
    (set S X)
@@ -23,6 +23,8 @@
    $Nil )
 
 # Apply METH to CDR of list
+(compile) evMethod
+
 (de evMethod (Obj Cls Key Exe Lst)
    (let
       (X (cdr Lst)  # Arguments
@@ -142,6 +144,8 @@
    $Nil )
 
 # Coroutines
+(compile) (saveCoEnv loadCoEnv)
+
 (de void saveCoEnv ((i8* . Src))
    (let Src: (coroutine Src)
       (Src: at (val $At))

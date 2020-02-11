@@ -1,6 +1,6 @@
-# 09feb20 Software Lab. Alexander Burger
+# 11feb20 Software Lab. Alexander Burger
 
-(compile) (mark gc cons consSym boxNum box64 consNum)
+(compile) (mark gc)
 
 (de void mark (Exe)
    (let Tos 0  # Clear
@@ -258,6 +258,9 @@
                CELLS
                (shl (evCnt Exe X) 16) ) ) )  # New default
       Y ) )
+
+# Cell allocation (consing)
+(compile) (cons consSym boxNum box64 consNum)
 
 (de cons (Car Cdr)
    (let P (val $Avail)
