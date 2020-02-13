@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 13feb20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -848,15 +848,17 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
 (asm ()
    ((X Y Z)
       (ssa (inc '*Ssa) "zext i64 " X " to i128")
-      (ssa (inc '*Ssa) "shl i128 " (dec *Ssa) ", 64")
+      (ssa (inc '*Ssa) "shl i128 %" (dec *Ssa) ", 64")
       (ssa (inc '*Ssa) "zext i64 " Y " to i128")
       (ssa (setq Y (inc '*Ssa)) "or i128 %" (- *Ssa 2) ", %" (dec *Ssa))
       (unless (num? Z)
          (ssa (inc '*Ssa) "zext i64 " Z " to i128")
          (setq Z (pack "%" *Ssa)) )
       (ssa (inc '*Ssa) "urem i128 %" Y ", " Z)
+      (ssa (inc '*Ssa) "trunc i128 %" (dec *Ssa) " to i64")
       (setq @@@ (def (pack "%" *Ssa) 'i64))
       (ssa (inc '*Ssa) "udiv i128 %" Y ", " Z)
+      (ssa (inc '*Ssa) "trunc i128 %" (dec *Ssa) " to i64")
       (def (pack "%" *Ssa) 'i64) )
    (llvm~div) )
 

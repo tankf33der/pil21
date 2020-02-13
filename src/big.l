@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 13feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg)
 
@@ -151,23 +151,28 @@
       (| (& (shr N 1) -10) 2)  # Clear lowest bit and tag
       (let (X N  A (shr (val (dig X)) 1)  Y (val (big X)))
          (if (big? Y)
-            (let (B (val (dig Y))  Z (val (big Y)))
+            (let Z (val (big Y))
                (loop
-                  (set (dig X) (| (shr B 0 1) A))
-                  (setq A (shr B 1))
+                  (let B (val (dig Y))
+                     (set (dig X) (| (shr B 0 1) A))
+                     (setq A (shr B 1)) )
                   (? (cnt? Z))
-                  (setq X Y  Y Z) )
-               (setq A (| (shr Z 0 5) A))
+                  (setq X Y  Y Z  Z (val (big Z))) )
+               (setq
+                  Z (int Z)
+                  A (| (shr Z 0 1) A) )
                (if
                   (and
-                     (=0 (setq Z (shr Z 5)))
+                     (=0 (setq Z (shr Z 1)))
                      (=0 (& A (hex "F000000000000000"))) )
                   (set (big X) (cnt A))
                   (set (dig Y) A)
                   (set (big Y) (cnt Z)) ) )
-            (setq A (| (shr Y 0 5) A))
+            (setq
+               Y (int Y)
+               A (| (shr Y 0 1) A) )
             (and
-               (=0 (setq Y (shr Y 5)))
+               (=0 (setq Y (shr Y 1)))
                (=0 (& A (hex "F000000000000000")))
                (ret (cnt A)) )
             (set (dig X) A)
@@ -192,7 +197,8 @@
          N ) ) )
 
 ### Non-destructive unsigned primitives ###
-(compile) (shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu divu remu)
+(compile) (shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu div1 divu
+remu)
 
 # Multiply (unsigned) number by 2
 (de shlu (N)
@@ -235,21 +241,25 @@
                      Y
                      (set (big Y)
                         (boxNum (| (shr B 0 1) A)) ) ) )
-               (setq A (| (shr X 0 5) A))
+               (setq
+                  X (int X)
+                  A (| (shr X 0 1) A) )
                (set (big Y)
                   (if
                      (and
-                        (=0 (setq X (shr X 5)))
+                        (=0 (setq X (shr X 1)))
                         (=0 (& A (hex "F000000000000000"))) )
                      (cnt A)
                      (prog1
                         (boxNum A)
                         (set (big @) (cnt X)) ) ) )
                (pop R) )
-            (setq A (| (shr X 0 5) A))
+            (setq
+               X (int X)
+               A (| (shr X 0 1) A) )
             (if
                (and
-                  (=0 (setq X (shr X 5)))
+                  (=0 (setq X (shr X 1)))
                   (=0 (& A (hex "F000000000000000"))) )
                (cnt A)
                (prog1
@@ -619,65 +629,143 @@
                         (set (big Y) Hi) ) ) ) )
             (zapZero (pop R)) ) ) ) )
 
-# Divide two (unsigned) numbers (Knuth Vol.2, p.257)
+# Divide big number (Knuth Vol.2, p.257)
+(de div1 (A B (i1 . Rem))
+   (let
+      (R (link (push ZERO NIL))  # Quotient
+         P (boxNum (val (dig A)))
+         U (link (push P NIL))  # Dividend 'u'
+         V (link (push B NIL))  # Divisor 'v'
+         V1 NIL
+         V2 0  # Last cell
+         M 0  # 'm'
+         N 1  # 'n'
+         D 0
+         Q NIL )
+      # Copy dividend
+      (while (big? (setq A (val (big A))))
+         (setq P
+            (set (big P) (boxNum (val (dig A)))) )
+         (inc 'M) )  # Calculate 'm'
+      (unless (== A ZERO)
+         (setq P (set (big P) (boxNum (int A))))
+         (inc 'M) )
+      # Copy divisor
+      (if (cnt? B)
+         (setq Q (set V (boxNum (int B))))
+         (setq Q
+            (set V (boxNum (val (dig B)))) )
+         (while (big? (setq B (val (big B))))
+            (setq
+               V2 Q  # Keep last cell
+               Q (set (big Q) (boxNum (val (dig B)))) )
+            (dec 'M)  # Decrement 'm'
+            (inc 'N) )  # Calculate 'n'
+         (unless (== B ZERO)
+            (setq
+               V2 Q  # Keep last cell
+               Q (set (big Q) (boxNum (int B))))
+            (dec 'M)
+            (inc 'N) )
+         (when (lt0 M)
+            (drop R)
+            (ret
+               (if Rem
+                  (zapZero (val U))
+                  ZERO ) ) ) )
+      (set (big P) (boxNum 0))
+      (while (ge0 (val (dig Q)))  # Shift to max left position
+         (twiceBig (val U))
+         (twiceBig (val V))
+         (inc 'D) )
+      (setq V1 (val (dig Q)))
+      (unless (=0 V2)
+         (setq V2 (val (dig V2))) )
+      (loop
+         (let (X (val U)  U1 0  U2 0  U3 NIL)
+            (let I M  # Index X -> 'u'
+               (while (ge0 (dec 'I))
+                  (setq X (val (big X))) ) )
+            (let (I N  Y X)
+               (loop
+                  (setq
+                     U3 U2
+                     U2 U1
+                     U1 (val (dig Y))
+                     Y (val (big Y)) )
+                  (? (lt0 (dec 'I))) ) )
+            (let (Hi U1  Lo U2)  # 'r'
+               (setq Q
+                  (if (== U1 V1)  # 'u1' = 'v1'
+                     -1  # 'q' = MAX
+                     (div Hi Lo V1) ) )  # 'q' = 'r' / 'v1'
+               (setq
+                  Lo (sub Lo (mul Q V1))  # 'r' - 'q' * 'v1'
+                  Hi (sub Hi @@@ @@) )
+               (while (=0 Hi)  # 'r' <= MAX  and
+                  (let L (mul Q V2)  # 'q' * 'v2 '> [lo(r) u3]
+                     (? (> Lo @@@))
+                     (? (and (== Lo @@@) (>= U3 L))) )
+                  (dec 'Q)
+                  (setq   # Increment 'r' by 'v1'
+                     Lo (add Lo V1)
+                     Hi (+ Hi @@) ) )
+               (let (Z X  Y (val V))
+                  (set (dig Z)
+                     (sub
+                        (val (dig Z))
+                        (mul Q (val (dig Y))) ) )
+                  (setq Hi (+ @@@ @@))  # Borrow
+                  (while (big? (setq Y (val (big Y))))  # More in 'v'
+                     (setq Z (val (big Z)))
+                     (set (dig Z) (sub (val (dig Z)) Hi))  # Subtract borrow
+                     (setq Hi (- Hi Hi @@))  # New borrow
+                     (set (dig Z)
+                        (sub
+                           (val (dig Z))
+                           (mul Q (val (dig Y))) ) )
+                     (setq Hi (- (sub Hi @@@ @@))) )
+                  (unless (=0 Hi)  # Borrow
+                     (setq Z (val (big Z)))
+                     (set (dig Z) (sub (val (dig Z)) Hi))  # Subtract borrow
+                     (when @@
+                        (dec 'Q)
+                        (when (or Rem (n0 M))
+                           (setq Y (val V))
+                           (set (dig X)  # 'x' += 'v'
+                              (add (val (dig X)) (val (dig Y))) )
+                           (let C @@
+                              (loop
+                                 (setq X (val (big X)))
+                                 (? (cnt? (setq Y (val (big Y)))))
+                                 (set (dig X)
+                                    (add (val (dig X)) (val (dig Y)) C) )
+                                 (setq C @@) )
+                              (set (dig X) (+ (val (dig X)) C)) ) ) ) ) ) ) )
+         (set R (consNum Q (val R)))
+         (? (lt0 (dec 'M))) )
+      (ifn Rem
+         (zapZero (pop R))
+         (setq A (zapZero (val U)))
+         (until (=0 D)
+            (setq A (half A))  # Shift right (destructive)
+            (dec 'D) )
+         (drop R)
+         A ) ) )
+
+# Divide two (unsigned) numbers
 (de divu (A B)
    (cond
-      ((big? A)
-         (let
-            (R (link (push ZERO NIL))  # Quotient
-               P (boxNum (val (dig A)))
-               U (link (push P NIL))  # Dividend 'u'
-               Q B
-               V (link (push Q NIL))  # Divisor 'v'
-               V1 NIL
-               V2 0  # Last cell
-               M 0  # 'm'
-               N 1  # 'n'
-               D 0 )
-            # Copy dividend
-            (while (big? (setq A (val (big A))))
-               (setq P
-                  (set (big P) (boxNum (val (dig A)))) )
-               (inc 'M) )  # Calculate 'm'
-            (unless (== A ZERO)
-               (setq P (set (big P) (boxNum (int A))))
-               (inc 'M) )
-            # Copy divisor
-            (if (cnt? B)
-               (setq Q (set V (boxNum (int B))))
-               (setq Q
-                  (set V (boxNum (val (dig B)))) )
-               (while (big? (setq B (val (big B))))
-                  (setq
-                     V2 Q  # Keep last cell
-                     Q (set (big Q) (boxNum (val (dig B)))) )
-                  (dec 'M)  # Decrement 'm'
-                  (inc 'N) )  # Calculate 'n'
-               (unless (== B ZERO)
-                  (setq
-                     V2 Q  # Keep last cell
-                     Q (set (big Q) (boxNum (int B))))
-                  (dec 'M)
-                  (inc 'N) )
-               (when (lt0 M)
-                  (drop R)
-                  (ret ZERO) ) )
-            (set (big P) (boxNum 0))
-            (while (ge0 (val (dig Q)))  # Shift to max left position
-               (twiceBig (val U))
-               (twiceBig (val V))
-               (inc 'D) )
-            (setq V1 (val (dig Q)))
-            (unless (=0 V2)
-               (setq V2 (val (dig V2))) )
-            #! ....
-            (zapZero (pop R)) ) )
+      ((big? A) (div1 A B NO))
       ((big? B) ZERO)
       (T (cnt (/ (int A) (int B)))) ) )
 
 # Remainder of two (unsigned) numbers
 (de remu (A B)
-   )
+   (cond
+      ((big? A) (div1 A B YES))
+      ((big? B) A)
+      (T (cnt (% (int A) (int B)))) ) )
 
 ### Non-destructive signed primitives ###
 (compile) (incs decs adds subs)
@@ -998,7 +1086,27 @@
 
 # (% 'num ..) -> num
 (de _rem (Exe)
-   ZERO )
+   (let (X (cdr Exe)  N (eval (++ X)))
+      (if (nil? N)
+         N
+         (let
+            (Sign (sign? (needNum Exe N))
+               R (link (push (setq N (pos N)) NIL))
+               Safe (link (push T NIL)) )
+            (loop
+               (? (atom X)
+                  (let N (pop R)
+                     (if Sign (neg N) N) ) )
+               (? (nil? (setq N (eval (++ X))))
+                  (drop R)
+                  N )
+               (when (== N ZERO)
+                  (err Exe X ($ "Div/0") null) )
+               (when (sign? (needNum Exe N))
+                  (setq N (pos N)) )
+               (set
+                  Safe N
+                  R (remu (val R) N) ) ) ) ) ) )
 
 
 ### Bit operations ###
