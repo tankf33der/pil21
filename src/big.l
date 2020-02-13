@@ -117,7 +117,7 @@
                   (set Y (cnt N)) ) )  # Store in short-tail
             ((=0
                   (&
-                     (val (dig (val X)))  # Digit in null-tail
+                     (setq N (val (dig (val X))))  # Digit in null-tail
                      (hex "F000000000000000") ) )
                (set (big (val X)) ZERO) )  # Trim null-tail
             (NIL (set X (cnt N))) ) )  # Store in null-tail
@@ -810,13 +810,15 @@ remu)
 (de i32 cmpu (A B)
    (if (cnt? A)
       (cond
-         ((big? B) (i32 -1))
+         ((or (big? B) (> B A)) (i32 -1))
          ((== B A) (i32 0))
-         ((> B A) (i32 -1))
          (T (i32 +1)) )
+      # A is big
       (if (cnt? B)
          (i32 +1)
-         (i32 0) ) ) )
+         # Both are big
+         #! ...
+         0 ) ) )
 
 (de i32 cmpNum (A B)
    (ifn (sign? A)
