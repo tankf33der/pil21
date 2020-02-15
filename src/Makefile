@@ -1,32 +1,46 @@
-# 17nov19 Software Lab. Alexander Burger
+# 15feb20 Software Lab. Alexander Burger
 
 .SILENT:
+
+ASM = gcc
+MAIN = -rdynamic -lc -lm -ldl -lffi
+SHARED = -shared
+
+BIN = ../bin
+LIB = ../lib
 
 SRC = main.l \
    vers.l defs.l glob.l dec.l \
    gc.l big.l sym.l db.l \
    io.l apply.l flow.l subr.l net.l
 
-BIN = ../bin
-LIB = ../lib
-CC = gcc
+all: $(BIN)/picolisp $(LIB)/ext.so
 
-all: $(BIN)/picolisp
-
+# Base system
 $(BIN)/picolisp: picolisp.bc
 	mkdir -p $(BIN) $(LIB)
 	llc picolisp.bc -relocation-model=pic -o picolisp.s
-	$(CC) picolisp.s -o $(BIN)/picolisp -lc -lm -ldl -lffi
+	$(ASM) picolisp.s -o $(BIN)/picolisp $(MAIN)
 
 picolisp.bc: base.bc lib.bc
 	llvm-link -o picolisp.bc base.bc lib.bc
-
-lib.bc: pico.h lib.c
-	clang -c -O3 `pkg-config --cflags libffi` -emit-llvm lib.c
 
 base.bc: lib/llvm.l $(SRC)
 	pil lib/llvm.l main.l -bye > base.ll
 	llvm-as -o base.bc base.ll
 
+lib.bc: pico.h lib.c
+	clang -c -O3 `pkg-config --cflags libffi` -emit-llvm lib.c
+
+# Extension library
+$(LIB)/ext.so: ext.bc
+	llc ext.bc -relocation-model=pic -o ext.s
+	$(ASM) ext.s -o $(LIB)/ext.so $(SHARED)
+
+ext.bc: lib/llvm.l ext.l
+	pil lib/llvm.l ext.l -bye > ext.ll
+	llvm-as -o ext.bc ext.ll
+
+# Clean up
 clean:
 	rm -f *.ll *.bc *.s

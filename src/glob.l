@@ -1,4 +1,4 @@
-# 08feb20 Software Lab. Alexander Burger
+# 14feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -31,7 +31,7 @@
 (var $Tell i32 0)                      # RPC broadcaster
 (var $TellBuf i8* null)                # RPC buffer
 (var $Talking i32 0)                   # Active child
-(var $Children i32 0)                  # Number of children
+(var $Children i64 0)                  # Number of children
 (var $Child i8* null)                  # Child array
 (var $ExtN i32 0)                      # External symbol offset
 (var $ExtCnt i32 1)                    # External symbol count

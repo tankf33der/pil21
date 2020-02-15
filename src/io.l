@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 14feb20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
@@ -38,7 +38,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
                (i8**
                   (alloc
                      (i8* (val $InFiles))
-                     (* 8 (set $InFDs (+ Fd 1))) ) ) )
+                     (* 8 (i64 (set $InFDs (+ Fd 1)))) ) ) )
             (loop
                (set (ofs P I) null)
                (? (== I Fd))
@@ -61,7 +61,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
                (i8**
                   (alloc
                      (i8* (val $OutFiles))
-                     (* 8 (set $OutFDs (+ Fd 1))) ) ) )
+                     (* 8 (i64 (set $OutFDs (+ Fd 1)))) ) ) )
             (loop
                (set (ofs P I) null)
                (? (== I Fd))

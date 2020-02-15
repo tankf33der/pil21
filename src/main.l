@@ -1,9 +1,9 @@
-# 11feb20 Software Lab. Alexander Burger
+# 15feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
-(begin "base")
-(load "vers.l" "defs.l" "glob.l" "dec.l")
+(begin "base" NIL
+   "vers.l" "defs.l" "glob.l" "dec.l" )
 
 # Unwind stack
 (de void unwind ((i8* . Catch))
@@ -48,7 +48,7 @@
 # Memory
 (compile) (alloc heapAlloc)
 
-(de i8* alloc ((i8* . Ptr) (i32 . Siz))
+(de i8* alloc ((i8* . Ptr) (i64 . Siz))
    (let P (realloc Ptr Siz)  # Reallocate pointer
       (when (=0 P)
          (giveup ($ "No memory")) )
@@ -108,7 +108,7 @@
       (set $Protect 0) ) )
 
 # Error handling
-(compile) (err numErr cntErr needNum needCnt xCnt)
+(compile) (err numErr cntErr needNum needCnt xCnt evCnt evSym)
 
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
@@ -192,101 +192,9 @@
       (cntErr Exe X) )
    X )
 
-(de xCnt (Exe X)
+(de i64 xCnt (Exe X)
    (let N (int (needCnt Exe X))
       (if (sign? X) (- N) N) ) )
-
-# Evaluation
-(compile) (undefined evExpr sharedLib evList evCnt evSym)
-
-(de NIL undefined (Fun Exe)
-   (err Exe Fun ($ "Undefined") null) )
-
-# Apply EXPR to CDR of list
-(de evExpr (Exe Lst)
-   (let
-      (X (cdr Lst)  # Arguments
-         Y (car Exe)  # Parameters
-         Q (link (push (val $At) NIL $At (val $Bind) Lst)) )  # [[@] LINK @ Bind Exe]
-      (while (pair Y)
-         (link
-            (push  # [val LINK sym]
-               (eval (++ X))  # Evaluate next argument
-               NIL
-               (++ Y) ) ) )  # Next parameter
-      (prog1
-         (let P (val $Link)
-            (if (== Y $At)  # VarArgs
-               (let Next (push (val $Next))
-                  (if (atom X)
-                     (set $Next $Nil)
-                     (let L (link (push T NIL))  # [lst LINK]
-                        (set $Next
-                           (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
-                        (while (pair (>>> X))
-                           (setq L  # [argN next]
-                              (set 2 L (push (eval (car X)) $Nil)) ) ) ) )
-                  (set $Bind P)
-                  (loop
-                     (let (S (val 3 P)  V (val S))  # Symbol, old value
-                        (set S (val P))  # Set new value
-                        (set P V)  # Save old value
-                        (? (== Q P))
-                        (>>> P) ) )
-                  (prog1
-                     (run (cdr Exe))  # Run body
-                     (set $Next (val Next)  $Link (val $Bind)) ) )
-               (unless (== Y $Nil)
-                  (link (push (val Y) NIL Y))  # Last parameter
-                  (set Y X) )  # Set to unevaluated argument(s)
-               (set $Bind (val $Link))
-               (loop
-                  (let (S (val 3 P)  V (val S))  # Symbol, old value
-                     (set S (val P))  # Set new value
-                     (set P V)  # Save old value
-                     (? (== Q P))
-                     (>>> P) ) )
-               (run (cdr Exe)) ) )  # Run body
-         (let P (val $Link)
-            (loop
-               (set (val 3 P) (val P))  # Restore values
-               (? (== Q P))
-               (>>> P) )
-            (drop P) )
-         (set $Bind (val 4 Q)) ) ) )
-
-(de i1 sharedLib (Sym)
-   NO )
-
-(de evList (Exe)
-   (let Fun (car Exe)
-      (cond
-         ((num? Fun) Exe)  # Number: Return list
-         ((sym? Fun)  # Symbol: Find function
-            (loop
-               (unless (=0 (val $Signal))
-                  (sighandler Exe) )
-               (let V (val Fun)  # Get VAL
-                  (? (num? V) (subr V Exe))
-                  (? (pair V) (evExpr V Exe))
-                  (? (== V (val V))
-                     (if (sharedLib Fun)
-                        (subr (val Fun) Exe)
-                        (undefined Fun Exe) ) )
-                  (setq Fun V) ) ) )
-         (T  # List: Evaluate
-            (let F (save (evList Fun))  # Save computed function
-               (loop
-                  (unless (=0 (val $Signal))
-                     (sighandler Exe) )
-                  (? (num? F) (subr F Exe))
-                  (? (pair F) (evExpr F Exe))
-                  (let V (val F)
-                     (? (== V (val V))
-                        (if (sharedLib F)
-                           (subr (val F) Exe)
-                           (undefined F Exe) ) )
-                     (setq F V) ) ) ) ) ) ) )
 
 (de evCnt (Exe X)
    (xCnt Exe (eval (car X))) )
@@ -364,6 +272,120 @@
                   (i32 0) ) ) ) ) ) )
 
 (load "io.l" "apply.l" "flow.l" "subr.l" "net.l")
+
+# Evaluation
+(compile) (undefined evExpr sharedLib evList)
+
+(de NIL undefined (Fun Exe)
+   (err Exe Fun ($ "Undefined") null) )
+
+# Apply EXPR to CDR of list
+(de evExpr (Exe Lst)
+   (let
+      (X (cdr Lst)  # Arguments
+         Y (car Exe)  # Parameters
+         Q (link (push (val $At) NIL $At (val $Bind) Lst)) )  # [[@] LINK @ Bind Exe]
+      (while (pair Y)
+         (link
+            (push  # [val LINK sym]
+               (eval (++ X))  # Evaluate next argument
+               NIL
+               (++ Y) ) ) )  # Next parameter
+      (prog1
+         (let P (val $Link)
+            (if (== Y $At)  # VarArgs
+               (let Next (push (val $Next))
+                  (if (atom X)
+                     (set $Next $Nil)
+                     (let L (link (push T NIL))  # [lst LINK]
+                        (set $Next
+                           (set L (push (eval (car X)) $Nil)) )  # [arg1 next]
+                        (while (pair (>>> X))
+                           (setq L  # [argN next]
+                              (set 2 L (push (eval (car X)) $Nil)) ) ) ) )
+                  (set $Bind P)
+                  (loop
+                     (let (S (val 3 P)  V (val S))  # Symbol, old value
+                        (set S (val P))  # Set new value
+                        (set P V)  # Save old value
+                        (? (== Q P))
+                        (>>> P) ) )
+                  (prog1
+                     (run (cdr Exe))  # Run body
+                     (set $Next (val Next)  $Link (val $Bind)) ) )
+               (unless (== Y $Nil)
+                  (link (push (val Y) NIL Y))  # Last parameter
+                  (set Y X) )  # Set to unevaluated argument(s)
+               (set $Bind (val $Link))
+               (loop
+                  (let (S (val 3 P)  V (val S))  # Symbol, old value
+                     (set S (val P))  # Set new value
+                     (set P V)  # Save old value
+                     (? (== Q P))
+                     (>>> P) ) )
+               (run (cdr Exe)) ) )  # Run body
+         (let P (val $Link)
+            (loop
+               (set (val 3 P) (val P))  # Restore values
+               (? (== Q P))
+               (>>> P) )
+            (drop P) )
+         (set $Bind (val 4 Q)) ) ) )
+
+(de i1 sharedLib (Sym)
+   (let (Nm (bufString Sym (b8 (bufSize Sym)))  P (strchr Nm (char ":")))
+      (and
+         (n0 P)
+         (<> P Nm)
+         (n0 (val 2 P))
+         (let N (if (=0 (val $Home)) 0 (strlen (val $Home)))
+            (set P 0)
+            (let (Len (strlen Nm)  Q (b8 (+ N Len (+ 4 3 1))))
+               (ifn (=0 (strchr Nm (char "/")))
+                  (strcpy Q Nm)
+                  (unless (=0 N)
+                     (memcpy Q (val $Home) N) )
+                  (strcpy (ofs Q N) ($ "lib/"))
+                  (strcpy (ofs Q (+ N 4)) Nm)
+                  (setq Len (+ Len N 4)) )
+               (strcpy (ofs Q Len) ($ ".so"))
+               (let H (dlOpen Q)
+                  (and
+                     (n0 H)
+                     (n0 (setq H (dlsym H (inc P))))
+                     (prog
+                        (set Sym (| (i64 H) 2))
+                        YES ) ) ) ) ) ) ) )
+
+(de evList (Exe)
+   (let Fun (car Exe)
+      (cond
+         ((num? Fun) Exe)  # Number: Return list
+         ((sym? Fun)  # Symbol: Find function
+            (loop
+               (unless (=0 (val $Signal))
+                  (sighandler Exe) )
+               (let V (val Fun)  # Get VAL
+                  (? (num? V) (subr V Exe))
+                  (? (pair V) (evExpr V Exe))
+                  (? (== V (val V))
+                     (if (sharedLib Fun)
+                        (subr (val Fun) Exe)
+                        (undefined Fun Exe) ) )
+                  (setq Fun V) ) ) )
+         (T  # List: Evaluate
+            (let F (save (evList Fun))  # Save computed function
+               (loop
+                  (unless (=0 (val $Signal))
+                     (sighandler Exe) )
+                  (? (num? F) (subr F Exe))
+                  (? (pair F) (evExpr F Exe))
+                  (let V (val F)
+                     (? (== V (val V))
+                        (if (sharedLib F)
+                           (subr (val F) Exe)
+                           (undefined F Exe) ) )
+                     (setq F V) ) ) ) ) ) ) )
 
 # Native calls
 (compile) natRet

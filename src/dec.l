@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 15feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -68,20 +68,23 @@
    (cnt 4 i32) )        # Buffer byte count
 
 # System
-(compile) (malloc realloc free getpid isatty read write strdup strcmp strchr
-strrchr dlerror close setjmp longjmp kill exit)
+(compile) (malloc realloc free getpid isatty read write strlen strcpy strdup
+strcmp strchr strrchr dlerror close setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
-(de T i8* realloc (i8* i32))
+(de T i8* realloc (i8* i64))
 (de T void free (i8*))
 (de T i32 getpid ())
 (de T i32 isatty (i32))
 (de T i64 read (i32 i8* i64))
 (de T i64 write (i32 i8* i64))
+(de T i64 strlen (i8*))
+(de T i8* strcpy (i8* i8*))
 (de T i8* strdup (i8*))
 (de T i32 strcmp (i8* i8*))
 (de T i8* strchr (i8* i32))
 (de T i8* strrchr (i8* i32))
+(de T i8* dlsym (i8* i8*))
 (de T i8* dlerror ())
 (de T i32 close (i32))
 (de T i32 setjmp (i8*))
@@ -94,7 +97,7 @@ strrchr dlerror close setjmp longjmp kill exit)
 fcntlCloExec fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut
 xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 
-(var JmpBufSize i32 NIL)
+(var JmpBufSize i64 NIL)
 
 (de T void stderrMsg (i8* i64))
 (de T i32 xprintf (i8* i32 i8* i8*))
@@ -132,6 +135,14 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 outString print repl)
 
 # main.l
+(de NIL err (any any i8* i8*))
+(de numErr (any any))
+(de cntErr (any any))
+(de i64 xCnt (any any))
+(de evCnt (any any))
+(de evSym (any))
+(de i1 equal (any any))
+(de i32 compare (any any))
 (de evList (any))
 # sym.l
 (de mkStr (i8*))
@@ -175,7 +186,7 @@ outString print repl)
    (any (| X 8)) )
 
 (inline length (X)
-   (let N (i32 0)
+   (let N 0
       (while (pair X)
          (inc 'N)
          (>>> X) )

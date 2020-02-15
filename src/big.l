@@ -1,4 +1,4 @@
-# 13feb20 Software Lab. Alexander Burger
+# 15feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg)
 
@@ -817,8 +817,41 @@ remu)
       (if (cnt? B)
          (i32 +1)
          # Both are big
-         #! ...
-         0 ) ) )
+         (let (X 0  Y 0)
+            (prog1
+               (loop
+                  (let (C (val (big A))  D (val (big B)))
+                     (? (== C D)  # Tails equal
+                        (loop
+                           (setq
+                              C (val (dig A))
+                              D (val (dig B)) )
+                           (? (> D C) (i32 -1))
+                           (? (> C D) (i32 +1))
+                           (? (=0 X) (i32 0))
+                           (let Z (val (big X))
+                              (set (big X) A)  # Restore A
+                              (setq A X  X Z) )
+                           (let Z (val (big Y))
+                              (set (big Y) B)  # Restore B
+                              (setq B Y  Y Z) ) ) )
+                     (? (cnt? C)  # End of A
+                        (cond
+                           ((or (big? D) (> D C)) (i32 -1))
+                           ((== D C) (i32 0))
+                           (T (i32 +1)) ) )
+                     (? (cnt? D) (i32 +1))  # End of B
+                     (set (big A) X)  # Reverse A
+                     (setq X A  A C)
+                     (set (big B) Y)  # Reverse B
+                     (setq Y B  B D) ) )
+               (until (=0 X)  # Revert
+                  (let Z (val (big X))
+                     (set (big X) A)  # Restore A
+                     (setq A X  X Z) )
+                  (let Z (val (big Y))
+                     (set (big Y) B)  # Restore B
+                     (setq B Y  Y Z) ) ) ) ) ) ) )
 
 (de i32 cmpNum (A B)
    (ifn (sign? A)
@@ -881,7 +914,7 @@ remu)
 
 # Format number to output, length, or symbol
 (de fmtNum (Num (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
-   (let (Sign (sign? Num)  Len (i32 (+ 19 17)))  # Length of 'cnt' (60 bit) plus round up div/18
+   (let (Sign (sign? Num)  Len (+ 19 17))  # Length of 'cnt' (60 bit) plus round up div/18
       # Calculate buffer size
       (let N (setq Num (& Num -9))  # Clear sign bit
          (until (cnt? N)  # Calculate length

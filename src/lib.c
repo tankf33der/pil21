@@ -1,4 +1,4 @@
-// 12feb20 Software Lab. Alexander Burger
+// 14feb20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -105,7 +105,7 @@ int64_t getTime(void) {
 }
 
 // Catch and Throw
-int JmpBufSize = sizeof(jmp_buf);
+int64_t JmpBufSize = sizeof(jmp_buf);
 jmp_buf QuitRst;
 
 int32_t catchQuit(void) {
@@ -137,7 +137,7 @@ int64_t num(int64_t x) {
    return -(x >> 4);
 }
 
-int32_t length(int64_t x) {
+int64_t length(int64_t x) {
    int n = 0;
 
    while (!atom(x))

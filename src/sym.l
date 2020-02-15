@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 14feb20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym)
@@ -9,8 +9,8 @@ pack xSym)
       (>>> Tail) )
    Tail )
 
-(de i32 bufSize (Sym)
-   (let (X (name (val (tail Sym)))  N (i32 1))
+(de i64 bufSize (Sym)
+   (let (X (name (val (tail Sym)))  N 1)
       (while (big? X)
          (setq N (+ N 8)  X (val (big X))) )
       (setq X (int X))
@@ -19,7 +19,7 @@ pack xSym)
          (setq X (shr X 8)) )
       N ) )
 
-(de i32 pathSize (Sym)
+(de i64 pathSize (Sym)
    (bufSize Sym) )  #!
 
 (de i8* bufString (X (i8* . P))

@@ -1,9 +1,8 @@
-# 13feb20 Software Lab. Alexander Burger
+# 15feb20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
    (local) )
-
 
 ## PicoLisp LLVM frontend ##
 (symbols 'llvm 'pico)
@@ -27,10 +26,10 @@ show bt)
 ## Cross-compiler private ##
 (symbols 'priv 'llvm 'pico)
 
-(local) (*Strings *Ssa *Lbl *Log *Curr *Exit *Bind *Phi *Ret log asm ssa phi
-+phi br label +lbl +bind type func ptr pointee store A B C I L M N P Q V X Y Exe
-Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
-*Safe)
+(local) (*Shared *Strings *Ssa *Lbl *Log *Curr *Exit *Bind *Phi *Ret log asm ssa
+phi +phi br label +lbl +bind type func ptr pointee store A B C I L M N P Q V X Y
+Exe Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg
+End *Safe)
 
 (import any inc dec ++ #{>>>}#)
 
@@ -39,7 +38,7 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
 
 
 # Generate LLVM-IR
-(de begin (Name)
+(de begin (Name Flg . @)
    (off *Strings)
    (prinl "source_filename = \"" Name ".l\"")
    (prinl)
@@ -50,7 +49,9 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
    (prinl "declare void @llvm.memcpy.p0i8.p0i8.i64(i8*, i8*, i64, i1)")
    (prinl "declare i8* @llvm.stacksave()")
    (prinl "declare void @llvm.stackrestore(i8*)")
-   (prinl) )
+   (prinl)
+   (let *Shared Flg
+      (pass load) ) )
 
 (de end ()
    (prinl)
@@ -147,6 +148,7 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
                (or
                   (and
                      (memq (car X) '(llvm~inc llvm~dec))
+                     (pair (cadr X))
                      (== 'quote (caadr X))
                      (== Var (cdadr X)) )
                   (and
@@ -242,9 +244,10 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
 (de global (Sym Typ Val)
    (prin
       "@" Sym " = "
-      (unless Val "external ")
+      (unless (and Val (not *Shared)) "external ")
       "global " (type Typ) )
    (cond
+      (*Shared)
       ((pre? "_" Val) (prin " @" @))
       ((pre? "$" Val)
          (if (; Val offset)
@@ -311,12 +314,15 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
                Len " x " (setq Typ (type Typ))
                "]* @" Sym " to " (ptr Typ) ")" )
             (ptr Typ) ) )
-      (prinl "@" Sym " = global [" Len " x " Typ "] [")
-      (for (I . X) Lst
-         (prinl
-            "  " Typ " " (eval X)
-            (unless (== I Len) ",") ) )
-      (prinl "]") ) )
+      (prinl
+         "@" Sym " = " (when *Shared "external ")
+         "global [" Len " x " Typ "]" (unless *Shared " [") )
+      (unless *Shared
+         (for (I . X) Lst
+            (prinl
+               "  " Typ " " (eval X)
+               (unless (== I Len) ",") ) )
+         (prinl "]") ) ) )
 
 (de table Args
    (let
@@ -327,7 +333,9 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
       (def Table
          (curry (@N @S) A
             (if A @N (i8* @S)) ) )
-      (prinl "@" Table " = global [" (; Table length) " x i64] [")
+      (prinl
+         "@" Table " = " (when *Shared "external ")
+         "global [" (; Table length) " x i64]" (unless *Shared " [") )
       (for (I . Lst) Args
          (let Typ (if (caddr Lst) (cadr Lst) 'any)
             (let? Sym (car Lst)
@@ -349,17 +357,19 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
                         (unless (== 'any Typ) "*")
                         ")" )
                      (ptr Typ) ) ) )
-            (nond
-               ((caddr Lst) (const (cadr Lst)))
-               ((pair Typ)
-                  (prin
-                     "  i64 "
-                     (if (sub? "*" Typ) "ptrtoint" "sext")
-                     " (" (cadr Lst) " " (caddr Lst) " to i64)") )
-               (NIL
-                  (prin "  i64 ptrtoint (" (func @) " @" (caddr Lst) " to i64)") ) )
-            (prinl (unless (== Lst (last Args)) ",")) ) ) )
-   (prinl "], align 8") )
+            (unless *Shared
+               (nond
+                  ((caddr Lst) (const (cadr Lst)))
+                  ((pair Typ)
+                     (prin
+                        "  i64 "
+                        (if (sub? "*" Typ) "ptrtoint" "sext")
+                        " (" (cadr Lst) " " (caddr Lst) " to i64)") )
+                  (NIL
+                     (prin "  i64 ptrtoint (" (func @) " @" (caddr Lst) " to i64)") ) )
+               (prinl (unless (== Lst (last Args)) ",")) ) ) ) )
+   (unless *Shared
+      (prinl "], align 8") ) )
 
 (de symTab Args
    (let (Table 'SymTab  I 0)
@@ -368,7 +378,9 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
             '((L)
                (if (> (length (cadr L)) 7) 4 2) )
             Args ) )
-      (prinl "@" Table " = global [" (; Table length) " x i64] [")
+      (prinl
+         "@" Table " = " (when *Shared "external ")
+         "global [" (; Table length) " x i64]" (unless *Shared " [") )
       (for Lst Args
          (let? Sym (car Lst)
             (put Sym 'table Table)
@@ -382,46 +394,48 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
                      (; Sym offset)
                      ") to i64)" )
                   'any ) ) )
-         (let Name
-            (when (str? (cadr Lst))
-               (prinl "  ; # [" I "] " @)
-               (let L (chop (cadr Lst))
-                  (make
-                     (when (nth L 8)  # Max 15 ASCII characters
+         (unless *Shared
+            (let Name
+               (when (str? (cadr Lst))
+                  (prinl "  ; # [" I "] " @)
+                  (let L (chop (cadr Lst))
+                     (make
+                        (when (nth L 8)  # Max 15 ASCII characters
+                           (let (D 0  N 0)
+                              (do 8
+                                 (setq
+                                    N (| N (>> D (char (++ L))))
+                                    D (- D 8) ) )
+                              (link N) ) )
                         (let (D 0  N 0)
-                           (do 8
+                           (while L
                               (setq
                                  N (| N (>> D (char (++ L))))
                                  D (- D 8) ) )
-                           (link N) ) )
-                     (let (D 0  N 0)
-                        (while L
-                           (setq
-                              N (| N (>> D (char (++ L))))
-                              D (- D 8) ) )
-                        (link (short N)) ) ) ) )
-            (nond  # Name
-               (Name
-                  (const (cadr Lst))
-                  (prinl ",") )
-               ((cdr Name)
-                  (prinl "  i64 " (car Name) ",") )
-               (NIL
-                  (prinl
-                     "  i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([" (; Table length) " x i64]* @"
-                     Table
-                     " to i8*), i32 "
-                     (+ I 16 4)
-                     ") to i64)," ) ) )
-            (const (caddr Lst))  # Value
-            (when (cdr Name)  # Long name
-               (prinl ",")
-               (inc 'I 16)
-               (prinl "  i64 " (car Name) ",")
-               (prin "  i64 " (cadr Name)) ) )
-         (prinl (unless (== Lst (last Args)) ","))
+                           (link (short N)) ) ) ) )
+               (nond  # Name
+                  (Name
+                     (const (cadr Lst))
+                     (prinl ",") )
+                  ((cdr Name)
+                     (prinl "  i64 " (car Name) ",") )
+                  (NIL
+                     (prinl
+                        "  i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([" (; Table length) " x i64]* @"
+                        Table
+                        " to i8*), i32 "
+                        (+ I 16 4)
+                        ") to i64)," ) ) )
+               (const (caddr Lst))  # Value
+               (when (cdr Name)  # Long name
+                  (prinl ",")
+                  (inc 'I 16)
+                  (prinl "  i64 " (car Name) ",")
+                  (prin "  i64 " (cadr Name)) ) )
+            (prinl (unless (== Lst (last Args)) ",")) )
          (inc 'I 16) ) )
-   (prinl "], align 16") )
+   (unless *Shared
+      (prinl "], align 16") ) )
 
 (de inline Lst
    (let L (and (lst? (car Lst)) (++ Lst))
@@ -580,7 +594,11 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
 
 (de llvm~de Lst
    (define
-      (and (=T (car Lst)) (++ Lst))
+      (or
+         (and (=T (car Lst)) (++ Lst))
+         (and
+            *Shared
+            (not ((if (lst? (cadr Lst)) cddr cdddr) Lst)) ) )
       (if (lst? (cadr Lst)) 'any (++ Lst))
       (car Lst)
       (cadr Lst)
@@ -1011,7 +1029,7 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
 
 (asm (@Typ @Ptr)
    ((N)
-      (ssa (inc '*Ssa) "alloca " '@Typ ", i32 " N)
+      (ssa (inc '*Ssa) "alloca " '@Typ ", i64 " N)
       (def (pack "%" *Ssa) '@Ptr) )
    (llvm~b8 i8 i8*)
    (llvm~b32 i32 i32*)
@@ -1032,7 +1050,7 @@ Prg Typ Sym Ret Args Ext Table Body Var Val Lst Lbl Flg Skip True False Beg End
                   Lst )
                (quit "No type") ) )
          (ssa (inc '*Ssa) "alloca "
-            (type Typ) ", i32 " (length Lst)
+            (type Typ) ", i64 " (length Lst)
             (and (cdr Lst) ", align 16") )
          (when (== 'any Typ)
             (ssa (inc '*Ssa) "ptrtoint i64* %" (dec *Ssa) " to i64") )

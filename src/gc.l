@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 13feb20 Software Lab. Alexander Burger
 
 (compile) (mark gc)
 
@@ -11,8 +11,9 @@
                (set 2 P (setq Q (& Q -2)))  # Mark cell
                (? (big? Exe)
                   (until (cnt? Q)
-                     (setq Q
-                        (set (big Q) (& (val (big Q)) -2)) ) ) )  # Mark big digits
+                     (let N (val (big Q))
+                        (? (=0 (& N 1)))  # Already marked
+                        (setq Q (set (big Q) (& N -2))) ) ) )  # Mark big digits
                (let X Exe  # Current item
                   (setq Exe (val P))  # Get CAR
                   (set P (| Tos 1))  # First visit
