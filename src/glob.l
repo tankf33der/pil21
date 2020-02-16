@@ -1,4 +1,4 @@
-# 14feb20 Software Lab. Alexander Burger
+# 16feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -110,6 +110,7 @@
    # Garbage collection
    (NIL "gc" _gc)
    # Arithmetics
+   (NIL "format" _format)
    (NIL "+" _add)
    (NIL "-" _sub)
    (NIL "inc" _inc)

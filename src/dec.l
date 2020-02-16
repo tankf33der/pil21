@@ -1,4 +1,4 @@
-# 15feb20 Software Lab. Alexander Burger
+# 16feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -136,8 +136,9 @@ outString print repl)
 
 # main.l
 (de NIL err (any any i8* i8*))
-(de numErr (any any))
 (de cntErr (any any))
+(de numErr (any any))
+(de symErr (any any))
 (de i64 xCnt (any any))
 (de evCnt (any any))
 (de evSym (any))
@@ -145,7 +146,13 @@ outString print repl)
 (de i32 compare (any any))
 (de evList (any))
 # sym.l
+(de name (any))
+(de i64 bufSize (any))
+(de i8* bufString (any i8*))
+(de i8 firstByte (any))
+(de i32 firstChar (any))
 (de mkStr (i8*))
+(de void pack (any i64*))
 (de xSym (any))
 (de i1 subStr (any any))
 # io.l

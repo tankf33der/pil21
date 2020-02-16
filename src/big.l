@@ -907,7 +907,8 @@ remu)
                (set Num
                   (addu
                      (tenfold (val Num))
-                     (cnt (i64 B)) ) ) ) ) )
+                     (cnt (i64 B)) ) )
+               (and Frac (dec 'Scl)) ) ) )
       (when Frac
          (while (ge0 (dec 'Scl))
             (set Num (tenfold (val Num))) ) )
@@ -1025,6 +1026,37 @@ remu)
                   (when Sign
                      (inc 'N) )
                   (cnt N) ) ) ) ) ) )
+
+# (format 'num ['cnt ['sym1 ['sym2]]]) -> sym
+# (format 'sym|lst ['cnt ['sym1 ['sym2]]]) -> num
+(de _format (Exe)
+   (let
+      (X (cdr Exe)
+         A (save (eval (++ X)))
+         Y (eval (++ X))
+         Scl (if (nil? Y) 0 (xCnt Exe Y))
+         Sep (i8 (char "."))
+         Ign (i8 0) )
+      (when (pair (>>> X))
+         (setq Sep (firstByte (needSym Exe (eval (++ X)))))
+         (when (pair X)
+            (setq Ign (firstByte (needSym Exe (eval (++ X))))) ) )
+      (cond
+         ((num? A)
+            (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
+               (fmtNum A Scl Sep Ign P)
+               (consSym (val Q) 0) ) )
+         ((=0
+               (setq Y
+                  (symToNum
+                     (if (sym? A)
+                        (name (val (tail A)))
+                        (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
+                           (pack A P)
+                           (val Q) ) )
+                     Scl Sep Ign ) ) )
+            $Nil )
+         (T Y) ) ) )
 
 ### Arithmetics ###
 # (+ 'num ..) -> num

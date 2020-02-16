@@ -1,4 +1,4 @@
-# 15feb20 Software Lab. Alexander Burger
+# 16feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
@@ -108,7 +108,7 @@
       (set $Protect 0) ) )
 
 # Error handling
-(compile) (err numErr cntErr needNum needCnt xCnt evCnt evSym)
+(compile) (err cntErr numErr symErr needNum needCnt needSym xCnt evCnt evSym)
 
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
@@ -175,21 +175,29 @@
          (set $Get (fun (i32) _getStdin))
          (throwQuit) ) ) )
 
-(de numErr (Exe X)
-   (err Exe X ($ "Number expected") null) )
-
 (de cntErr (Exe X)
    (err Exe X ($ "Small number expected") null) )
 
+(de numErr (Exe X)
+   (err Exe X ($ "Number expected") null) )
+
+(de symErr (Exe X)
+   (err Exe X ($ "Symbol expected") null) )
+
 # Argument checks
+(inline needCnt (Exe X)
+   (unless (cnt? X)
+      (cntErr Exe X) )
+   X )
+
 (inline needNum (Exe X)
    (unless (num? X)
       (numErr Exe X) )
    X )
 
-(inline needCnt (Exe X)
-   (unless (cnt? X)
-      (cntErr Exe X) )
+(inline needSym (Exe X)
+   (when (or (num? X) (pair X))
+      (symErr Exe X) )
    X )
 
 (de i64 xCnt (Exe X)

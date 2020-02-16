@@ -253,7 +253,7 @@ pack xSym)
 
 # (sub? 'any1 'any2) -> any2 | NIL
 (de _subQ (Exe)
-   (let (X (cdr Exe)  P (save (evSym (++ X)))  Z (evSym (car X)))
+   (let (X (cdr Exe)  P (save (evSym X))  Z (evSym (>>> X)))
       (if (subStr P Z)
          Z
          $Nil ) ) )
