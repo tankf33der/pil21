@@ -1,4 +1,4 @@
-# 14feb20 Software Lab. Alexander Burger
+# 16feb20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
@@ -411,12 +411,12 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 
 (de rdAtom ((i32 . C))
    (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
-      (byteNum C P)
+      (charNum C P)
       (setq C (val $Chr))
       (while (and (gt0 C) (=0 (strchr $Delim C)))
          (when (== C (char "\\"))
             (setq C (call $Get)) )
-         (byteNum C P)
+         (charNum C P)
          (setq C (call $Get)) )
       (prog1
          (let (Nm (val Q)  Num (symToNum Nm 0 (char ".") 0))

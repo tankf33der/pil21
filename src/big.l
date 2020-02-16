@@ -1,4 +1,4 @@
-# 15feb20 Software Lab. Alexander Burger
+# 16feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg)
 
@@ -48,14 +48,14 @@
                   6 )
                (& (i32 (numByte P)) (hex "3F")) ) ) ) ) )
 
-(de void byteNum ((i32 . C) (i64* . P))
+(de void byteNum ((i8 . B) (i64* . P))
    (let (Cnt (val P)  Name (val 2 P))
       (unless (big? Name)  # Short name
          # 0000.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx.xxxxxxx0010
          #   60      52      44      36      28      20      12       4
          (when (> 60 Cnt)  # Digit not full
             (set 2 P
-               (| Name (shl (i64 C) Cnt)) )
+               (| Name (shl (i64 B) Cnt)) )
             (set P (+ Cnt 8))
             (ret) )
          (set 3 P
@@ -63,14 +63,14 @@
                (boxNum  # Make big
                   (|  # Combine byte with digit
                      (shr Name 4)  # De-normalize short number
-                     (shl (i64 C) 56) ) ) ) )  # Adjust byte
+                     (shl (i64 B) 56) ) ) ) )  # Adjust byte
          (set P 4)  # Start new digit
          (ret) )
       (let (Q (val 3 P)  N (val (big Q)))
          (when (> 60 Cnt)  # Digit not full
             (set
                (big Q)
-               (| N (shl (i64 C) Cnt)) )
+               (| N (shl (i64 B) Cnt)) )
             (set P (+ Cnt 8))
             (ret) )
          (set 3 P
@@ -78,25 +78,25 @@
                (boxNum  # Make big
                   (|  # Combine byte with digit
                      (shr N 4)  # De-normalize short number
-                     (shl (i64 C) 56) ) ) ) )  # Adjust byte
+                     (shl (i64 B) 56) ) ) ) )  # Adjust byte
          (set P 4) ) ) )  # Start new digit
 
 (de void charNum ((i32 . C) (i64* . P))
    (cond
-      ((>= 127 C) (byteNum C P))  # Single byte
+      ((>= 127 C) (byteNum (i8 C) P))  # Single byte
       ((== TOP C) (byteNum (hex "FF") P))  # Infinite
       (T
          (cond
             ((> (hex "800") C)  # Double-byte
-               (byteNum (| (hex "C0") (& (shr C 6) (hex "1F"))) P) )  # 10xxxxx 10xxxxxx
+               (byteNum (i8 (| (hex "C0") (& (shr C 6) (hex "1F")))) P) )  # 10xxxxx 10xxxxxx
             ((> (hex "10000") C)  # Three bytes
-               (byteNum (| (hex "E0") (& (shr C 12) (hex "0F"))) P)  # 1110xxxx 10xxxxxx 10xxxxxx
-               (byteNum (| (hex "80") (& (shr C 6) (hex "3F"))) P) )
+               (byteNum (i8 (| (hex "E0") (& (shr C 12) (hex "0F")))) P)  # 1110xxxx 10xxxxxx 10xxxxxx
+               (byteNum (i8 (| (hex "80") (& (shr C 6) (hex "3F")))) P) )
             (T
-               (byteNum (| (hex "F0") (& (shr C 18) (hex "07"))) P)  # 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-               (byteNum (| (hex "80") (& (shr C 12) (hex "3F"))) P)
-               (byteNum (| (hex "80") (& (shr C 6) (hex "3F"))) P) ) )
-         (byteNum (| (hex "80") (& C (hex "3F"))) P) ) ) )
+               (byteNum (i8 (| (hex "F0") (& (shr C 18) (hex "07")))) P)  # 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+               (byteNum (i8 (| (hex "80") (& (shr C 12) (hex "3F")))) P)
+               (byteNum (i8 (| (hex "80") (& (shr C 6) (hex "3F")))) P) ) )
+         (byteNum (i8 (| (hex "80") (& C (hex "3F")))) P) ) ) )
 
 ### Destructive primitives ###
 (compile) (zapZero twiceBig twice half tenfold)
@@ -866,7 +866,7 @@ remu)
 (compile) (symToNum fmtWord fmtNum)
 
 # Make number from symbol
-(de symToNum (Name (i32 . Scl) (i32 . Sep) (i32 . Ign))
+(de symToNum (Name (i64 . Scl) (i8 . Sep) (i8 . Ign))
    (let
       (P (push 0 (i64 Name))  # [cnt name]
          Num (push ZERO NIL)  # Result
@@ -888,32 +888,46 @@ remu)
          (ret 0) )
       (set (link Num) (cnt (i64 B)))
       (until (=0 (setq B (numByte P)))
-         (when (>= (setq B (- B (char "0"))) 10)
-            (drop Num)
-            (ret 0) )
-         (set Num
-            (addu
-               (tenfold (val Num))
-               (cnt (i64 B)) ) ) )
-      (cond
-         ((== ZERO (setq Num (pop Num))) ZERO)
-         (Sign (sign Num))
-         (T Num) ) ) )
+         (? (and Frac (=0 Scl))
+            (when (>= (setq B (- B (char "0"))) 10)
+               (goto 9) )
+            (when (>= B 5)  # Round
+               (set Num (addu (val Num) ONE)) )
+            (until (=0 (setq B (numByte P)))
+               (and (> B (char "9")) (goto 9)) ) )
+         (cond
+            ((== B Sep)
+               (and Frac (goto 9))
+               (setq Frac YES) )
+            ((<> B Ign)
+               (when (>= (setq B (- B (char "0"))) 10)
+                  (: 9
+                     (drop Num)
+                     (ret 0) ) )
+               (set Num
+                  (addu
+                     (tenfold (val Num))
+                     (cnt (i64 B)) ) ) ) ) )
+      (when Frac
+         (while (ge0 (dec 'Scl))
+            (set Num (tenfold (val Num))) ) )
+      (setq Num (pop Num))
+      (if Sign (neg Num) Num) ) )
 
-(de i32 fmtWord ((i64 . N) (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
+(de i64 fmtWord ((i64 . N) (i64 . Scl) (i8 . Sep) (i8 . Ign) (i64* . P))
    (when (> N 9)
       (setq Scl (fmtWord (/ N 10) Scl Sep Ign P))
       (cond
-         ((=0 Scl) (charNum Sep P))
+         ((=0 Scl) (byteNum Sep P))
          ((and (n0 Ign) (gt0 Scl) (=0 (% Scl 3)))
-            (charNum Ign P) ) )
+            (byteNum Ign P) ) )
       (dec 'Scl)
       (setq N (% N 10)) )
-   (byteNum (+ (i32 N) (char "0")) P)
+   (byteNum (+ (i8 N) (char "0")) P)
    Scl )
 
 # Format number to output, length, or symbol
-(de fmtNum (Num (i32 . Scl) (i32 . Sep) (i32 . Ign) (i64* . P))
+(de fmtNum (Num (i64 . Scl) (i8 . Sep) (i8 . Ign) (i64* . P))
    (let (Sign (sign? Num)  Len (+ 19 17))  # Length of 'cnt' (60 bit) plus round up div/18
       # Calculate buffer size
       (let N (setq Num (& Num -9))  # Clear sign bit
@@ -967,7 +981,7 @@ remu)
             ((ge0 Scl)  # Build symbol
                (when Sign
                   (byteNum (char "-") P) )
-               (let N (* (shr (i32 (- TopA Acc)) 3) 18)  # Calculate length~1
+               (let N (* (shr (- TopA Acc) 3) 18)  # Calculate length~1
                   (let D (val TopA)
                      (until (=0 (setq D (/ D 10)))
                         (inc 'N) ) )
@@ -982,14 +996,14 @@ remu)
                   (let (N (val TopA)  D 100000000000000000)
                      (loop
                         (cond
-                           ((=0 Scl) (charNum Sep P))
+                           ((=0 Scl) (byteNum Sep P))
                            ((and (n0 Ign) (gt0 Scl) (=0 (% Scl 3)))
-                              (charNum Ign P) ) )
+                              (byteNum Ign P) ) )
                         (dec 'Scl)
-                        (byteNum (+ (i32 (/ N D)) (char "0")) P)
+                        (byteNum (+ (i8 (/ N D)) (char "0")) P)
                         (setq N (% N D))
                         (? (== 1 (setq D (/ D 10)))) )
-                     (byteNum (+ (i32 N) (char "0")) P) ) )
+                     (byteNum (+ (i8 N) (char "0")) P) ) )
                0 )
             ((== Scl -1)  # Direct print
                (when Sign
