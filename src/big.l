@@ -1245,11 +1245,83 @@ remu)
                   Safe N
                   R (remu (val R) N) ) ) ) ) ) )
 
+# (>> 'cnt 'num) -> num
+(de _shift (Exe)
+   (let
+      (X (cdr Exe)
+         N (evCnt Exe X)
+         Y (eval (cadr X)) )
+      (if
+         (or
+            (=0 N)
+            (nil? Y)
+            (== ZERO (needNum Exe Y)) )
+         Y
+         (let
+            (Sign (sign? Y)
+               R (link (push (setq Y (pos Y)) NIL)) )
+            (cond
+               ((gt0 N)
+                  (while (and (big? Y) (>= N 64))  # Large shift count
+                     (when (cnt? (setq Y (val (big Y))))  # Discard 64 bits
+                        (goto 9) )
+                     (when (=0 (setq N (- N 64)))
+                        (goto 9) ) )
+                  (setq Y (set R (shru Y)))  # Non-destructive
+                  (until (=0 (dec 'N))
+                     (setq Y (half Y)) ) )  # Shift right (destructive)
+               (T
+                  (while (>= -64 N)
+                     (setq Y (set R (consNum 0 Y)))
+                     (when (=0 (setq N (+ N 64)))
+                        (goto 9) ) )
+                  (setq Y (set R (shlu Y)))  # Non-destructive
+                  (until (=0 (inc 'N))
+                     (setq Y (set R (twice Y))) ) ) )  # Shift left (destructive)
+            (: 9
+               (drop R)
+               (if Sign (neg Y) Y) ) ) ) ) )
+
+# (lt0 'any) -> num | NIL
+(de _lt0 (Exe)
+   (let N (eval (cadr Exe))
+      (if (and (num? N) (sign? N))
+         N
+         $Nil ) ) )
+
+# (le0 'any) -> num | NIL
+(de _le0 (Exe)
+   (let N (eval (cadr Exe))
+      (if (and (num? N) (or (== N ZERO) (sign? N)))
+         N
+         $Nil ) ) )
+
+# (ge0 'any) -> num | NIL
+(de _ge0 (Exe)
+   (let N (eval (cadr Exe))
+      (if (and (num? N) (not (sign? N)))
+         N
+         $Nil ) ) )
+
+# (gt0 'any) -> num | NIL
+(de _gt0 (Exe)
+   (let N (eval (cadr Exe))
+      (if (and (num? N) (<> N ZERO) (not (sign? N)))
+         N
+         $Nil ) ) )
+
+# (abs 'num) -> num
+(de _abs (Exe)
+   (let N (eval (cadr Exe))
+      (if (nil? N)
+         N
+         (pos (needNum Exe N)) ) ) )
 
 ### Bit operations ###
 # (bit? 'num ..) -> num | NIL
 (de _bitQ (Exe)
-   )
+   #! ...
+   $Nil )
 
 # (& 'num ..) -> num
 (de _bitAnd (Exe)

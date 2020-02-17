@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 17feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -119,8 +119,13 @@
    (NIL "*/" _mulDiv)
    (NIL "/" _div)
    (NIL "%" _rem)
-   (NIL "=" _equal)
-   (NIL ">=" _ge)
+   (NIL ">>" _shift)
+   (NIL "lt0" _lt0)
+   (NIL "le0" _le0)
+   (NIL "ge0" _ge0)
+   (NIL "gt0" _gt0)
+   (NIL "abs" _abs)
+   (NIL "bit?"_bitQ)
    (NIL "&" _bitAnd)
    (NIL "|" _bitOr)
    (NIL "x|" _bitXor)
@@ -164,6 +169,8 @@
    (NIL "cdr" _cdr)
    (NIL "cons" _cons)
    (NIL "list" _list)
+   (NIL "=" _equal)
+   (NIL ">=" _ge)
    # Database
    # Networking
    (NIL "udp" _udp)
