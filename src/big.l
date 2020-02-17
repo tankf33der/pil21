@@ -1,6 +1,6 @@
 # 17feb20 Software Lab. Alexander Burger
 
-(compile) (pos neg)
+(compile) (pos neg divErr)
 
 (inline pos (N)
    (any (& N -9)) )
@@ -9,6 +9,9 @@
    (if (== N ZERO)
       N
       (any (x| N 8)) ) )
+
+(de NIL divErr (Exe)
+   (err Exe 0 ($ "Div/0") null) )
 
 ### Bignum byte access ###
 (compile) (numByte numChar byteNum charNum)
@@ -1167,7 +1170,32 @@ remu)
 
 # (*/ 'num1 ['num2 ..] 'num3) -> num
 (de _mulDiv (Exe)
-   ZERO )
+   (let (X (cdr Exe)  N (eval (++ X)))
+      (if (nil? N)
+         N
+         (let
+            (Sign (sign? (needNum Exe N))
+               R (link (push (setq N (pos N)) NIL))
+               Safe (link (push T NIL))
+               Safe2 (link (push T NIL)) )
+            (loop
+               (? (nil? (setq N (eval (++ X))))
+                  (drop R)
+                  N )
+               (when (sign? (needNum Exe N))
+                  (setq Sign (not Sign)  N (pos N)) )
+               (set Safe N)
+               (? (atom X)
+                  (when (== N ZERO)
+                     (divErr Exe) )
+                  (setq N
+                     (divu  # Divide by last arg
+                        (set R
+                           (addu (val R) (set Safe2 (shru N))) )  # Round
+                        N ) )
+                  (drop R)
+                  (if Sign (neg N) N) )
+               (set R (mulu (val R) N)) ) ) ) ) )
 
 # (/ 'num ..) -> num
 (de _div (Exe)
@@ -1186,7 +1214,7 @@ remu)
                   (drop R)
                   N )
                (when (== N ZERO)
-                  (err Exe X ($ "Div/0") null) )
+                  (divErr Exe) )
                (when (sign? (needNum Exe N))
                   (setq Sign (not Sign)  N (pos N)) )
                (set
@@ -1210,7 +1238,7 @@ remu)
                   (drop R)
                   N )
                (when (== N ZERO)
-                  (err Exe X ($ "Div/0") null) )
+                  (divErr Exe) )
                (when (sign? (needNum Exe N))
                   (setq N (pos N)) )
                (set
