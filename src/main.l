@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 17feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
@@ -108,7 +108,8 @@
       (set $Protect 0) ) )
 
 # Error handling
-(compile) (err cntErr numErr symErr needNum needCnt needSym xCnt evCnt evSym)
+(compile) (err stkErr argErr cntErr numErr symErr extErr atomErr pairErr lstErr
+varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
 
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
@@ -175,14 +176,44 @@
          (set $Get (fun (i32) _getStdin))
          (throwQuit) ) ) )
 
-(de cntErr (Exe X)
+(de NIL stkErr (Exe)
+   (set $StkLimit null)
+   (err Exe 0 ($ "Stack overflow") null) )
+
+(de NIL argErr (Exe X)
+   (err Exe X ($ "Bad argument") null) )
+
+(de NIL cntErr (Exe X)
    (err Exe X ($ "Small number expected") null) )
 
-(de numErr (Exe X)
+(de NIL numErr (Exe X)
    (err Exe X ($ "Number expected") null) )
 
-(de symErr (Exe X)
+(de NIL symErr (Exe X)
    (err Exe X ($ "Symbol expected") null) )
+
+(de NIL extErr (Exe X)
+   (err Exe X ($ "External symbol expected") null) )
+
+(de NIL atomErr (Exe X)
+   (err Exe X ($ "Atom expected") null) )
+
+(de NIL pairErr (Exe X)
+   (err Exe X ($ "Cons pair expected") null) )
+
+(de NIL lstErr (Exe X)
+   (err Exe X ($ "List expected") null) )
+
+(de NIL varErr (Exe X)
+   (err Exe X ($ "Variable expected") null) )
+
+(de NIL protErr (Exe X)
+   (err Exe X ($ "Protected symbol") null) )
+
+# Stack check
+(inline stkChk (Exe)
+   (when (> (val $StkLimit) (stack))
+      (stkErr Exe) ) )
 
 # Argument checks
 (inline needCnt (Exe X)
@@ -200,6 +231,18 @@
       (symErr Exe X) )
    X )
 
+(inline chkVar (Exe X)
+   (and
+      (>= X $Nil)
+      (>= $T X)
+      (protErr Exe X) )
+   X )
+
+(inline needVar (Exe X)
+   (and (num? X) (varErr Exe X))
+   (chkVar Exe X)
+   X )
+
 (de i64 xCnt (Exe X)
    (let N (int (needCnt Exe X))
       (if (sign? X) (- N) N) ) )
@@ -210,7 +253,7 @@
 (de evSym (Exe)
    (xSym (eval (car Exe))) )
 
-(load "gc.l" "big.l" "sym.l" "db.l")
+(load "gc.l" "big.l" "db.l" "sym.l")
 
 # Comparisons
 (compile) (equal compare)
@@ -382,6 +425,7 @@
                         (undefined Fun Exe) ) )
                   (setq Fun V) ) ) )
          (T  # List: Evaluate
+            (stkChk Exe)
             (let F (save (evList Fun))  # Save computed function
                (loop
                   (unless (=0 (val $Signal))

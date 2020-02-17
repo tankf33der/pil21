@@ -1,10 +1,11 @@
-// 14feb20 Software Lab. Alexander Burger
+// 17feb20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
 // I/O
-void stderrMsg(char *s, int64_t n) {
+int64_t stderrMsg(char *s, int64_t n) {
    fprintf(stderr, "%s %lX\n", s, (unsigned long)n);
+   return n;
 }
 
 void xprintf(char *buf, int32_t siz, char *fmt, char *arg) {

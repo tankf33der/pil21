@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 17feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg)
 
@@ -6,7 +6,9 @@
    (any (& N -9)) )
 
 (inline neg (N)
-   (if (== N ZERO) N (sign N)) )
+   (if (== N ZERO)
+      N
+      (any (x| N 8)) ) )
 
 ### Bignum byte access ###
 (compile) (numByte numChar byteNum charNum)
@@ -1096,24 +1098,50 @@ remu)
 # (inc 'num) -> num
 # (inc 'var ['num]) -> num
 (de _inc (Exe)
-   (let (X (cdr Exe)  A (save (eval (++ X))))
-      (if (nil? A)
-         A
-         (if (num? A)
-            (incs A)
-            ZERO
-            ]
+   (let (X (cdr Exe)  Y (save (eval (++ X))))
+      (cond
+         ((nil? Y) Y)
+         ((num? Y) (incs Y))
+         (T
+            (chkVar Exe Y)  # Symbol or cell
+            (and
+               (sym? Y)
+               (sym? (val (tail Y)))  # External
+               (dbTouch Y) )
+            (if (atom X)
+               (let N (val Y)
+                  (if (nil? N)
+                     N
+                     (set Y (incs (needNum Exe N))) ) )
+               (let (D (save (eval (car X)))  N (val Y))
+                  (cond
+                     ((nil? N) N)
+                     ((nil? D) D)
+                     (T (set Y (adds (needNum Exe N) (needNum Exe D)))) ) ) ) ) ) ) )
 
 # (dec 'num) -> num
 # (dec 'var ['num]) -> num
 (de _dec (Exe)
-   (let (X (cdr Exe)  A (save (eval (++ X))))
-      (if (nil? A)
-         A
-         (if (num? A)
-            (decs A)
-            ZERO
-            ]
+   (let (X (cdr Exe)  Y (save (eval (++ X))))
+      (cond
+         ((nil? Y) Y)
+         ((num? Y) (decs Y))
+         (T
+            (chkVar Exe Y)  # Symbol or cell
+            (and
+               (sym? Y)
+               (sym? (val (tail Y)))  # External
+               (dbTouch Y) )
+            (if (atom X)
+               (let N (val Y)
+                  (if (nil? N)
+                     N
+                     (set Y (decs (needNum Exe N))) ) )
+               (let (D (save (eval (car X)))  N (val Y))
+                  (cond
+                     ((nil? N) N)
+                     ((nil? D) D)
+                     (T (set Y (subs (needNum Exe N) (needNum Exe D)))) ) ) ) ) ) ) )
 
 # (* 'num ..) -> num
 (de _mul (Exe)

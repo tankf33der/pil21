@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 17feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -99,7 +99,7 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 
 (var JmpBufSize i64 NIL)
 
-(de T void stderrMsg (i8* i64))
+(de T i64 stderrMsg (i8* i64))
 (de T i32 xprintf (i8* i32 i8* i8*))
 (de T i8* strErrno ())
 (de T i32 openRdonly (i8*))
@@ -136,22 +136,34 @@ outString print repl)
 
 # main.l
 (de NIL err (any any i8* i8*))
-(de cntErr (any any))
-(de numErr (any any))
-(de symErr (any any))
+(de NIL stkErr (any))
+(de NIL argErr (any any))
+(de NIL cntErr (any any))
+(de NIL numErr (any any))
+(de NIL symErr (any any))
+(de NIL extErr (any any))
+(de NIL atomErr (any any))
+(de NIL pairErr (any any))
+(de NIL lstErr (any any))
+(de NIL varErr (any any))
+(de NIL protErr (any any))
 (de i64 xCnt (any any))
 (de evCnt (any any))
 (de evSym (any))
 (de i1 equal (any any))
 (de i32 compare (any any))
 (de evList (any))
+# db.l
+(de dbTouch (any))
 # sym.l
 (de name (any))
 (de i64 bufSize (any))
+(de i64 pathSize (any))
 (de i8* bufString (any i8*))
+(de i8* pathString (any i8*))
+(de mkStr (i8*))
 (de i8 firstByte (any))
 (de i32 firstChar (any))
-(de mkStr (i8*))
 (de void pack (any i64*))
 (de xSym (any))
 (de i1 subStr (any any))
