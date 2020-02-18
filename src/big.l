@@ -1,4 +1,4 @@
-# 17feb20 Software Lab. Alexander Burger
+# 18feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg divErr)
 
@@ -1320,8 +1320,25 @@ remu)
 ### Bit operations ###
 # (bit? 'num ..) -> num | NIL
 (de _bitQ (Exe)
-   #! ...
-   $Nil )
+   (let
+      (X (cdr Exe)
+         N (save (pos (needNum Exe (eval (++ X))))) )
+      (loop
+         (? (atom X) N)  # All matched
+         (let Y (eval (++ X))
+            (? (nil? Y) Y)  # Abort with NIL
+            (setq Y (pos (needNum Exe Y)))
+            (let Z N
+               (while (big? Z)
+                  (unless (big? Y)
+                     (ret $Nil) )
+                  (let (A (val (dig Y))  B (val (dig Z)))
+                     (unless (== B (& A B))
+                        (ret $Nil) )
+                     (setq Y A  Z B) ) )
+               (when (big? Y)
+                  (setq Z (int Z)  Y (val (dig Y))) )
+               (? (<> Z (& Y Z)) $Nil) ) ) ) ) )
 
 # (& 'num ..) -> num
 (de _bitAnd (Exe)
