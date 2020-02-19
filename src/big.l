@@ -1452,13 +1452,19 @@ remu)
 
 # (seed 'any) -> cnt
 (de _seed (Exe)
-   (let A (mul 6364136223846793005 (initSeed (eval (cadr Exe))))
-      (set $SeedL A  $SeedH @@@)
-      (| (& (shr A (- 32 3)) -8) 2) ) )  # Get higher 32 bits
+   (let N (mul 6364136223846793005 (initSeed (eval (cadr Exe))))
+      (set $SeedL N  $SeedH @@@)
+      (| (& (shr N (- 32 3)) -8) 2) ) )  # Get higher 32 bits
 
 # (hash 'any) -> cnt
 (de _hash (Exe)
-   ZERO )
+   (let (N (initSeed (eval (cadr Exe)))  C 64  R 0)
+      (loop
+         (unless (=0 (& (x| N R) 1))
+            (setq R (x| R (hex "14002"))) )  # CRC Polynom x**16 + x**15 + x**2 + 1
+         (setq N (shr N 1)  R (shr R 1))
+         (? (=0 (dec 'C))) )
+      (cnt (inc R)) ) )
 
 # (rand ['cnt1 'cnt2] | ['T]) -> cnt | flg
 (de _rand (Exe)
