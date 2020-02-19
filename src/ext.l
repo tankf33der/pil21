@@ -1,4 +1,4 @@
-# 15feb20 Software Lab. Alexander Burger
+# 19feb20 Software Lab. Alexander Burger
 
 (compile) (name numChar charNum consSym initInFile initOutFile)
 
@@ -6,7 +6,6 @@
    "vers.l" "defs.l" "glob.l" "dec.l" )
 
 # External declarations
-(de T name (any))
 (de T i32 numChar (i64*))
 (de T void charNum (i32 i64*))
 (de T consSym (any any))

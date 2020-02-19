@@ -1,4 +1,4 @@
-# 17feb20 Software Lab. Alexander Burger
+# 18feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -129,6 +129,10 @@
    (NIL "&" _bitAnd)
    (NIL "|" _bitOr)
    (NIL "x|" _bitXor)
+   (NIL "sqrt" _sqrt)
+   (NIL "seed" _seed)
+   (NIL "hash" _hash)
+   (NIL "rand" _rand)
    # Symbol functions
    (NIL "pre?" _preQ)
    (NIL "sub?" _subQ)

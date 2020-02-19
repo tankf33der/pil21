@@ -1375,3 +1375,49 @@ remu)
                   (? (nil? B) (set R B))
                   (set R (xoru (val R) (pos (needNum Exe B)))) ) )
             (pop R) ) ) ) )
+
+# (sqrt 'num ['flg|num]) -> num
+(de _sqrt (Exe)
+   (let (X (cdr Exe)  Y (eval (++ X)))
+      (if (nil? Y)
+         Y
+         (when (sign? (needNum Exe Y))
+            (argErr Exe Y) )
+         (let (P (link (push Y NIL))  Z (eval (++ X)))
+            (link (push Z NIL))
+            (when (num? Z)
+               (setq Y (set P (mulu Y Z))) )
+            (prog1
+               (if (cnt? Y)
+                  (let (M (hex "400000000000000")  R 0)
+                     (setq Y (int Y))
+                     (loop
+                        (let N (+ R M)
+                           (when (>= Y N)
+                              (setq Y (- Y N)  R (+ N M)) ) )
+                        (setq R (shr R 1))
+                        (? (=0 (setq M (shr M 2)))) )
+                     (or (nil? Z) (>= R Y) (inc 'R))  # Round
+                     (cnt R) )
+                  (let
+                     (M (link (push (consNum 0 ONE) NIL))
+                        R (link (push ZERO NIL))
+                        )
+                     (val R) ) )
+               (drop P) ) ) ) ) )
+
+### Random generator ###
+(de initSeed (X)
+   X )
+
+# (seed 'any) -> cnt
+(de _seed (Exe)
+   ZERO )
+
+# (hash 'any) -> cnt
+(de _hash (Exe)
+   ZERO )
+
+# (rand ['cnt1 'cnt2] | ['T]) -> cnt | flg
+(de _rand (Exe)
+   ZERO )
