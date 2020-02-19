@@ -1,4 +1,4 @@
-# 18feb20 Software Lab. Alexander Burger
+# 19feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg divErr)
 
@@ -1400,19 +1400,61 @@ remu)
                      (or (nil? Z) (>= R Y) (inc 'R))  # Round
                      (cnt R) )
                   (let
-                     (M (link (push (consNum 0 ONE) NIL))
+                     (M (consNum 0 ONE)
+                        M* (link (push M NIL))
                         R (link (push ZERO NIL))
-                        )
-                     (val R) ) )
+                        C (boxNum (val (dig Y)))  # Copy number
+                        C* (link (push C NIL)) )
+                     (while (big? (setq Y (val (big Y))))
+                        (setq C
+                           (set (big C) (boxNum (val (dig Y)))) )
+                        (setq M (set M* (consNum 0 M))) )
+                     (set (big C) Y)
+                     (setq Y (val C*))
+                     (while (le0 (cmpu M Y))
+                        (twiceBig M)
+                        (twiceBig M) )
+                     (loop
+                        (let N (addu (val R) M)
+                           (when (ge0 (cmpu Y N))
+                              (setq Y (subu Y N))
+                              (set R (addu N M)) ) )
+                           (set R (half (val R)))
+                           (setq M (half M))
+                           (? (== ZERO (setq M (half M)))) )
+                     (setq R (val R))
+                     (if (or (nil? Z) (ge0 (cmpu R Y)))
+                        R
+                        (addu R ONE) ) ) )  # Round
                (drop P) ) ) ) ) )
 
 ### Random generator ###
 (de initSeed (X)
-   X )
+   (let C 0
+      (while (pair X)
+         (setq C (+ C (initSeed (car X))))
+         (>>> X) )
+      (unless (nil? X)
+         (unless (num? X)
+            (setq X (name (val (tail X)))) )
+         (setq C
+            (+ C
+               (if (cnt? X)
+                  (shr X 3)
+                  (when (sign? X)
+                     (inc 'C)
+                     (setq X (pos X)) )
+                  (loop
+                     (setq C (+ C (val (dig X))))
+                     (? (cnt? (setq X (val (big X))))) )
+                  (int X) ) ) ) )
+      C ) )
 
 # (seed 'any) -> cnt
 (de _seed (Exe)
-   ZERO )
+   (let A (mul 6364136223846793005 (initSeed (eval (cadr Exe))))
+      (set $SeedL A  $SeedH @@@)
+      (| (& (shr A (- 32 3)) -8) 2) ) )  # Get higher 32 bits
 
 # (hash 'any) -> cnt
 (de _hash (Exe)
