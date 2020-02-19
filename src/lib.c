@@ -1,4 +1,4 @@
-// 17feb20 Software Lab. Alexander Burger
+// 19feb20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -124,12 +124,6 @@ int64_t car(int64_t x) {
 
 int64_t cdr(int64_t x) {
    return *((int64_t*)x + 1);
-}
-
-int64_t box(int64_t n) {
-   if (n >= 0)
-      return n << 4 | 2;
-   return -n << 4 | 10;
 }
 
 int64_t num(int64_t x) {

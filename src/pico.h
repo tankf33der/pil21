@@ -1,4 +1,4 @@
-// 14feb20 Software Lab. Alexander Burger
+// 19feb20 Software Lab. Alexander Burger
 
 #include <stdint.h>
 #include <string.h>
@@ -21,7 +21,6 @@
 
 int64_t car(int64_t);
 int64_t cdr(int64_t);
-int64_t box(int64_t);
 int64_t num(int64_t);
 int64_t length(int64_t);
 

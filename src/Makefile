@@ -9,10 +9,8 @@ SHARED = -shared
 BIN = ../bin
 LIB = ../lib
 
-SRC = lib/llvm.l main.l \
-   vers.l defs.l glob.l dec.l \
-   gc.l big.l db.l sym.l \
-   io.l apply.l flow.l subr.l net.l
+INC = lib/llvm.l vers.l defs.l glob.l dec.l
+SRC = main.l gc.l big.l db.l sym.l io.l apply.l flow.l subr.l net.l
 
 all: $(BIN)/picolisp $(LIB)/ext.so
 
@@ -25,7 +23,7 @@ $(BIN)/picolisp: picolisp.bc
 picolisp.bc: base.bc lib.bc
 	llvm-link -o picolisp.bc base.bc lib.bc
 
-base.bc: $(SRC)
+base.bc: $(INC) $(SRC)
 	pil lib/llvm.l main.l -bye > base.ll
 	llvm-as -o base.bc base.ll
 
@@ -37,7 +35,7 @@ $(LIB)/ext.so: ext.bc
 	llc ext.bc -relocation-model=pic -o ext.s
 	$(ASM) ext.s -o $(LIB)/ext.so $(SHARED)
 
-ext.bc: $(SRC) ext.l
+ext.bc: $(INC) ext.l
 	pil lib/llvm.l ext.l -bye > ext.ll
 	llvm-as -o ext.bc ext.ll
 

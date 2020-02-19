@@ -1468,4 +1468,25 @@ remu)
 
 # (rand ['cnt1 'cnt2] | ['T]) -> cnt | flg
 (de _rand (Exe)
-   ZERO )
+   (let
+      (X (cdr Exe)
+         Y (eval (++ X))
+         N (add (mul 6364136223846793005 (val $SeedL)) 1) )
+      (set $SeedL N  $SeedH (+ @@@ @@))
+      (cond
+         ((nil? Y)
+            (| (& (shr N (- 32 3)) -8) 2) )  # Get higher 32 bits
+         ((== Y $T)
+            (add N N)
+            (if @@ Y $Nil) )
+         (T
+            (let (A (xCnt Exe Y)  B (inc (evCnt Exe X)))  # Seed % (cnt2 + 1 - cnt1) + cnt1
+               (setq N
+                  (+
+                     (%
+                        (shr (val $SeedH) (val $SeedL) 32)  # Get middle 64 bits
+                        (- B A) )
+                     A ) )
+               (if (lt0 N)
+                  (sign (cnt (- N)))
+                  (cnt N) ) ) ) ) ) )
