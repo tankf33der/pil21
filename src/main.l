@@ -1,4 +1,4 @@
-# 17feb20 Software Lab. Alexander Burger
+# 21feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
@@ -264,10 +264,10 @@ varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
          ((== X Y) YES)
          ((cnt? X) NO)
          ((big? X)
-            (if (big? Y)
+            (if (cnt? Y)
                NO
                (when (sign? X)
-                  (when (sign? Y)
+                  (unless (sign? Y)
                      (ret NO) )
                   (setq X (pos X)  Y (pos Y)) )
                (loop

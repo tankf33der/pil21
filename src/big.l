@@ -1,4 +1,4 @@
-# 19feb20 Software Lab. Alexander Burger
+# 21feb20 Software Lab. Alexander Burger
 
 (compile) (pos neg divErr)
 
@@ -1428,7 +1428,10 @@ remu)
                         (addu R ONE) ) ) )  # Round
                (drop P) ) ) ) ) )
 
+
 ### Random generator ###
+(compile) initSeed
+
 (de initSeed (X)
    (let C 0
       (while (pair X)
