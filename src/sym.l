@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 22feb20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym)
@@ -34,16 +34,15 @@ pack xSym)
 (de mkStr ((i8* . Str))
    (if (=0 Str)
       $Nil
-      (let B (val Str)
-         (if (=0 B)
-            $Nil
-            (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
-               (byteNum B P)
-               (until (=0 (setq B (val (inc 'Str))))
-                  (byteNum B P) )
-               (prog1
-                  (consSym (val Q) 0)
-                  (drop Q) ) ) ) ) ) )
+      (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
+         (loop
+            (let B (val Str)
+               (? (=0 B))
+               (byteNum B P) )
+            (inc 'Str) )
+         (prog1
+            (consStr (val Q))
+            (drop Q) ) ) ) )
 
 (de i8 firstByte (Tail)
    (if (sym? Tail)  # External symbol
@@ -79,7 +78,7 @@ pack xSym)
       (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
          (pack X P)
          (prog1
-            (consSym (val Q) 0)
+            (consStr (val Q))
             (drop Q) ) )
       X ) )
 
@@ -291,7 +290,7 @@ pack xSym)
                   (until (=0 (setq C (numChar R)))
                      (charNum (toLowerCase C) P) )
                   (prog1
-                     (consSym (val Q) 0)
+                     (consStr (val Q))
                      (drop Q) ) ) ) ) ) ) )
 
 # (uppc 'any) -> any
@@ -315,7 +314,7 @@ pack xSym)
                            (charNum (char "S") P) )
                         (T (charNum (toUpperCase C) P)) ) )
                   (prog1
-                     (consSym (val Q) 0)
+                     (consStr (val Q))
                      (drop Q) ) ) ) ) ) ) )
 
 # (fold 'any ['cnt]) -> sym
@@ -338,5 +337,5 @@ pack xSym)
                         (charNum (toLowerCase C) P)
                         (? (=0 (dec 'N))) ) )
                   (prog1
-                     (consSym (val Q) 0)
+                     (consStr (val Q))
                      (drop Q) ) ) ) ) ) ) )

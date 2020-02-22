@@ -1,4 +1,4 @@
-# 16feb20 Software Lab. Alexander Burger
+# 22feb20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
@@ -522,8 +522,31 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
                   (prog1
                      (intern 0 0 (val Q) $Transient $Nil)
                      (drop Q) ) ) ) )
-         #((== C (char "{"))
-         #   )
+         ((== C (char "{"))
+            (prog1
+               (if (== (setq C (call $Get)) (char "}"))
+                  (consSym ZERO $Nil)  # Empty: New anonymous symbol
+                  (let F 0  # File number
+                     (while (>= C (char "@"))
+                        (when (> C (char "O"))  # A-O range
+                           (badInput) )
+                        (setq
+                           F
+                           (|
+                              (shl F 4)
+                              (i64 (- C (char "@"))) )
+                           C (call $Get) ) )
+                     (let I 0  # Id
+                        (loop
+                           (unless (and (>= C (char "0")) (>= (char "7") C))
+                              (badInput) )
+                           (setq I
+                              (|
+                                 (shl I 3)
+                                 (i64 (- C (char "0"))) ) )
+                           (? (== (setq C (call $Get)) (char "}"))) )
+                        (extern (extNm F I)) ) ) )
+               (call $Get) ) )  # Skip "}"
          ((or (== C (char ")")) (== C (char "]")) (== C (char "~")))
             (badInput) )
          (T

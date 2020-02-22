@@ -1,4 +1,4 @@
-# 18feb20 Software Lab. Alexander Burger
+# 22feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -8,6 +8,7 @@
 (var $Heaps 0)                         # Heap list
 (var $Avail 0)                         # Avail list
 (var $Extern 0)                        # External symbol tree
+(var $ExtCnt i64 1)                    # External symbol count
 (var $Coroutines i8* null)             # Coroutines
 (var $StkSize i32 STACK)               # Coroutine stack segment size
 (var $StkLimit i8* null)               # Stack limit: StackN-Size+4096
@@ -34,7 +35,6 @@
 (var $Children i64 0)                  # Number of children
 (var $Child i8* null)                  # Child array
 (var $ExtN i32 0)                      # External symbol offset
-(var $ExtCnt i32 1)                    # External symbol count
 (var $Break i1 NO)                     # Breakpoint
 (var $GcCount i64 CELLS)               # Collector count
 
@@ -133,6 +133,8 @@
    (NIL "seed" _seed)
    (NIL "hash" _hash)
    (NIL "rand" _rand)
+   # Database
+   (NIL "pool" _pool)
    # Symbol functions
    (NIL "pre?" _preQ)
    (NIL "sub?" _subQ)
@@ -175,7 +177,6 @@
    (NIL "list" _list)
    (NIL "=" _equal)
    (NIL ">=" _ge)
-   # Database
    # Networking
    (NIL "udp" _udp)
    # System functions

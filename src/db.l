@@ -1,4 +1,4 @@
-# 21feb20 Software Lab. Alexander Burger
+# 22feb20 Software Lab. Alexander Burger
 
 (compile) (dbfErr)
 
@@ -6,7 +6,8 @@
    (err Exe 0 ($ "Bad DB file") null) )
 
 # 6 bytes in little endian format
-(compile) (getAdr setAdr extNm objFile objId packAO packOct packExtNm)
+(compile) (getAdr setAdr extNm objFile objId packAO packOct packExtNm chopExtNm
+extern)
 
 # Get block address from buffer
 (de i64 getAdr ((i8* . P))
@@ -55,18 +56,18 @@
                   (shl (shr Obj 12) 48) ) ) ) ) ) )  # Highest 10 bits
 
 # Get file number from external symbol name
-(de i64 objFile (X)
+(de i64 objFile (Name)
    (|
-      (& (setq X (shr X 24)) (hex "FF"))  # Low 8 bits
-      (& (shr X 4) (hex "FF0000")) ) )  # High 8 bits
+      (& (setq Name (shr Name 24)) (hex "FF"))  # Low 8 bits
+      (& (shr Name 12) (hex "FF00")) ) )  # High 8 bits
 
 # Get object ID from external symbol name
-(de i64 objId (X)
+(de i64 objId (Name)
    (|
       (|
-         (& (setq X (shr X 4)) (hex "FFFFF"))  # Lowest 20 bits
-         (& (setq X (shr X 8)) (hex "FFF00000")) )  # Middle 12 bits
-      (& (shr X 8) (hex "3FF00000000")) ) )  # Highest 10 bits
+         (& (setq Name (shr Name 4)) (hex "FFFFF"))  # Lowest 20 bits
+         (& (setq Name (shr Name 8)) (hex "FFF00000")) )  # Middle 12 bits
+      (& (shr Name 8) (hex "3FF00000000")) ) )  # Highest 10 bits
 
 # Pack external symbol name
 (de void packAO ((i64 . File) (i64* . P))
@@ -79,17 +80,53 @@
       (packOct (shr Obj 3) P) )  # Divide by 8
    (byteNum (+ (& (i8 Obj) 7) (char "0")) P) )  # Make ASCII digit
 
-(de packExtNm ()
+(de packExtNm (Name)
    (let (P (push 4 ZERO NIL)  Q (link (ofs P 1)))  # [cnt name link]
-      (let File (objFile X)
+      (let File (objFile Name)
          (unless (=0 File)
             (packAO File P) ) )
-      (packOct (objId X) P)
+      (packOct (objId Name) P)
       (prog1
          (consSym (val Q) 0)
          (drop Q) ) ) )
 
+# Chop external symbol name
+(de chopExtNm (Name)
+   (let (R (link (push $Nil NIL))  N (objId Name))
+      (loop
+         (let A (+ (& N 7) (char "0"))  # Make ASCII digit
+            (unless (=0 (setq N (shr N 3)))
+               (setq A
+                  (|
+                     (shl A 8)
+                     (+ (& N 7) (char "0")) ) )  # Second octal digit
+               (unless (=0 (setq N (shr N 3)))
+                  (setq A
+                     (|
+                        (shl A 8)
+                        (+ (& N 7) (char "0")) ) ) ) )  # Third octal digit
+            (set R
+               (cons (consSym (cnt A) 0) (val R)) ) )
+         (? (=0 (setq N (shr N 3)))) )
+      (unless (=0 (setq N (objFile Name)))
+         (let F 0
+            (loop
+               (setq F
+                  (| F (+ (& N 15) (char "@"))) )  # Make ASCII letter
+               (? (=0 (setq N (shr N 4))))
+               (setq F (shl F 8)) )
+            (set R
+               (cons (consSym (cnt F) 0) (val R)) ) ) )
+      (pop R) ) )
 
+# Intern an external symbol
+(de extern (Name)
+   (consSym (| Name 8) $Nil) )
+
+
+# (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
+(de _pool (Exe)
+   Exe )
 
 
 (compile) (dbTouch)
