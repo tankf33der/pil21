@@ -9,6 +9,7 @@
 (var $Avail 0)                         # Avail list
 (var $Extern 0)                        # External symbol tree
 (var $ExtCnt i64 1)                    # External symbol count
+(var $ExtSkip i64 0)                   # External tree skip
 (var $Coroutines i8* null)             # Coroutines
 (var $StkSize i32 STACK)               # Coroutine stack segment size
 (var $StkLimit i8* null)               # Stack limit: StackN-Size+4096

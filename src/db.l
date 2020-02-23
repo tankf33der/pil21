@@ -1,14 +1,85 @@
-# 22feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
-(compile) (dbfErr)
+(compile) (dbfErr extern)
 
 (de NIL dbfErr (Exe)
    (err Exe 0 ($ "Bad DB file") null) )
 
-# 6 bytes in little endian format
-(compile) (getAdr setAdr extNm objFile objId packAO packOct packExtNm chopExtNm
-extern)
+# Intern an external symbol
+(de extern (Name)
+   (let (X (val $Extern)  C 0  Sym NIL)
+      (loop
+         (inc 'C)  # Next level
+         (setq Sym (car X))  # Next symbol
+         (let Nm (& (name (val (tail Sym))) (hex "3FFFFFFFFFFFFFF7"))  # Mask status and extern bits
+            (? (== Nm Name))  # Found
+            (if (> Name Nm)  # Symbol is smaller
+               (let Y (cdr X)  # Get link cell
+                  (? (atom Y)  # No link yet
+                     (set 2 X
+                        (cons $Nil (cons (setq Sym (consExt Name)) $Nil)) ) )
+                  (? (atom (setq Y (cdr (setq X Y))))
+                     (set 2 X
+                        (cons (setq Sym (consExt Name)) $Nil) ) )
+                  (setq X Y) )
+               (let Y (cdr X)  # Get link cell
+                  (? (atom Y)  # No link yet
+                     (set 2 X
+                        (cons (cons (setq Sym (consExt Name)) $Nil) $Nil) ) )
+                  (? (atom (setq Y (cdr (setq X Y))))
+                     (set X
+                        (cons (setq Sym (consExt Name)) $Nil) ) )
+                  (setq X Y) ) ) ) )
+      (setq C (shr C 1))  # Half depth
+      (when (> (shl 1 C) (val $ExtCnt))  # 2 ** (C/2)
+         (setq X (val $Extern))
+         (let N (val $ExtSkip)  # Levels to skip
+            (if (> (inc 'N) C)  # Beyond half depth
+               (set $ExtSkip 0)  # Don't skip
+               (set $ExtSkip N)
+               (loop  # Skip
+                  (setq X
+                     (if
+                        (>
+                           Name
+                           (&
+                              (name (val (tail (++ X))))
+                              (hex "3FFFFFFFFFFFFFF7") ) )
+                        (cdr X)
+                        (car X) ) )
+                  (? (=0 (dec 'C))) ) ) )
+         (loop  # Pivot
+            (let
+               (Nm
+                  (&
+                     (name (val (tail (car X))))
+                     (hex "3FFFFFFFFFFFFFF7") )
+                  Y (cdr X) )
+            (? (== Nm Name))  # Done
+            (if (> Name Nm)  # Symbol is smaller
+               (let Z (cdr Y)  # Get right node
+                  (? (atom (cdr Z)))
+                  (xchg Z X)  # Pivot left
+                  (setq Z (cdr Z)  X (cdr Z))
+                  (set  # Rotate pointers
+                     2 Z (val Z)
+                     Z (val Y)
+                     Y (cdr Y)
+                     2 Y X) )
+               (let Z (car Y)  # Get left node
+                  (? (atom (cdr Z)))
+                  (xchg Z X)  # Pivot right
+                  (setq Z (cdr Z)  X (val Z))
+                  (set  # Rotate pointers
+                     Z (cdr Z)
+                     2 Z (cdr Y)
+                     2 Y (val Y)
+                     Y X) ) ) ) ) )
+      Sym ) )
 
+(compile) (getAdr setAdr extNm objFile objId packAO packOct packExtNm chopExtNm)
+
+# 6 bytes in little endian format
 # Get block address from buffer
 (de i64 getAdr ((i8* . P))
    (|
@@ -118,10 +189,6 @@ extern)
             (set R
                (cons (consSym (cnt F) 0) (val R)) ) ) )
       (pop R) ) )
-
-# Intern an external symbol
-(de extern (Name)
-   (consSym (| Name 8) $Nil) )
 
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T

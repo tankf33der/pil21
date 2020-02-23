@@ -1,4 +1,4 @@
-# 22feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
 (compile) (mark gc)
 
@@ -261,7 +261,7 @@
       Y ) )
 
 # Cell allocation (consing)
-(compile) (cons consSym consStr boxNum box64 consNum)
+(compile) (cons consSym consStr consExt boxNum box64 consNum)
 
 (de cons (Car Cdr)
    (let P (val $Avail)
@@ -286,10 +286,14 @@
          (sym P)
          (set @ (if (=0 Val) @ Val)) ) ) )
 
-(inline consStr (Name)
+(de consStr (Name)
    (if (== Name ZERO)
       $Nil
       (consSym Name 0) ) )
+
+(de consExt (Name)
+   (set $ExtCnt (+ (val $ExtCnt) 1))
+   (consSym (sign Name) $Nil) )
 
 (de boxNum (Dig)
    (let P (val $Avail)

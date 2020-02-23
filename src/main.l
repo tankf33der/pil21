@@ -1,4 +1,4 @@
-# 21feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
@@ -356,9 +356,8 @@ varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
                               (set 2 L (push (eval (car X)) $Nil)) ) ) ) )
                   (set $Bind P)
                   (loop
-                     (let (S (val 3 P)  V (val S))  # Symbol, old value
-                        (set S (val P))  # Set new value
-                        (set P V)  # Save old value
+                     (let S (val 3 P)  # Symbol
+                        (xchg S P)  # Exchange symbol value
                         (? (== Q P))
                         (>>> P) ) )
                   (prog1
@@ -369,9 +368,8 @@ varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
                   (set Y X) )  # Set to unevaluated argument(s)
                (set $Bind (val $Link))
                (loop
-                  (let (S (val 3 P)  V (val S))  # Symbol, old value
-                     (set S (val P))  # Set new value
-                     (set P V)  # Save old value
+                  (let S (val 3 P)  # Symbol
+                     (xchg S P)  # Exchange symbol value
                      (? (== Q P))
                      (>>> P) ) )
                (run (cdr Exe)) ) )  # Run body

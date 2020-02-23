@@ -1,4 +1,4 @@
-# 15feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
 (de compile ()
    (symbols '(llvm))
@@ -11,7 +11,7 @@
 i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
 globals array table symTab inline define struct $Nil $Link drop)
 
-(import pico symbols T NIL @ @@ @@@ compile load setq xchg prog */ >> char hex !
+(import pico symbols T NIL @ @@ @@@ compile load setq prog */ >> char hex !
 show bt)
 
 (def 'void 'void)
@@ -882,6 +882,8 @@ End *Safe)
 
 (asm (@Op @Op2)
    ((X Y Z)
+      (when (num? X)
+         (setq X (def (format X) 'i64)) )
       (ifn Z
          (let V (type (val X))
             (ssa (inc '*Ssa) @Op " " V " " X ", " Y)
@@ -985,6 +987,18 @@ End *Safe)
                (store X P)
                (store (next) X (dec P)) ) ) ) )
    (llvm~set) )
+
+(asm ()
+   ((X Y)
+      (ifn (str? X)
+         (xchg X Y)
+         (ssa (inc '*Ssa) "inttoptr i64 " X " to i64*")
+         (ssa (inc '*Ssa) "load " "i64, i64* %" (dec *Ssa))
+         (ssa (inc '*Ssa) "inttoptr i64 " Y " to i64*")
+         (ssa (inc '*Ssa) "load " "i64, i64* %" (dec *Ssa))
+         (link (pack "store i64 %" *Ssa ", i64* %" (- *Ssa 3)))
+         (link (pack "store i64 %" (- *Ssa 2) ", i64* %" (dec *Ssa))) ) )
+   (llvm~xchg) )
 
 (asm ()
    ((X Y Z)

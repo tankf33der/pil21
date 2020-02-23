@@ -1,4 +1,4 @@
-# 22feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
 (compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
 pack xSym)
@@ -108,37 +108,39 @@ pack xSym)
             (set Tree (cons Sym $Nil))
             (ret Sym) )
          (loop
-            (let Nm (name (val (tail (car X))))
+            (let (S (car X)  Nm (name (val (tail S))))
                (cond
-                  ((== Name Nm) (ret (car X)))  # Found symbol
+                  ((== Name Nm) (ret S))  # Found symbol
                   ((> Name Nm)  # Symbol is smaller
-                     (when (atom (cdr X))  # No link yet
-                        # .. check More
-                        (when (=0 Sym)  # New symbol
-                           (setq Sym (consSym Name Val)) )
-                        (set 2 X (cons $Nil (cons Sym $Nil)))
-                        (ret Sym) )
-                     (if (pair (cdr (>>> X)))
-                        (setq X (cdr X))
-                        # .. check More
-                        (when (=0 Sym)  # New symbol
-                           (setq Sym (consSym Name Val)) )
-                        (set 2 X (cons Sym $Nil))
-                        (ret Sym) ) )
+                     (let Y (cdr X)  # Get link cell
+                        (when (atom Y)  # No link yet
+                           # .. check More
+                           (when (=0 Sym)  # New symbol
+                              (setq Sym (consSym Name Val)) )
+                           (set 2 X (cons $Nil (cons Sym $Nil)))
+                           (ret Sym) )
+                        (if (pair (setq Y (cdr (setq X Y))))
+                           (setq X Y)
+                           # .. check More
+                           (when (=0 Sym)  # New symbol
+                              (setq Sym (consSym Name Val)) )
+                           (set 2 X (cons Sym $Nil))
+                           (ret Sym) ) ) )
                   (T  # Symbol is greater
-                     (when (atom (cdr X))  # No link yet
-                        # .. check More
-                        (when (=0 Sym)  # New symbol
-                           (setq Sym (consSym Name Val)) )
-                        (set 2 X (cons (cons Sym $Nil) $Nil))
-                        (ret Sym) )
-                     (if (pair (car (>>> X)))
-                        (setq X (car X))
-                        # .. check More
-                        (when (=0 Sym)  # New symbol
-                           (setq Sym (consSym Name Val)) )
-                        (set X (cons Sym $Nil))
-                        (ret Sym) ) ) ) ) ) ) )
+                     (let Y (cdr X)  # Get link cell
+                        (when (atom Y)  # No link yet
+                           # .. check More
+                           (when (=0 Sym)  # New symbol
+                              (setq Sym (consSym Name Val)) )
+                           (set 2 X (cons (cons Sym $Nil) $Nil))
+                           (ret Sym) )
+                        (if (pair (setq Y (car (setq X Y))))
+                           (setq X Y)
+                           # .. check More
+                           (when (=0 Sym)  # New symbol
+                              (setq Sym (consSym Name Val)) )
+                           (set X (cons Sym $Nil))
+                           (ret Sym) ) ) ) ) ) ) ) )
    # Long name
    (let X (cdr Tree)  # Second tree
       (when (atom X)  # Empty
@@ -148,37 +150,42 @@ pack xSym)
          (set 2 Tree (cons Sym $Nil))
          (ret Sym) )
       (loop
-         (let (Nm (name (val (tail (car X))))  I (cmpLong Nm Name))
+         (let
+            (S (car X)
+               Nm (name (val (tail S)))
+               I (cmpLong Nm Name) )
             (cond
-               ((=0 I) (ret (car X)))  # Found symbol
+               ((=0 I) (ret S))  # Found symbol
                ((lt0 I)  # Symbol is smaller
-                  (when (atom (cdr X))  # No link yet
-                     # .. check More
-                     (when (=0 Sym)  # New symbol
-                        (setq Sym (consSym Name Val)) )
-                     (set 2 X (cons $Nil (cons Sym $Nil)))
-                     (ret Sym) )
-                  (if (pair (cdr (>>> X)))
-                     (setq X (cdr X))
-                     # .. check More
-                     (when (=0 Sym)  # New symbol
-                        (setq Sym (consSym Name Val)) )
-                     (set 2 X (cons Sym $Nil))
-                     (ret Sym) ) )
+                  (let Y (cdr X)  # Get link cell
+                     (when (atom Y)  # No link yet
+                        # .. check More
+                        (when (=0 Sym)  # New symbol
+                           (setq Sym (consSym Name Val)) )
+                        (set 2 X (cons $Nil (cons Sym $Nil)))
+                        (ret Sym) )
+                     (if (pair (setq Y (cdr (setq X Y))))
+                        (setq X Y)
+                        # .. check More
+                        (when (=0 Sym)  # New symbol
+                           (setq Sym (consSym Name Val)) )
+                        (set 2 X (cons Sym $Nil))
+                        (ret Sym) ) ) )
                (T  # Symbol is greater
-                  (when (atom (cdr X))  # No link yet
-                     # .. check More
-                     (when (=0 Sym)  # New symbol
-                        (setq Sym (consSym Name Val)) )
-                     (set 2 X (cons (cons Sym $Nil) $Nil))
-                     (ret Sym) )
-                  (if (pair (car (>>> X)))
-                     (setq X (car X))
-                     # .. check More
-                     (when (=0 Sym)  # New symbol
-                        (setq Sym (consSym Name Val)) )
-                     (set X (cons Sym $Nil))
-                     (ret Sym) ) ) ) ) ) ) )
+                  (let Y (cdr X)  # Get link cell
+                     (when (atom Y)  # No link yet
+                        # .. check More
+                        (when (=0 Sym)  # New symbol
+                           (setq Sym (consSym Name Val)) )
+                        (set 2 X (cons (cons Sym $Nil) $Nil))
+                        (ret Sym) )
+                     (if (pair (setq Y (car (setq X Y))))
+                        (setq X Y)
+                        # .. check More
+                        (when (=0 Sym)  # New symbol
+                           (setq Sym (consSym Name Val)) )
+                        (set X (cons Sym $Nil))
+                        (ret Sym) ) ) ) ) ) ) ) )
 
 (de i1 isIntern (Sym Name Tree More)
    (if (cnt? Name)  # Short name
