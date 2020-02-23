@@ -1,4 +1,4 @@
-# 17feb20 Software Lab. Alexander Burger
+# 23feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -94,8 +94,8 @@ strcmp strchr strrchr dlerror close setjmp longjmp kill exit)
 
 # Glue lib.c
 (compile) (JmpBufSize stderrMsg xprintf strErrno openRdonly openAppend
-fcntlCloExec fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut
-xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
+fcntlCloExec fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut rdLock
+wrLock unLock xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 
 (var JmpBufSize i64 NIL)
 
@@ -112,6 +112,9 @@ xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep ffiCall)
 (de T i32 xPoll (i64* i64 i64))
 (de T i32 readyIn (i64*))
 (de T i32 readyOut (i64*))
+(de T i32 rdLock (i32 i64 i64))
+(de T i32 wrLock (i32 i64 i64))
+(de T i32 unLock (i32 i64 i64))
 (de T i32 xSignal (i32))
 (de T i32 xErrno ())
 (de T i64 getTime ())

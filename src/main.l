@@ -109,7 +109,8 @@
 
 # Error handling
 (compile) (err stkErr argErr cntErr numErr symErr extErr atomErr pairErr lstErr
-varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
+varErr protErr lockErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt
+evSym)
 
 (de NIL err (Exe X (i8* . Fmt) (i8* . Arg))
    (set $Up (if (=0 Exe) $Nil Exe))
@@ -209,6 +210,9 @@ varErr protErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt evSym)
 
 (de NIL protErr (Exe X)
    (err Exe X ($ "Protected symbol") null) )
+
+(de NIL lockErr ()
+   (err 0 0 ($ "File lock: %s") (strErrno)) )
 
 # Stack check
 (inline stkChk (Exe)

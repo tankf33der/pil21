@@ -1,4 +1,4 @@
-// 19feb20 Software Lab. Alexander Burger
+// 23feb20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -39,6 +39,7 @@ int32_t nonBlocking(int32_t fd) {
    return (int32_t)flg;
 }
 
+// Polling
 void pollIn(int32_t fd, struct pollfd *p) {
    p->fd = fd;
    p->events = POLLIN;
@@ -59,6 +60,37 @@ int32_t readyIn(struct pollfd *p) {
 
 int32_t readyOut(struct pollfd *p) {
    return (int32_t)p->revents & POLLOUT;
+}
+
+// Locking
+int32_t rdLock(int32_t fd, off_t n, off_t len) {
+   struct flock fl;
+
+   fl.l_type = F_RDLCK;
+   fl.l_whence = SEEK_SET;
+   fl.l_start = n;
+   fl.l_len = len;
+   return (int32_t)fcntl(fd, F_SETLKW, &fl);
+}
+
+int32_t wrLock(int32_t fd, off_t n, off_t len) {
+   struct flock fl;
+
+   fl.l_type = F_WRLCK;
+   fl.l_whence = SEEK_SET;
+   fl.l_start = n;
+   fl.l_len = len;
+   return (int32_t)fcntl(fd, F_SETLKW, &fl);
+}
+
+int32_t unLock(int32_t fd, off_t n, off_t len) {
+   struct flock fl;
+
+   fl.l_type = F_UNLCK;
+   fl.l_whence = SEEK_SET;
+   fl.l_start = n;
+   fl.l_len = len;
+   return (int32_t)fcntl(fd, F_SETLK, &fl);
 }
 
 // Sync src/defs.l 'SIGHUP' and src/glob.l '$Signal'

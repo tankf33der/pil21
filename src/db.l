@@ -190,6 +190,20 @@
                (cons (consSym (cnt F) 0) (val R)) ) ) )
       (pop R) ) )
 
+(compile) (rdLockDb wrLockDb)
+
+# Locking
+(de void rdLockDb ()
+   (unless (== $T (val $Solo))
+      (while (lt0 (rdLock 0 #{!}# 0 1))
+         (unless (== (xErrno) EINTR)
+            (lockErr) ) ) ) )
+
+(de void wrLockDb ()
+   (unless (== $T (val $Solo))
+      (while (lt0 (wrLock 0 #{!}# 0 1))
+         (unless (== (xErrno) EINTR)
+            (lockErr) ) ) ) )
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)
