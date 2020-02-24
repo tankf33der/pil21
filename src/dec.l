@@ -68,16 +68,22 @@
    (cnt 4 i32) )        # Buffer byte count
 
 # System
-(compile) (malloc realloc free getpid isatty read write strlen strcpy strdup
-strcmp strchr strrchr dlerror close setjmp longjmp kill exit)
+(compile) (malloc realloc free getpid isatty read write pread pwrite fread
+fwrite putc_unlocked strlen strcpy strdup strcmp strchr strrchr dlerror close
+setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
 (de T void free (i8*))
 (de T i32 getpid ())
 (de T i32 isatty (i32))
-(de T i64 read (i32 i8* i64))
-(de T i64 write (i32 i8* i64))
+(de T i32 read (i32 i8* i32))
+(de T i32 write (i32 i8* i32))
+(de T i32 pread (i32 i8* i32 i64))
+(de T i32 pwrite (i32 i8* i32 i64))
+(de T i32 fread (i8* i32 i32 i8*))
+(de T i32 fwrite (i8* i32 i32 i8*))
+(de T i32 putc_unlocked (i32 i8*))
 (de T i64 strlen (i8*))
 (de T i8* strcpy (i8* i8*))
 (de T i8* strdup (i8*))

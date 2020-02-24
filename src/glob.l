@@ -47,8 +47,8 @@
 (var $DbBlock i8* null)                # Block buffer
 (var $BlkIndex i64 0)                  # Block index
 (var $BlkLink i64 0)                   # Next block
-(var $DbJnl i32 0)                     # Journal file
-(var $DbLog i32 0)                     # Transaction log file
+(var $DbJnl i8* null)                  # Journal file
+(var $DbLog i8* null)                  # Transaction log file
 
 # Console line
 (array $Line i64

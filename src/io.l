@@ -1,4 +1,4 @@
-# 22feb20 Software Lab. Alexander Burger
+# 24feb20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
@@ -146,7 +146,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
    (let In: (inFile In)
       (In: ix (In: cnt 0))
       (loop
-         (let N (i32 (read (In: fd) (In: (buf)) BUFSIZ))
+         (let N (read (In: fd) (In: (buf)) BUFSIZ)
             (? (ge0 N) (In: cnt N)) )
          (? (<> (xErrno) EINTR) 0)
          (unless (=0 (val $Signal))
@@ -158,7 +158,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
       (loop
          (let
             (Flg (nonBlocking (In: fd))
-               N (i32 (read (In: fd) (In: (buf)) BUFSIZ)) )
+               N (read (In: fd) (In: (buf)) BUFSIZ) )
             (fcntlSetFl (In: fd) Flg)
             (? (gt0 N) (In: cnt N))
             (? (=0 N)
@@ -172,7 +172,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 
 (de i1 wrBytes ((i32 . Fd) (i8* . P) (i32 . Cnt))
    (loop
-      (let N (i32 (write Fd P (i64 Cnt)))
+      (let N (write Fd P Cnt)
          (if (lt0 N)
             (let E (xErrno)
                (? (== E EBADF) NO)

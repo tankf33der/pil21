@@ -5,6 +5,12 @@
 (de NIL dbfErr (Exe)
    (err Exe 0 ($ "Bad DB file") null) )
 
+(de NIL dbRdErr ()
+   (err 0 0 ($ "DB read: %s") (strErrno)) )
+
+(de NIL dbWrErr ()
+   (err 0 0 ($ "DB write: %s") (strErrno)) )
+
 # Intern an external symbol
 (de extern (Name)
    (let (X (val $Extern)  C 0  Sym NIL)
@@ -109,7 +115,7 @@
    (set 3 P (i8 (setq N (shr N 8))))
    (set 4 P (i8 (setq N (shr N 8))))
    (set 5 P (i8 (setq N (shr N 8))))
-   (set 6 P (i8 (setq N (shr N 8)))) )
+   (set 6 P (i8 (shr N 8))) )
 
 # Build external symbol name
 (de extNm ((i64 . File) (i64 . Obj))
@@ -190,9 +196,9 @@
                (cons (consSym (cnt F) 0) (val R)) ) ) )
       (pop R) ) )
 
+# Locking
 (compile) (rdLockDb wrLockDb unLockDb tryLock)
 
-# Locking
 (de void rdLockDb ()
    (unless (== $T (val $Solo))  # Not already locked whole DB
       (while (lt0 (rdLock ((dbFile (val $DbFiles)) fd) 0 1))  # Descriptor of first file
@@ -238,6 +244,33 @@
                   (lockErr) ) )
             (when (gt0 Pid)
                (ret Pid) ) ) ) ) )
+
+(compile) (blkPeek blkPoke)
+
+(de void blkPeek ((i64 . Pos) (i8* . Buf) (i32 . Siz))
+   (let Db: (dbFile (val $DbFile))
+      (unless (== (pread (Db: fd) Buf Siz Pos) Siz)
+         (dbRdErr) ) ) )
+
+(de void blkPoke ((i64 . Pos) (i8* . Buf) (i32 . Siz))
+   (let Db: (dbFile (val $DbFile))
+      (unless (== (pwrite (Db: fd) Buf Siz Pos) Siz)
+         (dbWrErr) )
+      (let Jnl (val $DbJnl)
+         (unless (=0 Jnl)
+            (putc_unlocked (if (== Siz (Db: siz)) 0 Siz) Jnl)
+            (let P (b8 (+ BLK 2))  # Allocate buffer
+               (set P (i8 (Db: db)))  # Store file number
+               (set 2 P (i8 (shr (Db: db) 8)))
+               (setAdr
+                  (shr Pos (i64 (Db: sh)))  # Un-shift position
+                  (ofs P 2) )
+               (unless
+                  (and
+                     (== 1 (fwrite P (+ BLK 2) 1 Jnl))  # Write file number and address
+                     (== 1 (fwrite Buf Siz 1 Jnl)) )  # Write 'Buf'
+                  (err 0 0 ($ "Journal write: %s") (strErrno)) ) ) ) ) ) )
+
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)

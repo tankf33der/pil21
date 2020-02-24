@@ -1,4 +1,4 @@
-# 11feb20 Software Lab. Alexander Burger
+# 24feb20 Software Lab. Alexander Burger
 
 # Constants
 (compile) (HEAP CELLS STACK TOP BUFSIZ DB1)
@@ -10,6 +10,32 @@
    TOP (hex "110000")      # Character top
    BUFSIZ 4096             # I/O buffer size
    DB1 (hex "1A") )        # Name of '{1}'
+
+# PLIO Tokens
+(compile) (NIX BEG DOT END NUMBER INTERN TRANSIENT EXTERN)
+
+(setq
+   NIX 0        # NIL
+   BEG 1        # Begin list
+   DOT 2        # Dotted pair
+   END 3        # End list
+   NUMBER 0     # Number
+   INTERN 1     # Internal symbol
+   TRANSIENT 2  # Transient symbol
+   EXTERN 3 )   # External symbol
+
+# DB-I/O
+(compile) (BLK BLKSIZE BLKTAG)
+
+(setq
+   BLK 6        # Block address size
+   BLKSIZE 64   # DB block unit size
+   BLKTAG 63 )  # Block tag mask
+
+# Networking
+(compile) UDPMAX
+
+(setq UDPMAX 4096)  # UDP buffer size
 
 ## Sync src/lib.c 'xSignal' and src/glob.l '$Signal'
 (compile) (SIGHUP SIGINT SIGUSR1 SIGUSR2 SIGPIPE SIGALRM SIGTERM SIGCHLD SIGCONT
