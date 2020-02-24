@@ -190,7 +190,7 @@
                (cons (consSym (cnt F) 0) (val R)) ) ) )
       (pop R) ) )
 
-(compile) (rdLockDb wrLockDb)
+(compile) (rdLockDb wrLockDb unLockDb tryLock)
 
 # Locking
 (de void rdLockDb ()
@@ -201,11 +201,11 @@
 
 (de void wrLockDb ()
    (unless (== $T (val $Solo))  # Not already locked whole DB
-      (while (lt0 (wrLock ((dbFile (val $DbFiles)) fd) 0 1))  # Descriptor of first file
+      (while (lt0 (wrLock ((dbFile (val $DbFiles)) fd) 0 1 YES))  # Descriptor of first file
          (unless (== (xErrno) EINTR)
             (lockErr) ) ) ) )
 
-(de void unLockDb (Len)
+(de void unLockDb ((i64 . Len))
    (unless (== $T (val $Solo))  # Not already locked whole DB
       (when (=0 Len)
          (let (P (val $DbFiles)  C (val $DBs))
@@ -217,6 +217,27 @@
          (set $Solo ZERO) )
       (unLock ((dbFile (val $DbFiles)) fd) 0 Len) ) )  # Descriptor of first file
 
+(de i32 tryLock ((i64 . N) (i64 . Len))
+   (let Db: (dbFile (val $DbFile))
+      (loop
+         (when (ge0 (wrLock (Db: fd) N Len NO))  # Try to lock
+            (Db: lck YES)  # Set lock flag
+            (cond
+               ((=0 N) (set $Solo $T))  # Set solo mode
+               ((== $T (val $Solo)) (set $Solo $Nil)) )  # Clear solo mode
+            (ret 0) )
+         (let E (xErrno)
+            (or
+               (== E EINTR)  # Interrupted
+               (== E EACCES)  # Locked by another process
+               (== E EAGAIN)  # Memory-mapped by another process
+               (lockErr) ) )
+         (let Pid NIL
+            (while (lt0 (setq Pid (getLock (Db: fd) N Len)))
+               (unless (== (xErrno) EINTR)
+                  (lockErr) ) )
+            (when (gt0 Pid)
+               (ret Pid) ) ) ) ) )
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)

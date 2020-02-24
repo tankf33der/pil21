@@ -1,4 +1,4 @@
-// 23feb20 Software Lab. Alexander Burger
+// 24feb20 Software Lab. Alexander Burger
 
 #include "pico.h"
 
@@ -73,14 +73,14 @@ int32_t rdLock(int32_t fd, off_t n, off_t len) {
    return (int32_t)fcntl(fd, F_SETLKW, &fl);
 }
 
-int32_t wrLock(int32_t fd, off_t n, off_t len) {
+int32_t wrLock(int32_t fd, off_t n, off_t len, int32_t wait) {
    struct flock fl;
 
    fl.l_type = F_WRLCK;
    fl.l_whence = SEEK_SET;
    fl.l_start = n;
    fl.l_len = len;
-   return (int32_t)fcntl(fd, F_SETLKW, &fl);
+   return (int32_t)fcntl(fd, wait? F_SETLKW : F_SETLK, &fl);
 }
 
 int32_t unLock(int32_t fd, off_t n, off_t len) {
@@ -91,6 +91,18 @@ int32_t unLock(int32_t fd, off_t n, off_t len) {
    fl.l_start = n;
    fl.l_len = len;
    return (int32_t)fcntl(fd, F_SETLK, &fl);
+}
+
+int32_t getLock(int32_t fd, off_t n, off_t len) {
+   struct flock fl;
+
+   fl.l_type = F_WRLCK;
+   fl.l_whence = SEEK_SET;
+   fl.l_start = n;
+   fl.l_len = len;
+   if (fcntl(fd, F_GETLK, &fl) < 0)
+      return -1;
+   return fl.l_type == F_UNLCK? 0 : fl.l_pid;
 }
 
 // Sync src/defs.l 'SIGHUP' and src/glob.l '$Signal'
