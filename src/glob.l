@@ -1,4 +1,4 @@
-# 22feb20 Software Lab. Alexander Burger
+# 24feb20 Software Lab. Alexander Burger
 
 (compile) (gcData env)
 
@@ -38,6 +38,17 @@
 (var $ExtN i32 0)                      # External symbol offset
 (var $Break i1 NO)                     # Breakpoint
 (var $GcCount i64 CELLS)               # Collector count
+
+# Database
+(var $DbFiles i8* null)                # DB files
+(var $DbFile i8* null)                 # DB file
+(var $DBs i32 0)                       # Number of DB files
+(var $MaxBlkSize i32 0)                # Maximum block size
+(var $DbBlock i8* null)                # Block buffer
+(var $BlkIndex i64 0)                  # Block index
+(var $BlkLink i64 0)                   # Next block
+(var $DbJnl i32 0)                     # Journal file
+(var $DbLog i32 0)                     # Transaction log file
 
 # Console line
 (array $Line i64

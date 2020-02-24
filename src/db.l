@@ -1,4 +1,4 @@
-# 23feb20 Software Lab. Alexander Burger
+# 24feb20 Software Lab. Alexander Burger
 
 (compile) (dbfErr extern)
 
@@ -194,16 +194,29 @@
 
 # Locking
 (de void rdLockDb ()
-   (unless (== $T (val $Solo))
-      (while (lt0 (rdLock 0 #{!}# 0 1))
+   (unless (== $T (val $Solo))  # Not already locked whole DB
+      (while (lt0 (rdLock ((dbFile (val $DbFiles)) fd) 0 1))  # Descriptor of first file
          (unless (== (xErrno) EINTR)
             (lockErr) ) ) ) )
 
 (de void wrLockDb ()
-   (unless (== $T (val $Solo))
-      (while (lt0 (wrLock 0 #{!}# 0 1))
+   (unless (== $T (val $Solo))  # Not already locked whole DB
+      (while (lt0 (wrLock ((dbFile (val $DbFiles)) fd) 0 1))  # Descriptor of first file
          (unless (== (xErrno) EINTR)
             (lockErr) ) ) ) )
+
+(de void unLockDb (Len)
+   (unless (== $T (val $Solo))  # Not already locked whole DB
+      (when (=0 Len)
+         (let (P (val $DbFiles)  C (val $DBs))
+            (until (=0 (dec 'C))
+               (let Db: (dbFile (setq P (ofs P (dbFile T))))  # Skip first, increment by size of dbFile
+                  (when (Db: lck)
+                     (unLock (Db: fd) 0 0)
+                     (Db: lck NO) ) ) ) )
+         (set $Solo ZERO) )
+      (unLock ((dbFile (val $DbFiles)) fd) 0 Len) ) )  # Descriptor of first file
+
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)

@@ -1,4 +1,4 @@
-# 23feb20 Software Lab. Alexander Burger
+# 24feb20 Software Lab. Alexander Burger
 
 (compile) (unwind finish giveup bye)
 
@@ -360,10 +360,9 @@ evSym)
                               (set 2 L (push (eval (car X)) $Nil)) ) ) ) )
                   (set $Bind P)
                   (loop
-                     (let S (val 3 P)  # Symbol
-                        (xchg S P)  # Exchange symbol value
-                        (? (== Q P))
-                        (>>> P) ) )
+                     (xchg (val 3 P) P)  # Exchange symbol value
+                     (? (== Q P))
+                     (>>> P) )
                   (prog1
                      (run (cdr Exe))  # Run body
                      (set $Next (val Next)  $Link (val $Bind)) ) )
@@ -372,10 +371,9 @@ evSym)
                   (set Y X) )  # Set to unevaluated argument(s)
                (set $Bind (val $Link))
                (loop
-                  (let S (val 3 P)  # Symbol
-                     (xchg S P)  # Exchange symbol value
-                     (? (== Q P))
-                     (>>> P) ) )
+                  (xchg (val 3 P) P)  # Exchange symbol value
+                  (? (== Q P))
+                  (>>> P) )
                (run (cdr Exe)) ) )  # Run body
          (let P (val $Link)
             (loop
