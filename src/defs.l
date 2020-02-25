@@ -25,11 +25,12 @@
    EXTERN 3 )   # External symbol
 
 # DB-I/O
-(compile) (BLK BLKSIZE BLKTAG)
+(compile) (BLK BLKSIZE BLKMASK BLKTAG)
 
 (setq
    BLK 6        # Block address size
    BLKSIZE 64   # DB block unit size
+   BLKMASK -64  # Block address mask
    BLKTAG 63 )  # Block tag mask
 
 # Networking

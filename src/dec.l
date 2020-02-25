@@ -1,4 +1,4 @@
-# 24feb20 Software Lab. Alexander Burger
+# 25feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -25,8 +25,8 @@
    (sh 4 i32)           # Block shift
    (siz 4 i32)          # Block size (64 << sh)
    (mark 8 i8*)         # Mark bit vector
-   (mrks 4 i32)         # Mark vector size
-   (flu 4 i32)          # Free list use count
+   (mrks 4 i64)         # Mark vector size
+   (flu 4 i64)          # Free list use count
    (lck 1 i1)           # Lock flag
    (drt 1 i1) )         # Dirty flag
 

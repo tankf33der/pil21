@@ -1,4 +1,4 @@
-# 24feb20 Software Lab. Alexander Burger
+# 25feb20 Software Lab. Alexander Burger
 
 (compile) (dbfErr extern)
 
@@ -245,12 +245,22 @@
             (when (gt0 Pid)
                (ret Pid) ) ) ) ) )
 
-(compile) (blkPeek blkPoke)
+(compile) (blkPeek rdBlock blkPoke wrBlock logBlock)
 
 (de void blkPeek ((i64 . Pos) (i8* . Buf) (i32 . Siz))
    (let Db: (dbFile (val $DbFile))
       (unless (== (pread (Db: fd) Buf Siz Pos) Siz)
          (dbRdErr) ) ) )
+
+(de void rdBlock ((i64 . N))
+   (let (Db: (dbFile (val $DbFile))  Blk (val $DbBlock))
+      (blkPeek
+         (shl (set $BlkIndex N) (i64 (Db: sh)))
+         Blk
+         (Db: siz) )
+      (set
+         $BlkLink (& (getAdr Blk) BLKMASK)
+         $BlkPtr (ofs Blk BLK) ) ) )
 
 (de void blkPoke ((i64 . Pos) (i8* . Buf) (i32 . Siz))
    (let Db: (dbFile (val $DbFile))
@@ -271,10 +281,59 @@
                      (== 1 (fwrite Buf Siz 1 Jnl)) )  # Write 'Buf'
                   (err 0 0 ($ "Journal write: %s") (strErrno)) ) ) ) ) ) )
 
+(de void wrBlock ()
+   (let Db: (dbFile (val $DbFile))
+      (blkPoke
+         (shl (val $BlkIndex) (i64 (Db: sh)))
+         (val $DbBlock)
+         (Db: siz) ) ) )
+
+(de void logBlock ()
+   (let
+      (Db: (dbFile (val $DbFile))
+         Log (val $DbLog)
+         P (b8 (+ BLK 2)) )
+      (set P (i8 (Db: db)))  # Store file number
+      (set 2 P (i8 (shr (Db: db) 8)))
+      (setAdr (val $BlkIndex) (ofs P 2))  # and block
+      (unless
+         (and
+            (== 1 (fwrite P (+ BLK 2) 1 Log))  # Write file number and address
+            (== 1 (fwrite (val $DbBlock) (Db: siz) 1 Log)) )  # Write block
+         (err 0 0 ($ "Log write: %s") (strErrno)) ) ) )
+
+(compile) (newBlock newId)
+
+(de i64 newBlock ()
+   (let (Db: (dbFile (val $DbFile))  P (b8 (+ BLK 2)))
+      (blkPeek 0 P (* 2 BLK))  # Read 'free' and 'next' from block zero
+      (let N (getAdr P)
+         (cond
+            ((and (n0 N) (n0 (Db: flu)))
+               (blkPeek (shl N (i64 (Db: sh))) P BLK)  # Get free link
+               (Db: flu (dec (Db: flu))) )
+            ((== (setq N (getAdr (ofs P BLK))) (hex "FFFFFFFFFFC0"))  # Max object ID
+               (err 0 0 ($ "DB Oversize") null) )
+            (T (setAdr (+ N BLKSIZE) (ofs P BLK))) )  # Increment next
+         (blkPoke 0 P (* 2 BLK))  # Write back
+         (blkPoke (shl N (i64 (Db: sh))) (val $IniBlk) (Db: siz))
+         N ) ) )
+
+(de newId (Exe (i32 . N))
+   (when (>= (dec 'N) (val $DBs))
+      (dbfErr Exe) )
+   (val $DbFiles)
+   Exe )
+
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)
-   Exe )
+   #! ...
+   (let N (i64 (val $MaxBlkSize))
+      (set $DbBlock (alloc (val $DbBlock) N))
+      (memset (set $IniBlk (alloc (val $IniBlk) N)) 0 N) )
+   #! ...
+   $T )
 
 
 (compile) (dbTouch)
