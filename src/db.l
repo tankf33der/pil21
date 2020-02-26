@@ -1,4 +1,4 @@
-# 25feb20 Software Lab. Alexander Burger
+# 26feb20 Software Lab. Alexander Burger
 
 (compile) (dbfErr extern)
 
@@ -118,25 +118,25 @@
    (set 6 P (i8 (shr N 8))) )
 
 # Build external symbol name
-(de extNm ((i64 . File) (i64 . Obj))
+(de extNm ((i32 . File) (i64 . Obj))
    (cnt
       (|
          (& Obj (hex "FFFFF"))  # Lowest 20 bits
          (|
-            (shl (& File (hex "FF")) 20)  # Lower 8 bits
+            (shl (i64 (& File (hex "FF"))) 20)  # Lower 8 bits
             (|
                (shl
                   (& (setq Obj (shr Obj 20)) (hex "FFF"))  # Middle 12 bits
                   28 )
                (|
-                  (shl (shr File 8) 40)  # Upper 8 bits
+                  (shl (i64 (shr File 8)) 40)  # Upper 8 bits
                   (shl (shr Obj 12) 48) ) ) ) ) ) )  # Highest 10 bits
 
 # Get file number from external symbol name
-(de i64 objFile (Name)
+(de i32 objFile (Name)
    (|
-      (& (setq Name (shr Name 24)) (hex "FF"))  # Low 8 bits
-      (& (shr Name 12) (hex "FF00")) ) )  # High 8 bits
+      (& (i32 (setq Name (shr Name 24))) (hex "FF"))  # Low 8 bits
+      (& (i32 (shr Name 12)) (hex "FF00")) ) )  # High 8 bits
 
 # Get object ID from external symbol name
 (de i64 objId (Name)
@@ -147,7 +147,7 @@
       (& (shr Name 8) (hex "3FF00000000")) ) )  # Highest 10 bits
 
 # Pack external symbol name
-(de void packAO ((i64 . File) (i64* . P))
+(de void packAO ((i32 . File) (i64* . P))
    (when (> File 15)
       (packAO (shr File 4) P) )  # Divide by 16
    (byteNum (+ (& (i8 File) 15) (char "@")) P) )  # Make ASCII letter
@@ -186,18 +186,18 @@
                (cons (consSym (cnt A) 0) (val R)) ) )
          (? (=0 (setq N (shr N 3)))) )
       (unless (=0 (setq N (objFile Name)))
-         (let F 0
+         (let F (i32 0)
             (loop
                (setq F
                   (| F (+ (& N 15) (char "@"))) )  # Make ASCII letter
                (? (=0 (setq N (shr N 4))))
                (setq F (shl F 8)) )
             (set R
-               (cons (consSym (cnt F) 0) (val R)) ) ) )
+               (cons (consSym (cnt (i64 F)) 0) (val R)) ) ) )
       (pop R) ) )
 
 # Locking
-(compile) (rdLockDb wrLockDb unLockDb tryLock)
+(compile) (rdLockDb wrLockDb unLockDb tryLock lockJnl unLockJnl)
 
 (de void rdLockDb ()
    (unless (== $T (val $Solo))  # Not already locked whole DB
@@ -244,6 +244,16 @@
                   (lockErr) ) )
             (when (gt0 Pid)
                (ret Pid) ) ) ) ) )
+
+(de void lockJnl ()
+   (while (lt0 (wrLock (fileno (val $DbJnl)) 0 0 YES))
+      (unless (== (xErrno) EINTR)
+         (lockErr) ) ) )
+
+(de void unLockJnl ()
+   (let Jnl (val $DbJnl)
+      (fflush Jnl)
+      (unLock (fileno Jnl) 0 0) ) )
 
 (compile) (blkPeek rdBlock blkPoke wrBlock logBlock)
 
@@ -322,8 +332,20 @@
 (de newId (Exe (i32 . N))
    (when (>= (dec 'N) (val $DBs))
       (dbfErr Exe) )
-   (val $DbFiles)
-   Exe )
+   (set $DbFile  # Set current file
+      (ofs (val $DbFiles) (* N (dbFile T))) )
+   (when (=0 (val $DbLog))
+      (set $Protect (inc (val $Protect))) )
+   (wrLockDb)
+   (unless (=0 (val $DbJnl))
+      (lockJnl) )
+   (prog1
+      (extNm ((dbFile (val $DbFile)) db) (newBlock))
+      (unless (=0 (val $DbJnl))
+         (unLockJnl) )
+      (unLockDb 1)
+      (when (=0 (val $DbLog))
+         (set $Protect (dec (val $Protect))) ) ) )
 
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T

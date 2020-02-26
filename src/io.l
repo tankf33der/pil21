@@ -1,4 +1,4 @@
-# 24feb20 Software Lab. Alexander Burger
+# 26feb20 Software Lab. Alexander Burger
 
 (compile) (openErr closeErr eofErr badInput writeErr selectErr)
 
@@ -526,15 +526,12 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
             (prog1
                (if (== (setq C (call $Get)) (char "}"))
                   (consSym ZERO $Nil)  # Empty: New anonymous symbol
-                  (let F 0  # File number
+                  (let F (i32 0)  # File number
                      (while (>= C (char "@"))
                         (when (> C (char "O"))  # A-O range
                            (badInput) )
                         (setq
-                           F
-                           (|
-                              (shl F 4)
-                              (i64 (- C (char "@"))) )
+                           F (| (shl F 4) (- C (char "@")))
                            C (call $Get) ) )
                      (let I 0  # Id
                         (loop
@@ -637,11 +634,11 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
    (call $Put (+ (i32 N) (char "0"))) )
 
 # Output A-O encoding
-(de void outAo ((i64 . N))
+(de void outAo ((i32 . N))
    (when (> N 15)
       (outAo (shr N 4))
       (setq N (& N 15)) )
-   (call $Put (+ (i32 N) (char "@"))) )
+   (call $Put (+ N (char "@"))) )
 
 # Output external symbol name
 (de void prExt (Nm)

@@ -1,4 +1,4 @@
-# 25feb20 Software Lab. Alexander Burger
+# 26feb20 Software Lab. Alexander Burger
 
 (compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
 
@@ -25,8 +25,8 @@
    (sh 4 i32)           # Block shift
    (siz 4 i32)          # Block size (64 << sh)
    (mark 8 i8*)         # Mark bit vector
-   (mrks 4 i64)         # Mark vector size
-   (flu 4 i64)          # Free list use count
+   (mrks 8 i64)         # Mark vector size
+   (flu 8 i64)          # Free list use count
    (lck 1 i1)           # Lock flag
    (drt 1 i1) )         # Dirty flag
 
@@ -69,8 +69,8 @@
 
 # System
 (compile) (malloc realloc free getpid isatty read write pread pwrite fread
-fwrite putc_unlocked strlen strcpy strdup strcmp strchr strrchr dlerror close
-setjmp longjmp kill exit)
+fwrite putc_unlocked fflush fileno strlen strcpy strdup strcmp strchr strrchr
+dlsym dlerror close setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
@@ -84,6 +84,8 @@ setjmp longjmp kill exit)
 (de T i32 fread (i8* i32 i32 i8*))
 (de T i32 fwrite (i8* i32 i32 i8*))
 (de T i32 putc_unlocked (i32 i8*))
+(de T i32 fflush (i8*))
+(de T i32 fileno (i8*))
 (de T i64 strlen (i8*))
 (de T i8* strcpy (i8* i8*))
 (de T i8* strdup (i8*))
