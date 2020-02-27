@@ -1,6 +1,8 @@
-# 26feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (openErr closeErr eofErr badInput writeErr selectErr)
+(symbols '(llvm))
+
+(local) (openErr closeErr eofErr badInput writeErr selectErr)
 
 (de NIL openErr (Exe X)
    (err Exe X ($ "Open error: %s") (strErrno)) )
@@ -23,8 +25,8 @@
 (de NIL selectErr (Exe)
    (err Exe 0 ($ "Select error: %s") (strErrno)) )
 
-(compile) (closeOnExec initInFile initOutFile closeInFile closeOutFile
-pushInFiles pushOutFiles popInFiles popOutFiles)
+(local) (closeOnExec initInFile initOutFile closeInFile closeOutFile pushInFiles
+pushOutFiles popInFiles popOutFiles)
 
 (de void closeOnExec (Exe (i32 . Fd))
    (when (lt0 (fcntlCloExec Fd))
@@ -140,7 +142,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 (de void popOutFiles ()
    )
 
-(compile) (slow slowNb wrBytes flush flushAll stdinByte)
+(local) (slow slowNb wrBytes flush flushAll stdinByte)
 
 (de i32 slow ((i8* . In))
    (let In: (inFile In)
@@ -218,7 +220,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
          (ret -1) )
       (bye 0) ) )
 
-(compile) (hasData waitFd)
+(local) (hasData waitFd)
 
 (de i1 hasData ((i32 . Fd))
    (and
@@ -263,7 +265,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
       (set $At (pop P)  $Task Task)
       Ms ) )
 
-(compile) (rdOpen wrOpen erOpen ctOpen)
+(local) (rdOpen wrOpen erOpen ctOpen)
 
 (de void rdOpen (Exe X (i8* . P))
    (let Io: (ioFrame P)
@@ -298,7 +300,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 (de void ctOpen (Exe X (i8* . Ctl))
    )
 
-(compile) (getChar skipC comment skip testEsc anonymous rdAtom rdList read0)
+(local) (getChar skipC comment skip testEsc anonymous rdAtom rdList read0)
 
 (de i32 _getStdin ()
    (let In: (inFile (val $InFile))
@@ -553,7 +555,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
             (call $Get)
             (rdAtom C) ) ) ) )
 
-(compile) (read1 token)
+(local) (read1 token)
 
 (de read1 ((i32 . End))
    (when (=0 (val $Chr))
@@ -604,7 +606,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
                (Out: ix 0)
                (wrBytes (Out: fd) (Out: (buf)) I) ) ) ) ) )
 
-(compile) (newline space)
+(local) (newline space)
 
 (de void newline ()
    (call $Put (char "\n")) )
@@ -612,7 +614,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 (de void space ()
    (call $Put (char " ")) )
 
-(compile) (outWord outNum outOct outAo prExt outString)
+(local) (outWord outNum outOct outAo prExt outString)
 
 # Output decimal number
 (de void outWord ((i64 . N))
@@ -653,7 +655,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
       (call $Put (i32 (val S)))
       (inc 'S) ) )
 
-(compile) (print prin prin1)
+(local) (print prin prin1)
 
 (de void print (X)
    (unless (=0 (val $Signal))
@@ -736,7 +738,7 @@ pushInFiles pushOutFiles popInFiles popOutFiles)
 (de _flush (Exe)
    $Nil )
 
-(compile) (repl loadAll)
+(local) (repl loadAll)
 
 (de repl (Exe (i32 . Pr) X)
    (let (Safe (link (push T NIL))  P (b8 (ioFrame T)))

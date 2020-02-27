@@ -1,5 +1,7 @@
-# 20dec19 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) *Version
+(symbols '(llvm))
+
+(local) *Version
 
 (pico~de *Version 21 0 0)

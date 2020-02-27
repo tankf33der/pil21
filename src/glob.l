@@ -1,6 +1,6 @@
-# 25feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (gcData env)
+(symbols '(llvm))
 
 (var $AV0 i8* null)                    # Command name
 (var $AV i8** null)                    # Command line argument vector
@@ -201,6 +201,8 @@
    ($LastSym "version" _version) )
 
 # GC relevant data
+(local) gcData
+
 (table gcData
    ($Transient $Nil)    # Short transient names
    (NIL $Nil)           # Long transient names
@@ -256,6 +258,8 @@
    ($LispEnd $Nil) )
 
 # Environment
+(local) env
+
 (table env
    ($Link 0)                     # Link register
    ($Bind 0)                     # Bind frames

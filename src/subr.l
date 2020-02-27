@@ -1,6 +1,6 @@
-# 17jan20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) ()
+(symbols '(llvm))
 
 # (car 'var) -> any
 (de _car (Exe)

@@ -1,6 +1,8 @@
-# 23feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (mark gc)
+(symbols '(llvm))
+
+(local) (mark gc)
 
 (de void mark (Exe)
    (let Tos 0  # Clear
@@ -261,7 +263,7 @@
       Y ) )
 
 # Cell allocation (consing)
-(compile) (cons consSym consStr consExt boxNum box64 consNum)
+(local) (cons consSym consStr consExt boxNum box64 consNum)
 
 (de cons (Car Cdr)
    (let P (val $Avail)

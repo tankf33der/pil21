@@ -1,8 +1,4 @@
-# 25feb20 Software Lab. Alexander Burger
-
-(de compile ()
-   (symbols '(llvm))
-   (local) )
+# 27feb20 Software Lab. Alexander Burger
 
 ## PicoLisp LLVM frontend ##
 (symbols 'llvm 'pico)
@@ -11,7 +7,7 @@
 i64** any YES NO ZERO ONE SymTab begin end $ ? short global var str const
 globals array table symTab inline define struct $Nil $Link drop)
 
-(import pico symbols T NIL @ @@ @@@ compile load setq prog */ >> char hex !
+(import pico llvm symbols local T NIL @ @@ @@@ load setq prog */ >> char hex !
 show bt)
 
 (def 'void 'void)

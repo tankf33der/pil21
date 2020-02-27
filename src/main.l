@@ -1,11 +1,13 @@
-# 24feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (unwind finish giveup bye)
+(symbols '(llvm))
 
 (begin "base" NIL
    "vers.l" "defs.l" "glob.l" "dec.l" )
 
 # Unwind stack
+(local) unwind
+
 (de void unwind ((i8* . Catch))
    (let (Ca (val $Catch)  P (val $Bind))
       (until (=0 Ca)
@@ -33,6 +35,8 @@
       ) )
 
 # Exit
+(local) (finish giveup bye)
+
 (de NIL finish ((i32 . N))
    #(setCooked)
    (exit N) )
@@ -46,7 +50,7 @@
    (finish N) )
 
 # Memory
-(compile) (alloc heapAlloc)
+(local) (alloc heapAlloc)
 
 (de i8* alloc ((i8* . Ptr) (i64 . Siz))
    (let P (realloc Ptr Siz)  # Reallocate pointer
@@ -69,7 +73,7 @@
          (set $Avail A) ) ) )
 
 # Signals
-(compile) (sig sighandler)
+(local) (sig sighandler)
 
 (de void sig ((i32 . N))
    (let I (val $TtyPid)
@@ -108,7 +112,7 @@
       (set $Protect 0) ) )
 
 # Error handling
-(compile) (err stkErr argErr cntErr numErr symErr extErr atomErr pairErr lstErr
+(local) (err stkErr argErr cntErr numErr symErr extErr atomErr pairErr lstErr
 varErr protErr lockErr stkChk needCnt needNum needSym chkVar needVar xCnt evCnt
 evSym)
 
@@ -260,7 +264,7 @@ evSym)
 (load "gc.l" "big.l" "db.l" "sym.l")
 
 # Comparisons
-(compile) (equal compare)
+(local) (equal compare)
 
 (de i1 equal (X Y)
    (: 1
@@ -329,7 +333,7 @@ evSym)
 (load "io.l" "apply.l" "flow.l" "subr.l" "net.l")
 
 # Evaluation
-(compile) (undefined evExpr sharedLib evList)
+(local) (undefined evExpr sharedLib evList)
 
 (de NIL undefined (Fun Exe)
    (err Exe Fun ($ "Undefined") null) )
@@ -440,7 +444,7 @@ evSym)
                      (setq F V) ) ) ) ) ) ) )
 
 # Native calls
-(compile) natRet
+(local) natRet
 
 (de natRet (Spec Val)
    (cond
@@ -529,7 +533,7 @@ evSym)
          (cons (val $D) $Nil) ) ) )
 
 # Main entry point
-(compile) main
+(local) main
 
 (de i32 main ((i32 . Ac) (i8** . Av))
    (set $AV0 (val Av))  # Save command

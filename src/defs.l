@@ -1,7 +1,9 @@
-# 24feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
+
+(symbols '(llvm))
 
 # Constants
-(compile) (HEAP CELLS STACK TOP BUFSIZ DB1)
+(local) (HEAP CELLS STACK TOP BUFSIZ DB1)
 
 (setq
    HEAP (*/ 1024 1024 8)   # Heap size (number of pointers)
@@ -12,7 +14,7 @@
    DB1 (hex "1A") )        # Name of '{1}'
 
 # PLIO Tokens
-(compile) (NIX BEG DOT END NUMBER INTERN TRANSIENT EXTERN)
+(local) (NIX BEG DOT END NUMBER INTERN TRANSIENT EXTERN)
 
 (setq
    NIX 0        # NIL
@@ -25,7 +27,7 @@
    EXTERN 3 )   # External symbol
 
 # DB-I/O
-(compile) (BLK BLKSIZE BLKMASK BLKTAG)
+(local) (BLK BLKSIZE BLKMASK BLKTAG)
 
 (setq
    BLK 6        # Block address size
@@ -34,12 +36,12 @@
    BLKTAG 63 )  # Block tag mask
 
 # Networking
-(compile) UDPMAX
+(local) UDPMAX
 
 (setq UDPMAX 4096)  # UDP buffer size
 
 ## Sync src/lib.c 'xSignal' and src/glob.l '$Signal'
-(compile) (SIGHUP SIGINT SIGUSR1 SIGUSR2 SIGPIPE SIGALRM SIGTERM SIGCHLD SIGCONT
+(local) (SIGHUP SIGINT SIGUSR1 SIGUSR2 SIGPIPE SIGALRM SIGTERM SIGCHLD SIGCONT
 SIGSTOP SIGTSTP SIGTTIN SIGTTOU SIGIO)
 
 (setq
@@ -59,7 +61,7 @@ SIGSTOP SIGTSTP SIGTTIN SIGTTOU SIGIO)
    SIGIO    14 )
 
 ## Sync src/lib.c 'xErrno'
-(compile) (ENOENT EINTR EBADF EAGAIN EACCES EPIPE ECONNRESET)
+(local) (ENOENT EINTR EBADF EAGAIN EACCES EPIPE ECONNRESET)
 
 (setq
    ENOENT     1      # No such file or directory

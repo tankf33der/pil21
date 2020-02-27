@@ -1,6 +1,8 @@
-# 26feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (inFile outFile dbFile ioFrame caFrame coroutine coFrame child)
+(symbols '(llvm))
+
+(local) (inFile outFile dbFile ioFrame)
 
 # I/O
 (struct inFile
@@ -37,6 +39,8 @@
    (fun 8 i8*) )        # Function pointer
 
 # Catch/throw
+(local) caFrame
+
 (struct caFrame
    (link 8 i8*)         # Frame link
    (tag 8 any)          # Catch tag
@@ -45,6 +49,8 @@
    (rst 0 i8) )         # Restart jmp_buf (JmpBufSize)
 
 # Coroutines
+(local) (coroutine coFrame)
+
 (struct coroutine
    (tag 8 any)          # Coroutine tag
    (next 8 i8*)         # Next coroutine
@@ -59,6 +65,8 @@
    (crt 8 i8*) )        # Coroutine
 
 # Family IPC
+(local) child
+
 (struct child
    (buf 8 i8*)          # Buffer pointer
    (pid 4 i32)          # Process ID
@@ -68,9 +76,9 @@
    (cnt 4 i32) )        # Buffer byte count
 
 # System
-(compile) (malloc realloc free getpid isatty read write pread pwrite fread
-fwrite putc_unlocked fflush fileno strlen strcpy strdup strcmp strchr strrchr
-dlsym dlerror close setjmp longjmp kill exit)
+(local) (malloc realloc free getpid isatty read write pread pwrite fread fwrite
+putc_unlocked fflush fileno strlen strcpy strdup strcmp strchr strrchr dlsym
+dlerror close setjmp longjmp kill exit)
 
 (de T i8* malloc (i64))
 (de T i8* realloc (i8* i64))
@@ -101,7 +109,7 @@ dlsym dlerror close setjmp longjmp kill exit)
 (de T NIL exit (i32))
 
 # Glue lib.c
-(compile) (JmpBufSize stderrMsg xprintf strErrno openRdonly openAppend
+(local) (JmpBufSize stderrMsg xprintf strErrno openRdonly openAppend
 fcntlCloExec fcntlSetFl nonBlocking pollIn pollOut xPoll readyIn readyOut rdLock
 wrLock unLock getLock xSignal xErrno getTime catchQuit throwQuit dlOpen ffiPrep
 ffiCall)
@@ -144,8 +152,8 @@ ffiCall)
 (de T i32 toLowerCase (i32))
 
 ### Forward references
-(compile) (evList mkStr subStr read0 pushOutFiles newline space outWord
-outString print repl)
+(local) (evList mkStr subStr read0 pushOutFiles newline space outWord outString
+print repl)
 
 # main.l
 (de NIL err (any any i8* i8*))
@@ -191,7 +199,7 @@ outString print repl)
 (de repl (any i32 any))
 
 ### Primitives
-(compile) (caar cadr cdar cddr int cnt sign sym length eval run)
+(local) (caar cadr cdar cddr int cnt sign sym length eval run)
 
 (inline caar (X)
    (car (car X)) )

@@ -1,6 +1,8 @@
-# 26feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (dbfErr extern)
+(symbols '(llvm))
+
+(local) (dbfErr dbRdErr dbWrErr)
 
 (de NIL dbfErr (Exe)
    (err Exe 0 ($ "Bad DB file") null) )
@@ -12,6 +14,8 @@
    (err 0 0 ($ "DB write: %s") (strErrno)) )
 
 # Intern an external symbol
+(local) extern
+
 (de extern (Name)
    (let (X (val $Extern)  C 0  Sym NIL)
       (loop
@@ -83,7 +87,7 @@
                      Y X) ) ) ) ) )
       Sym ) )
 
-(compile) (getAdr setAdr extNm objFile objId packAO packOct packExtNm chopExtNm)
+(local) (getAdr setAdr extNm objFile objId packAO packOct packExtNm chopExtNm)
 
 # 6 bytes in little endian format
 # Get block address from buffer
@@ -197,7 +201,7 @@
       (pop R) ) )
 
 # Locking
-(compile) (rdLockDb wrLockDb unLockDb tryLock lockJnl unLockJnl)
+(local) (rdLockDb wrLockDb unLockDb tryLock lockJnl unLockJnl)
 
 (de void rdLockDb ()
    (unless (== $T (val $Solo))  # Not already locked whole DB
@@ -255,7 +259,7 @@
       (fflush Jnl)
       (unLock (fileno Jnl) 0 0) ) )
 
-(compile) (blkPeek rdBlock blkPoke wrBlock logBlock)
+(local) (blkPeek rdBlock blkPoke wrBlock logBlock)
 
 (de void blkPeek ((i64 . Pos) (i8* . Buf) (i32 . Siz))
    (let Db: (dbFile (val $DbFile))
@@ -312,7 +316,7 @@
             (== 1 (fwrite (val $DbBlock) (Db: siz) 1 Log)) )  # Write block
          (err 0 0 ($ "Log write: %s") (strErrno)) ) ) )
 
-(compile) (newBlock newId)
+(local) (newBlock newId isLife)
 
 (de i64 newBlock ()
    (let (Db: (dbFile (val $DbFile))  P (b8 (+ BLK 2)))
@@ -347,6 +351,11 @@
       (when (=0 (val $DbLog))
          (set $Protect (dec (val $Protect))) ) ) )
 
+(de i1 isLife (Sym)
+   (let (Nm (name (val (tail Sym)))  N (objId Nm))
+      #! ...
+      NO ) )
+
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
 (de _pool (Exe)
@@ -358,7 +367,7 @@
    $T )
 
 
-(compile) (dbTouch)
+(local) (dbTouch)
 
 (de dbTouch (Sym)
    Sym )

@@ -1,7 +1,8 @@
-# 23feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (name bufSize pathSize bufString pathString mkStr firstByte firstChar
-pack xSym)
+(symbols '(llvm))
+
+(local) (name bufSize pathSize bufString pathString mkStr firstByte firstChar)
 
 (de name (Tail)
    (setq Tail (any (& (i64 Tail) -9)))  # Clear 'extern' tag
@@ -58,6 +59,8 @@ pack xSym)
             0
             (numChar (push 0 (name Tail))) ) ) ) )  # Else get name
 
+(local) (pack xSym)
+
 (de void pack (X (i64* . P))
    (when (pair X)
       (loop
@@ -83,7 +86,7 @@ pack xSym)
       X ) )
 
 ### Interning ###
-(compile) (cmpLong intern isIntern findSym)
+(local) (cmpLong intern isIntern findSym)
 
 (de i32 cmpLong (X Y)
    (loop
@@ -233,7 +236,7 @@ pack xSym)
       (cdr (val $Intern)) ) )
 
 ### Matching ###
-(compile) (preStr subStr)
+(local) (preStr subStr)
 
 (de i1 preStr (Nm (i8 . B) (i64* . P))
    (let (Q (push 0 (i64 Nm))  C (numByte Q))

@@ -1,6 +1,8 @@
-# 21feb20 Software Lab. Alexander Burger
+# 27feb20 Software Lab. Alexander Burger
 
-(compile) (pos neg divErr)
+(symbols '(llvm))
+
+(local) (pos neg divErr)
 
 (inline pos (N)
    (any (& N -9)) )
@@ -14,7 +16,7 @@
    (err Exe 0 ($ "Div/0") null) )
 
 ### Bignum byte access ###
-(compile) (numByte numChar byteNum charNum)
+(local) (numByte numChar byteNum charNum)
 
 (de i8 numByte ((i64* . P))
    (let C (val P)  # Get cnt
@@ -104,7 +106,7 @@
          (byteNum (i8 (| (hex "80") (& C (hex "3F")))) P) ) ) )
 
 ### Destructive primitives ###
-(compile) (zapZero twiceBig twice half tenfold)
+(local) (zapZero twiceBig twice half tenfold)
 
 # Remove leading zeroes
 (de zapZero (N)
@@ -202,8 +204,7 @@
          N ) ) )
 
 ### Non-destructive unsigned primitives ###
-(compile) (shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu div1 divu
-remu)
+(local) (shlu shru andu oru xoru addu sub1 subu mulAddHiLo mulu div1 divu remu)
 
 # Multiply (unsigned) number by 2
 (de shlu (N)
@@ -773,7 +774,7 @@ remu)
       (T (cnt (% (int A) (int B)))) ) )
 
 ### Non-destructive signed primitives ###
-(compile) (incs decs adds subs)
+(local) (incs decs adds subs)
 
 # Increment a (signed) number
 (de incs (A)
@@ -810,7 +811,7 @@ remu)
             (subu (pos A) (pos B)) ) ) ) )
 
 ### Comparisons ###
-(compile) (cmpu cmpNum)
+(local) (cmpu cmpNum)
 
 (de i32 cmpu (A B)
    (if (cnt? A)
@@ -868,7 +869,7 @@ remu)
          (cmpu (pos B) (pos A)) ) ) )
 
 ### Formatting ###
-(compile) (symToNum fmtWord fmtNum)
+(local) (symToNum fmtWord fmtNum)
 
 # Make number from symbol
 (de symToNum (Name (i64 . Scl) (i8 . Sep) (i8 . Ign))
@@ -1430,7 +1431,7 @@ remu)
 
 
 ### Random generator ###
-(compile) initSeed
+(local) initSeed
 
 (de initSeed (X)
    (let C 0
