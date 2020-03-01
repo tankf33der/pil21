@@ -1,4 +1,4 @@
-# 27feb20 Software Lab. Alexander Burger
+# 01mar20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -316,10 +316,10 @@
             (== 1 (fwrite (val $DbBlock) (Db: siz) 1 Log)) )  # Write block
          (err 0 0 ($ "Log write: %s") (strErrno)) ) ) )
 
-(local) (newBlock newId isLife)
+(local) (newBlock newId isLife cleanUp)
 
 (de i64 newBlock ()
-   (let (Db: (dbFile (val $DbFile))  P (b8 (+ BLK 2)))
+   (let (Db: (dbFile (val $DbFile))  P (b8 (* BLK 2)))
       (blkPeek 0 P (* 2 BLK))  # Read 'free' and 'next' from block zero
       (let N (getAdr P)
          (cond
@@ -353,8 +353,43 @@
 
 (de i1 isLife (Sym)
    (let (Nm (name (val (tail Sym)))  N (objId Nm))
-      #! ...
+      (unless (=0 N)
+         (let F (objFile Nm)
+            (cond
+               ((> (val $DBs) F)
+                  (setq Nm (add Nm Nm))
+                  (and @@ (ret YES))  # Dirty
+                  (add Nm Nm)
+                  (and @@ (ret YES))  # Loaded
+                  (let
+                     (Db:
+                        (dbFile
+                           (set $DbFile  # Set current file
+                              (ofs (val $DbFiles) (* N (dbFile T))) ) )
+                        P (b8 (* BLK 2)) )
+                     (blkPeek BLK P BLK)  # Read 'next'
+                     (when (> (getAdr P) N)
+                        (blkPeek (shl N (i64 (Db: sh))) P BLK)  # Read link field
+                        (when (== 1 (& (val P) BLKTAG))  # ID-Block
+                           (ret YES) ) ) ) )
+               ((pair (val $Ext))
+                  (ret YES) ) ) ) )
       NO ) )
+
+(de void cleanUp ((i64 . N))
+   (let (P (b8 BLK)  Db: (dbFile (val $DbFile)))
+      (blkPeek 0 P BLK)  # Read 'free'
+      (let Free (getAdr P)
+         (setAdr N P)
+         (blkPoke 0 P BLK)  # Set new 'free'
+         (loop
+            (let Pos (shl N (i64 (Db: sh)))
+               (blkPeek Pos P BLK)  # Get block link
+               (set P (& (val P) BLKMASK))  # Clear tag
+               (? (=0 (setq N (getAdr P))))  # No more links
+               (blkPoke Pos P BLK) ) )
+         (setAdr Free P)  # Append old 'free' list
+         (blkPoke Pos P BLK) ) ) )
 
 
 # (pool ['sym1 ['lst] ['sym2] ['sym3]]) -> T
