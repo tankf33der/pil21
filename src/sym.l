@@ -1,4 +1,4 @@
-# 20mar20 Software Lab. Alexander Burger
+# 22mar20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -830,15 +830,89 @@
 
 # (setq var 'any ..) -> any
 (de _setq (Exe)
-   $Nil )
+   (let X (cdr Exe)
+      (loop
+         (let Y (set (needVar Exe (++ X)) (eval (++ X)))
+            (? (atom X) Y) ) ) ) )
 
 # (swap 'var 'any) -> any
 (de _swap (Exe)
-   $Nil )
+   (let
+      (X (cdr Exe)
+         Y (save (needVar Exe (eval (++ X)))) )
+      (and
+         (sym? Y)
+         (sym? (val (tail Y)))
+         (dbTouch Exe Y) )
+      (let (Z (eval (car X))  V (val Y))
+         (set Y Z)
+         V ) ) )
 
 # (xchg 'var 'var ..) -> any
 (de _xchg (Exe)
-   $Nil )
+   (let (X (cdr Exe)  Safe (link (push -ZERO NIL)))
+      (loop
+         (let Y (set Safe (needVar Exe (eval (++ X))))
+            (and
+               (sym? Y)
+               (sym? (val (tail Y)))
+               (dbTouch Exe Y) )
+            (let Z (needVar Exe (eval (++ X)))
+               (and
+                  (sym? Z)
+                  (sym? (val (tail Z)))
+                  (dbTouch Exe Z) )
+               (setq Z (xchg Y Z))
+               (? (atom X)
+                  (drop Safe)
+                  Z ) ) ) ) ) )
+
+# (on var ..) -> T
+(de _on (Exe)
+   (let X (cdr Exe)
+      (loop
+         (set (needVar Exe (++ X)) $T)
+         (? (atom X) $T) ) ) )
+
+# (off var ..) -> NIL
+(de _off (Exe)
+   (let X (cdr Exe)
+      (loop
+         (set (needVar Exe (++ X)) $Nil)
+         (? (atom X) $Nil) ) ) )
+
+# (onOff var ..) -> flg
+(de _onOff (Exe)
+   (let X (cdr Exe)
+      (loop
+         (let
+            (Y (needVar Exe (++ X))
+               Z (if (nil? (val Y)) $T $Nil) )
+            (set Y Z)
+            (? (atom X) Z) ) ) ) )
+
+# (zero var ..) -> 0
+(de _zero (Exe)
+   (let X (cdr Exe)
+      (loop
+         (set (needVar Exe (++ X)) ZERO)
+         (? (atom X) ZERO) ) ) )
+
+# (one var ..) -> 1
+(de _one (Exe)
+   (let X (cdr Exe)
+      (loop
+         (set (needVar Exe (++ X)) ONE)
+         (? (atom X) ONE) ) ) )
+
+# (default sym 'any ..) -> any
+(de _default (Exe)
+   (let X (cdr Exe)
+      (loop
+         (let Y (needVar Exe (++ X))
+            (when (nil? (val Y))
+               (set Y (eval (car X))) )
+            (? (atom (shift X)) (val Y)) ) ) ) )
 
 
 # (low? 'any) -> sym | NIL
