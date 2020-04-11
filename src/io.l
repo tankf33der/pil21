@@ -950,13 +950,30 @@
    (let X (save (eval (cadr Exe)))
       (cond
          ((=0 (val $InFile)) $Nil)
-         ((sym? X)
-            (save X
-               (set
-                  $GetBin (fun (i32) getBinary)
-                  $Extn (val $ExtN) )
-               (if (=0 (binRead)) X @) ) )
-         (T $T) ) ) )
+         ((num? X)
+            (let
+               (P (push 3 NIL ZERO NIL)  # [cnt last name link]
+                  Q (link (ofs P 2))
+                  Cnt (int X) )
+               (cond
+                  ((=0 Cnt) $Nil)
+                  ((sign? X)  # Little endian
+                     (loop
+                        (when (lt0 (getBinary))
+                           (ret $Nil) )
+                        (byteNum (i8 @) P)
+                        (? (=0 (dec 'Cnt))) )
+                     (if (cnt? (val Q))
+                        (twice @)
+                        (zapZero @) ) )
+                  (T
+                     $T
+                     ) ) ) )
+         (T
+            (set
+               $GetBin (fun (i32) getBinary)
+               $Extn (val $ExtN) )
+            (if (=0 (binRead)) X @) ) ) ) )
 
 (local) (repl loadAll)
 
