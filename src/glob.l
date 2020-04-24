@@ -251,6 +251,7 @@
    (NIL "box" _box)
    (NIL "and" _and)
    (NIL "or" _or)
+   (NIL "not" _not)
    (NIL "if" _if)
    (NIL "when" _when)
    (NIL "unless" _unless)
@@ -271,6 +272,7 @@
    (NIL "list" _list)
    (NIL "==" _eq)
    (NIL "=" _equal)
+   (NIL ">" _gt)
    (NIL ">=" _ge)
    (NIL "num?" _numQ)
    # Networking
