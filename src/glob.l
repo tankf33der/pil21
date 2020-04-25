@@ -264,6 +264,8 @@
    (NIL "unless" _unless)
    (NIL "cond" _cond)
    (NIL "nond" _nond)
+   (NIL "case" _case)
+   (NIL "casq" _casq)
    (NIL "with" _with)
    (NIL "let" _let)
    (NIL "catch" _catch)

@@ -218,6 +218,32 @@
                (run (cdr Y)) ) )
          (set $At @) ) ) )
 
+# (case 'any (any1 . prg1) (any2 . prg2) ..) -> any
+(de _case (Exe)
+   (let (X (cdr Exe)  A (set $At (eval (car X))))
+      (while (pair (shift X))
+         (let (Y (car X)  Z (car Y))
+            (? (or (== Z $T) (equal Z A))
+               (run (cdr Y)) )
+            (while (pair Z)
+               (when (equal (car Z) A)
+                  (ret (run (cdr Y))) )
+               (shift Z) ) ) )
+      $Nil ) )
+
+# (casq 'any (any1 . prg1) (any2 . prg2) ..) -> any
+(de _casq (Exe)
+   (let (X (cdr Exe)  A (set $At (eval (car X))))
+      (while (pair (shift X))
+         (let (Y (car X)  Z (car Y))
+            (? (or (== Z $T) (== Z A))
+               (run (cdr Y)) )
+            (while (pair Z)
+               (when (== (car Z) A)
+                  (ret (run (cdr Y))) )
+               (shift Z) ) ) )
+      $Nil ) )
+
 # (with 'var . prg) -> any
 (de _with (Exe)
    (let (X (cdr Exe)  Y (needVar Exe (eval (++ X))))
