@@ -66,7 +66,7 @@
    (let P (val $Bind)  # Bind frames
       (until (=0 P)
          (mark (val P))  # Mark saved value
-         (set P (val 3 P)) ) )
+         (setq P (val 3 P)) ) )
    (let Ca (val $Catch)  # Catch frames
       (until (=0 Ca)
          (let Ca: (caFrame Ca)
