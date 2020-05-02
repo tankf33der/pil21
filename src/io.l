@@ -1512,8 +1512,8 @@
          (call $Put (char ")")) ) ) )
 
 (de void prin (X)
+   (sigChk 0)
    (unless (nil? X)
-      (sigChk 0)
       (cond
          ((cnt? X) (outNum X))
          ((big? X) (fmtNum X -1 0 0 null))
@@ -1578,6 +1578,7 @@
 
 # (rewind) -> flg
 (de _rewind (Exe)
+   #!
    $Nil )
 
 # (ext 'cnt . prg) -> any
@@ -1639,7 +1640,11 @@
 
 # (wr 'cnt ..) -> cnt
 (de _wr (Exe)
-   $Nil )
+   (let X (cdr Exe)
+      (loop
+         (let N (eval (++ X))
+            (_putStdout (i8 (int N)))
+            (? (atom X) N) ) ) ) )
 
 (local) (repl loadAll)
 
