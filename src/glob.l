@@ -331,6 +331,8 @@
    (NIL "chain" _chain)
    (NIL "link" _link)
    (NIL "yoke" _yoke)
+   (NIL "fin" _fin)
+   (NIL "last" _last)
    (NIL "==" _eq)
    (NIL "n==" _neq)
    (NIL "=" _equal)

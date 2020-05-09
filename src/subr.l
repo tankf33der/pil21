@@ -211,6 +211,22 @@
                   (set $Make Z) )
                Y ) ) ) ) )
 
+# (fin 'any) -> num|sym
+(de _fin (Exe)
+   (let X (eval (cadr Exe))
+      (while (pair X)
+         (shift X) )
+      X ) )
+
+# (last 'lst) -> any
+(de _last (Exe)
+   (let X (eval (cadr Exe))
+      (if (atom X)
+         X
+         (while (pair (cdr X))
+            (setq X @) )
+         (car X) ) ) )
+
 # (== 'any ..) -> flg
 (de _eq (Exe)
    (let (X (cdr Exe)  Y (save (eval (car X))))
