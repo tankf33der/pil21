@@ -322,6 +322,8 @@
    (NIL "cddadr" _cddadr)
    (NIL "cdddar" _cdddar)
    (NIL "cddddr" _cddddr)
+   (NIL "nth" _nth)
+   (NIL "con" _con)
    (NIL "cons" _cons)
    (NIL "list" _list)
    (NIL "make" _make)
