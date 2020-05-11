@@ -1458,19 +1458,17 @@
       (while (pair X)
          (setq C (+ C (initSeed (++ X)))) )
       (unless (nil? X)
-         (unless (num? X)
+         (unless (num? X)  # Need number
             (setq X (name (& (val (tail X)) -9))) )
-         (setq C
-            (+ C
-               (if (cnt? X)
-                  (shr X 3)
-                  (when (sign? X)
-                     (inc 'C)
-                     (setq X (pos X)) )
-                  (loop
-                     (setq C (+ C (val (dig X))))
-                     (? (cnt? (setq X (val (big X))))) )
-                  (int X) ) ) ) )
+         (if (cnt? X)
+            (setq C (+ C (shr X 3)))  # Keep sign
+            (when (sign? X)
+               (inc 'C)
+               (setq X (pos X)) )
+            (loop
+               (setq C (+ C (val (dig X))))
+               (? (cnt? (setq X (val (big X))))) )
+            (setq C (+ C (int X))) ) )
       C ) )
 
 # (seed 'any) -> cnt
