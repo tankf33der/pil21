@@ -1,4 +1,4 @@
-# 10may20 Software Lab. Alexander Burger
+# 11may20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -468,7 +468,7 @@
                         (? (cnt? A)
                            (set (big P) (box64 (+ (int A) C))) )
                         (setq
-                           N (add (val (dig A)) 1 C)
+                           N (add (val (dig A)) 1)
                            C @@ ) ) ) )
                (setq
                   N (add (val (dig A)) (val (dig B)) C)
@@ -1278,8 +1278,7 @@
             (cond
                ((gt0 N)
                   (while (and (big? Y) (>= N 64))  # Large shift count
-                     (when (cnt? (setq Y (val (big Y))))  # Discard 64 bits
-                        (goto 9) )
+                     (setq Y (val (big Y)))  # Discard 64 bits
                      (when (=0 (setq N (- N 64)))
                         (goto 9) ) )
                   (setq Y (safe (shru Y)))  # Non-destructive
