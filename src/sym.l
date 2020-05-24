@@ -1630,7 +1630,7 @@
 # (fold 'any ['cnt]) -> sym
 (de _fold (Exe)
    (let (X (cdr Exe)  Y (eval (++ X)))
-      (if (or (not (symb? X)) (nil? X))
+      (if (or (not (symb? Y)) (nil? Y))
          Y
          (let
             (N (if (atom X) 0 (evCnt Exe X))

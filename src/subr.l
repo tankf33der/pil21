@@ -1114,7 +1114,7 @@
                               Env P ) )
                         (unless (=0 Dbg)
                            (let Y (car (val Tp1))
-                              (when (memq (car Y) (val Dbg))
+                              (when (memq (car Y) Dbg)
                                  (let (L (get (car Y) $T)  I 1)
                                     (until (equal (car (val Alt)) (car L))
                                        (inc 'I)
@@ -1130,7 +1130,7 @@
                                     (cons (val Nl)
                                        (cons @
                                           (cons (val Tp1) (cons (val Tp2) (val E))) ) ) )
-                                 (car (val Q)) ) ) )
+                                 (car Q) ) ) )
                            (set
                               Nl (cons N (val Nl))
                               Tp2 (cons (cdr (val Tp1)) (val Tp2))
