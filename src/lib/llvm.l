@@ -613,10 +613,12 @@ False Beg End Safe *Safe)
 
 (de llvm~evBool (Exe)
    (let X (eval Exe)
-      (if (== 'i1 (val X))
-         X
-         (let *Log NIL
-            (llvm~n0 X) ) ) ) )
+      (cond
+         ((num? X) (if (=0 X) NO YES))
+         ((== 'i1 (val X)) X)
+         (T
+            (let *Log NIL
+               (llvm~n0 X) ) ) ) ) )
 
 # Type casts
 (asm ()
