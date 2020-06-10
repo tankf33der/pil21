@@ -1138,7 +1138,7 @@ False Beg End Safe *Safe)
       (let (End (+lbl)  Var (box))
          (for Exe Prg
             (if (== Exe (last Prg))
-               (let? V (set Var (eval (++ Prg)))
+               (let? V (set Var (eval (car Prg)))
                   (unless (and (sym? V) (== 'i1 (val V)))
                      (set Var @Val2) )
                   (phi End Var)
