@@ -1,4 +1,4 @@
-# 21jun20 Software Lab. Alexander Burger
+# 23jun20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -1129,12 +1129,12 @@
                (let V (eval (++ X))
                   (if (atom V)
                      (if (fill X Y) @ X)
-                     (save V
+                     (save (setq Z V)
                         (while (pair (cdr V))
                            (setq V @) )
                         (set 2 V
                            (if (fill X Y) @ X) )
-                        V ) ) )
+                        Z ) ) )
                (let V (fill Z Y)
                   (cond
                      (V
