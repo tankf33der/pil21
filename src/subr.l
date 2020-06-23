@@ -1120,7 +1120,7 @@
                      ((== X $At) 0)
                      ((== (firstByte X) (char "@")) V)
                      (T 0) ) )
-               ((memq X Y) V)
+               ((or (== X Y) (memq X Y)) V)
                (T 0) ) ) )
       (T
          (stkChk 0)
