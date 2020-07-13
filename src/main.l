@@ -1266,7 +1266,7 @@ atomErr pairErr lstErr varErr itemErr protErr lockErr forkErr symNspErr)
                         (set Fun (box64 (i64 @)))
                         @ ) ) )
                (cdr Args) ) )
-         (argErr Exe Args) )
+         (err Exe 0 ($ "Size overflow") null) )
       (natRet (car Args) @) ) )
 
 # (struct 'num 'any 'any ..) -> any
