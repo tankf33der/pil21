@@ -1,4 +1,4 @@
-# 19jul20 Software Lab. Alexander Burger
+# 20jul20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -495,25 +495,27 @@
 (de void tellEnd ((i32 . Pid))
    (let (P (val $Ptr)  Q (val $TellBuf))
       (set P END)  # Close list
-      (inc 'P 8)
-      (let N (- P Q)  # Size without PID and count
+      (inc 'P)
+      (let (D (- P Q)  N (- D 8))  # Size without PID and count
          (set
             (i32* Q) Pid
             (inc (i32* Q)) (i32 N) )
          (when (val $Tell)
-            (unless (wrBytes @ Q N)
+            (unless (wrBytes @ Q D)
                (close @)
                (set $Tell 0) ) )
          (let
             (Cld (val $Child)  # Iterate children
                <Cld (ofs Cld (* (val $Children) (child T))) )
+            (inc 'Q 8)
             (until (== Cld <Cld)
                (let Cld: (child Cld)
                   (when
                      (and
                         (Cld: pid)
                         (or (=0 Pid) (== Pid (Cld: pid))) )
-                     (wrChild Cld P N) ) ) ) ) ) ) )
+                     (wrChild Cld Q N) ) )
+               (setq Cld (ofs Cld (child T))) ) ) ) ) )
 
 (de void unsync ()
    (when (val $Tell)
@@ -958,7 +960,7 @@
                   Flg (== (val S) (char "+")) )
                (when Flg
                   (setq S (ofs S 1)) )
-               (while (lt0 (Io: fd (if Flg (openRdWr S) (openRdonly S))))
+               (while (lt0 (Io: fd (if Flg (openRdWrAppend S) (openRd S))))
                   (unless (== (gErrno) EINTR)
                      (openErr Exe X) )
                   (sigChk Exe) )
@@ -1025,7 +1027,7 @@
                   Flg (== (val S) (char "+")) )
                (when Flg
                   (setq S (ofs S 1)) )
-               (while (lt0 (Io: fd (if Flg (openWrAppend S) (openWronly S))))
+               (while (lt0 (Io: fd (if Flg (openWrAppend S) (openWr S))))
                   (unless (== (gErrno) EINTR)
                      (openErr Exe X) )
                   (sigChk Exe) )
@@ -1064,12 +1066,51 @@
                   (closeOnExec Exe F) ) ) ) ) ) )
 
 (de void erOpen (Exe X (i8* . P))
-   #!
-   0 )
+   (let Io: (ioFrame P)
+      (Io: fd (dup 2))  # Stderr
+      (let Fd
+         (if (nil? (needSymb Exe X))
+            (dup ((outFile (val $OutFile)) fd))
+            (let
+               (Nm (xName Exe X)
+                  S (pathString Nm (b8 (pathSize Nm)))
+                  Flg (== (val S) (char "+")) )
+               (when Flg
+                  (setq S (ofs S 1)) )
+               (while (lt0 (if Flg (openWrAppend S) (openWr S)))
+                  (unless (== (gErrno) EINTR)
+                     (openErr Exe X) )
+                  (sigChk Exe) )
+               (closeOnExec Exe @)
+               @ ) )
+         (dup2 Fd 2)
+         (close Fd) ) ) )
 
 (de void ctOpen (Exe X (i8* . P))
-   #!
-   0 )
+   (let Io: (ioFrame P)
+      (cond
+         ((nil? (needSymb Exe X))
+            (Io: fd -1)
+            (rdLock (currFd Exe) 0 0 YES) )
+         ((t? X)
+            (Io: fd -1)
+            (wrLock (currFd Exe) 0 0 YES) )
+         (T
+            (let
+               (Nm (xName Exe X)
+                  S (pathString Nm (b8 (pathSize Nm)))
+                  Flg (== (val S) (char "+")) )
+               (when Flg
+                  (setq S (ofs S 1)) )
+               (while (lt0 (openRdWr S))
+                  (unless (== (gErrno) EINTR)
+                     (openErr Exe X) )
+                  (sigChk Exe) )
+               (let Fd @
+                  (if Flg
+                     (rdLock Fd 0 0 YES)
+                     (wrLock Fd 0 0 YES) )
+                  (closeOnExec Exe Fd) ) ) ) ) ) )
 
 (local) (read0 getChar skipc comment skip testEsc anonymous rdAtom rdList)
 
