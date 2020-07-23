@@ -697,10 +697,22 @@
    (if (== (eval (cadr Exe)) $T) $Nil $T) )
 
 # (< 'any ..) -> flg
-#!
+(de _lt (Exe)
+   (let (X (cdr Exe)  Y (save (eval (car X))))
+      (loop
+         (? (atom (shift X)) $T)
+         (let Z (eval (car X))
+            (? (ge0 (compare Y Z)) $Nil)
+            (setq Y (safe Z)) ) ) ) )
 
 # (<= 'any ..) -> flg
-#!
+(de _le (Exe)
+   (let (X (cdr Exe)  Y (save (eval (car X))))
+      (loop
+         (? (atom (shift X)) $T)
+         (let Z (eval (car X))
+            (? (gt0 (compare Y Z)) $Nil)
+            (setq Y (safe Z)) ) ) ) )
 
 # (> 'any ..) -> flg
 (de _gt (Exe)

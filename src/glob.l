@@ -409,6 +409,8 @@
    (NIL "=T" _eqT)
    (NIL "n0" _neq0)
    (NIL "nT" _neqT)
+   (NIL "<" _lt)
+   (NIL "<=" _le)
    (NIL ">" _gt)
    (NIL ">=" _ge)
    (NIL "max" _max)
