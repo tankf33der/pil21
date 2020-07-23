@@ -1,4 +1,4 @@
-# 21jul20 Software Lab. Alexander Burger
+# 23jul20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -411,6 +411,8 @@
    (NIL "nT" _neqT)
    (NIL ">" _gt)
    (NIL ">=" _ge)
+   (NIL "max" _max)
+   (NIL "min" _min)
    (NIL "atom" _atom)
    (NIL "pair" _pair)
    (NIL "circ?" _circQ)
@@ -454,6 +456,7 @@
    (NIL "env" _env)
    (NIL "date" _date)
    (NIL "time" _time)
+   (NIL "usec" _usec)
    (NIL "quit" _quit)
    (NIL "sys" _sys)
    (NIL "pwd" _pwd)
