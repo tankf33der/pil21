@@ -16,7 +16,7 @@ all: $(LIB)/sysdefs $(BIN)/picolisp $(LIB)/ext.so
 
 # System definitions
 $(LIB)/sysdefs: sysdefs.c
-	clang sysdefs.c  &&  ./a.out > $(LIB)/sysdefs  &&  rm ./a.out
+	$(ASM) sysdefs.c  &&  ./a.out > $(LIB)/sysdefs  &&  rm ./a.out
 
 # Base system
 $(BIN)/picolisp: picolisp.bc
@@ -34,7 +34,7 @@ base.ll: $(INC) $(SRC)
 	../pil lib/llvm.l main.l -bye > base.ll
 
 lib.bc: pico.h lib.c
-	clang -c -O3 `pkg-config --cflags libffi` -emit-llvm lib.c
+	$(ASM) -c -O3 `pkg-config --cflags libffi` -emit-llvm lib.c
 
 # Extension library
 $(LIB)/ext.so: ext.bc
