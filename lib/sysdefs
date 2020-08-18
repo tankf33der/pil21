@@ -1,0 +1,29 @@
+# 4.2.1 Compatible Clang 7.0.1 (tags/RELEASE_701/final)System Definitions
+
+[Errno]
+EINTR	4
+EAGAIN	11
+EACCES	13
+
+[Networking]
+SOCK_STREAM	1
+SOCK_DGRAM	2
+AF_INET6	10
+SOL_SOCKET	1
+SO_REUSEADDR	2
+IPPROTO_IPV6	41
+IPV6_V6ONLY	26
+INET6_ADDRSTRLEN	46
+sockaddr_in6	28
+sin6_family	0
+sin6_addr	8
+sin6_port	2
+NI_MAXHOST	1025
+NI_NAMEREQD	8
+addrinfo	48
+ai_family	4
+ai_socktype	8
+ai_addrlen	16
+ai_addr	24
+ai_next	40
+AF_UNSPEC	0
