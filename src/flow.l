@@ -1,4 +1,4 @@
-# 18aug20 Software Lab. Alexander Burger
+# 19aug20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -924,6 +924,7 @@
                (Dst: lim (ofs P (- (val $StkSize))))
                (Dst: at 0)
                (Dst: bnd (val $Bind))
+               (set $Bind (push ZERO $At (val $Bind) Exe))  # [0 @ LINK exe]
                (memcpy (Dst: (env)) (env) (env T))
                (set  # Init local env
                   $Make 0
