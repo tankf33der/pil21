@@ -40,7 +40,8 @@
 # Unwind stack
 (de void unwind ((i8* . Catch))
    (when (and (val $Current) (<> @ (val $Coroutines)))
-      (stop @) )
+      (stop @)
+      (set $Current (val $Coroutines)) )
    (let (Ca (val $Catch)  Bnd (val $Bind))
       (while Ca
          (let Ca: (caFrame Ca)
