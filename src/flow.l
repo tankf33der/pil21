@@ -558,70 +558,82 @@
    (let
       (X (cdr Exe)
          Y (++ X)
-         P (set $Bind (push NIL NIL (val $Bind)))  # [[sym] sym LINK]
          R $Nil )
       (cond
          ((atom Y)  # (for sym 'cnt|lst ..)
-            (set P (val Y)  2 P Y)
-            (let V (eval (++ X))
-               (if (num? V)  # (for sym 'cnt ..)
-                  (unless (sign? V)
-                     (set Y ZERO)
-                     (loop
-                        (? (> (+ (val Y) (hex "10")) V)  # Increment
-                           (setq R (& R -2)) )
-                        (set Y @)
-                        (? (=0 (& (setq R (loop1 X)) 1))) ) )
-                  (save V
-                     (loop  # (for sym 'lst ..)
-                        (? (atom V) (setq R (& R -2)))
-                        (set Y (++ V))
-                        (? (=0 (& (setq R (loop1 X)) 1))) ) ) ) ) )
+            (needChkVar Exe Y)
+            (let P (set $Bind (push NIL NIL (val $Bind)))  # [[sym] sym LINK]
+               (set P (val Y)  2 P Y)
+               (let V (eval (++ X))
+                  (if (num? V)  # (for sym 'cnt ..)
+                     (unless (sign? V)
+                        (set Y ZERO)
+                        (loop
+                           (? (> (+ (val Y) (hex "10")) V)  # Increment
+                              (setq R (& R -2)) )
+                           (set Y @)
+                           (? (=0 (& (setq R (loop1 X)) 1))) ) )
+                     (save V
+                        (loop  # (for sym 'lst ..)
+                           (? (atom V) (setq R (& R -2)))
+                           (set Y (++ V))
+                           (? (=0 (& (setq R (loop1 X)) 1))) ) ) ) )
+               (set Y (val P)  $Bind (val 3 P)) ) )
          ((atom (cdr Y))  # (for (sym2 . sym) 'lst ..)
-            (let Sym2 @
-               (set P (val (setq Y (car Y)))  2 P Y)
-               (let
-                  (Q (set $Bind (push (val Sym2) Sym2 (val $Bind)))  # [[sym] sym LINK]
-                     V (save (eval (++ X))) )
-                  (set Y ONE)
-                  (loop
-                     (? (atom V) (setq R (& R -2)))
-                     (set Sym2 (++ V))
-                     (? (=0 (& (setq R (loop1 X)) 1)))
-                     (set Y (+ (val Y) (hex "10"))) )
-                  (set Sym2 (val Q)) ) ) )
+            (let Sym2 (needChkVar Exe @)
+               (needChkVar Exe (setq Y (car Y)))
+               (let P (set $Bind (push NIL NIL (val $Bind)))  # [[sym] sym LINK]
+                  (set P (val Y)  2 P Y)
+                  (let
+                     (Q (set $Bind (push (val Sym2) Sym2 (val $Bind)))  # [[sym] sym LINK]
+                        V (save (eval (++ X))) )
+                     (set Y ONE)
+                     (loop
+                        (? (atom V) (setq R (& R -2)))
+                        (set Sym2 (++ V))
+                        (? (=0 (& (setq R (loop1 X)) 1)))
+                        (set Y (+ (val Y) (hex "10"))) )
+                     (set Sym2 (val Q)) )
+                  (set Y (val P)  $Bind (val 3 P)) ) ) )
          ((atom (car Y))  # (for (sym ..) ..)
             (let Z (cdr Y)
-               (set
-                  P (val (setq Y @))
-                  2 P Y
-                  Y (eval (++ Z)) )
-               (save R
-                  (loop  # (any2 . prg)
-                     (? (nil? (eval (car Z))))
-                     (set $At @)
-                     (? (=0 (& (setq R (loop1 X)) 1)))
-                     (safe (setq R (& R -2)))
-                     (when (pair (cdr Z))
-                        (set Y (run @)) ) ) ) ) )
-         (T  # (for ((sym2 . sym) ..) ..)
-            (let (Sym2 (cdr @)  Z (cdr Y))
-               (set P (val (setq Y (car @)))  2 P Y)
-               (save R
-                  (let Q (set $Bind (push (val Sym2) Sym2 (val $Bind)))  # [[sym] sym LINK]
-                     (set
-                        Sym2 (save (eval (++ Z)))
-                        Y ONE )
-                     (loop
+               (needChkVar Exe (setq Y @))
+               (let P (set $Bind (push NIL NIL (val $Bind)))  # [[sym] sym LINK]
+                  (set
+                     P (val Y)
+                     2 P Y
+                     Y (eval (++ Z)) )
+                  (save R
+                     (loop  # (any2 . prg)
                         (? (nil? (eval (car Z))))
                         (set $At @)
                         (? (=0 (& (setq R (loop1 X)) 1)))
                         (safe (setq R (& R -2)))
                         (when (pair (cdr Z))
-                           (set Sym2 (run @)) )
-                        (set Y (+ (val Y) (hex "10"))) )
-                     (set Sym2 (val Q)) ) ) ) ) )
-      (set Y (val P)  $Bind (val 3 P))
+                           (set Y (run @)) ) ) )
+                  (set Y (val P)  $Bind (val 3 P)) ) ) )
+         (T  # (for ((sym2 . sym) ..) ..)
+            (let (Sym2 (cdr @)  Z (cdr Y))
+               (setq Y (car @))
+               (needChkVar Exe Y)
+               (needChkVar Exe Sym2)
+               (let P (set $Bind (push NIL NIL (val $Bind)))  # [[sym] sym LINK]
+                  (set P (val Y)  2 P Y)
+                  (save R
+                     (let Q (set $Bind (push (val Sym2) Sym2 (val $Bind)))  # [[sym] sym LINK]
+                        (set
+                           Sym2 (save (eval (++ Z)))
+                           Y ONE )
+                        (loop
+                           (? (nil? (eval (car Z))))
+                           (set $At @)
+                           (? (=0 (& (setq R (loop1 X)) 1)))
+                           (safe (setq R (& R -2)))
+                           (when (pair (cdr Z))
+                              (set Sym2 (run @)) )
+                           (set Y (+ (val Y) (hex "10"))) )
+                        (set Sym2 (val Q)) ) )
+                  (set Y (val P)  $Bind (val 3 P)) ) ) ) )
       R ) )
 
 # (with 'var . prg) -> any
