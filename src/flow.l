@@ -1,4 +1,4 @@
-# 22aug20 Software Lab. Alexander Burger
+# 23aug20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -176,7 +176,7 @@
             (setq P
                (push  # [val sym LINK]
                   (eval (++ X))  # Evaluate next argument
-                  (++ Y)  # Next parameter
+                  (needChkVar Exe (++ Y))  # Next parameter
                   P ) ) ) )
       (prog1
          (if (== Y $At)  # VarArgs
@@ -200,6 +200,7 @@
                      (run (cdr Exe))  # Run body
                      (set $Key K  $Cls C  $Next Next  $Link Link) ) ) )
             (unless (== Y $Nil)
+               (needChkVar Exe Y)
                (set
                   $Bind (push (val Y) Y P)  # Last parameter
                   Y X ) )  # Set to unevaluated argument(s)
@@ -641,6 +642,7 @@
          ((num? Y) (argErr Exe Y))
          ((nil? Y) (run X))
          ((sym? Y)  # Single symbol
+            (chkVar Exe Y)
             (let P (set $Bind (push (val Y) Y (val $Bind)))  # [[sym] sym LINK]
                (prog1
                   (run X)
@@ -652,8 +654,10 @@
                      (when (num? Z)
                         (argErr Exe Y) )
                      (if (sym? Z)
-                        (set $Bind (setq P (push (val Z) Z P)))
+                        (set $Bind
+                           (setq P (push (val Z) (chkVar Exe Z) P)) )
                         (let S (car Z)
+                           (needChkVar Exe S)
                            (set
                               $Bind (setq P (push (val S) S P))
                               S (cdr Z) ) ) ) )
@@ -674,6 +678,7 @@
          Q P )
       (while (pair Y)
          (let (Z (++ Y)  S (car Z))
+            (needChkVar Exe S)
             (set
                $Bind (setq P (push (val S) S P Z))  # [[sym] sym LINK (sym . val)]
                S (cdr Z) ) ) )
@@ -706,7 +711,9 @@
 (de _let (Exe)
    (let (X (cdr Exe)  Y (++ X))
       (if (atom Y)
-         (let P (set $Bind (push (val Y) Y (val $Bind)))  # [[sym] sym LINK]
+         (let P
+            (set $Bind
+               (push (val Y) (needChkVar Exe Y) (val $Bind)) )  # [[sym] sym LINK]
             (set Y (eval (++ X)))
             (prog1
                (run X)
@@ -716,7 +723,7 @@
                (let Z (car Y)
                   (if (atom Z)  # Single symbol
                      (set
-                        $Bind (setq P (push (val Z) Z P))
+                        $Bind (setq P (push (val Z) (needChkVar Exe Z) P))
                         Z (eval (car (shift Y))) )
                      (let Tos 0  # List structure
                         (loop
@@ -728,7 +735,7 @@
                                  (setq Tos U) ) )
                            (let S (car Z)
                               (unless (nil? S)  # Skip NIL
-                                 (set $Bind (setq P (push (val S) S P))) ) )
+                                 (set $Bind (setq P (push (val S) (needChkVar Exe S) P))) ) )
                            (loop
                               (? (pair (cdr Z))  # Right subtree
                                  (let U Z  # Go right
@@ -737,7 +744,7 @@
                                     (setq Tos (| U 8)) ) )
                               (let S @
                                  (unless (nil? S)  # Dotted structure symbol
-                                    (set $Bind (setq P (push (val S) S P))) ) )
+                                    (set $Bind (setq P (push (val S) (needChkVar Exe S) P))) ) )
                               (loop
                                  (unless Tos
                                     (goto 1) )
@@ -762,7 +769,7 @@
 
 # (let? sym 'any . prg) -> any
 (de _letQ (Exe)
-   (let (X (cdr Exe)  Y (++ X))
+   (let (X (cdr Exe)  Y (needChkVar Exe (++ X)))
       (if (nil? (eval (car X)))
          @
          (let P (set $Bind (push (val Y) Y (val $Bind)))  # [[sym] sym LINK]
@@ -796,7 +803,7 @@
 (de _buf (Exe)
    (let
       (X (cdr Exe)
-         Y (++ X)
+         Y (needChkVar Exe (++ X))
          Z (needCnt Exe (eval (++ X)))
          P (set $Bind (push (val Y) Y (val $Bind))) )  # [[sym] sym LINK]
       (set Y (box64 (i64 (b8 (int Z)))))
