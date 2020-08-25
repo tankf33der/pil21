@@ -1,4 +1,4 @@
-# 24aug20 Software Lab. Alexander Burger
+# 25aug20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -172,12 +172,21 @@
          P (set $Bind (push (val $At) $At (val $Bind) Lst)) )  # [[@] @ LINK Expr]
       (set $Bind (setq P (push $This Obj P)))
       (while (pair Y)
-         (set $Bind
-            (setq P
-               (push  # [val sym LINK]
-                  (eval (++ X))  # Evaluate next argument
-                  (needChkVar Exe (++ Y))  # Next parameter
-                  P ) ) ) )
+         (let (V (eval (++ X))  Z (++ Y))  # Evaluate next argument
+            (if (atom Z)
+               (set $Bind
+                  (setq P (push V (needChkVar Exe Z) P)) )  # [val sym LINK]
+               (loop
+                  (set $Bind
+                     (setq P
+                        (push  # [val sym LINK]
+                           (if (pair V) (++ V) $Nil)
+                           (needChkVar Exe (++ Z))
+                           P ) ) )
+                  (? (atom Z)) )
+               (unless (nil? Z)
+                  (set $Bind
+                     (setq P (push V (needChkVar Exe Z) P)) ) ) ) ) )  # [val sym LINK]
       (prog1
          (if (== Y $At)  # VarArgs
             (let Next (val $Next)
@@ -209,7 +218,7 @@
                      (prog1
                         (run (cdr Exe))  # Run body
                         (set $Key K  $Cls C  $Next Next) ) ) ) )
-            (unless (== Y $Nil)
+            (unless (nil? Y)
                (needChkVar Exe Y)
                (set
                   $Bind (push (val Y) Y P)  # Last parameter
@@ -763,7 +772,7 @@
                                     (setq Z @)  # Invert tree
                                     (set 2 U Tos)
                                     (setq Tos (| U 8)) ) )
-                              (unless (nil? (car Z))  # Dotted structure symbol
+                              (unless (nil? @)  # Dotted structure symbol
                                  (let S (needChkVar Exe @)
                                     (set $Bind (setq P (push (val S) S P))) ) )
                               (loop
@@ -855,7 +864,7 @@
       (let Ca (val $Catch)
          (while Ca
             (let Ca: (caFrame Ca)
-               (when (or (== $T (Ca: tag)) (== Tag (Ca: tag)))
+               (when (or (t? (Ca: tag)) (== Tag (Ca: tag)))
                   (unwind Ca)
                   (longjmp (Ca: (rst)) 1) )
                (setq Ca (Ca: link)) ) ) )
