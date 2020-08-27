@@ -1,5 +1,4 @@
-# macOS 10.15
-
+### macOS 10.15
 ```
 $ brew install llvm libffi ncurses readline
 $ cd pil21/src
