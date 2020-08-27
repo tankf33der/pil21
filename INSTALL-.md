@@ -44,6 +44,10 @@ $ llc picolisp.bc -o picolisp.s
 $ clang picolisp.s -o ../bin/picolisp -lc -lm -ldl -lffi -lreadline -lncursesw
 $ gcc sysdefs.c && ./a.out > ../lib/sysdefs
 $ ../pil
+: *OS
+-> "Solaris"
+: *CPU
+-> "Sparc"
 : (version)
 21.0.0
 -> (21 0 0)
