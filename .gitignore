@@ -1,2 +1,5 @@
+bin/picolisp
+lib/sysdefs
 *.bc
 *.s
+*.so
