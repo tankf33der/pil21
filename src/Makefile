@@ -15,11 +15,7 @@ LIB = ../lib
 INC = lib/llvm.l vers.l defs.l glob.l dec.l
 SRC = main.l gc.l big.l sym.l io.l db.l apply.l flow.l subr.l
 
-all: picolisp tools gate
-
-picolisp: $(LIB)/sysdefs $(BIN)/picolisp $(LIB)/ext.so $(LIB)/ht.so
-tools: $(BIN)/balance
-gate: $(BIN)/ssl $(BIN)/httpGate
+all: $(LIB)/sysdefs $(BIN)/picolisp $(LIB)/ext.so $(LIB)/ht.so $(BIN)/balance $(BIN)/ssl $(BIN)/httpGate
 
 # System definitions
 $(LIB)/sysdefs: sysdefs.c
