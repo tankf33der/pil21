@@ -382,8 +382,7 @@
                (while (pair (cdr (shift X)))
                   (save (setq Y (eval (car X)))
                      (while (pair Y)
-                        (setq Z (set 2 Z (cons (++ Y) Y))) )
-                     (set 2 Z Y) ) )
+                        (setq Z (set 2 Z (cons (++ Y) Y))) ) ) )
                (set 2 Z (eval (car X)))
                R ) ) ) ) )
 
