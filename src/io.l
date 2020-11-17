@@ -1,4 +1,4 @@
-# 12nov20 Software Lab. Alexander Burger
+# 17nov20 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -1150,9 +1150,10 @@ selectErr)
 
 (de read0 (i1))
 
-(de i32 waitTty ()
-   (waitFd 0 0 292MY)
-   0 )
+(de i32 rlGetc ((i8* . F))
+   (if (waitFd 0 0 292MY)
+      (stdinByte)
+      -1 ) )
 
 (de i32 _getStdin ()
    (let In: (inFile (val $InFile))
