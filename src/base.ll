@@ -1551,6 +1551,7 @@ declare i32 @dup(i32)
 declare i32 @dup2(i32, i32)
 declare i32 @close(i32)
 declare i8* @signal(i32, i8*)
+declare i32 @tcsetpgrp(i32, i32)
 declare i32 @waitpid(i32, i32*, i32)
 declare i32 @setjmp(i8*)
 declare void @longjmp(i8*, i32)
@@ -1596,6 +1597,8 @@ declare i32 @gSignal(i32)
 declare void @sigUnblock(i32)
 declare void @iSignal(i32, i8*)
 declare void @sigChld(i32)
+declare i32 @waitWuntraced(i32, i32*)
+declare i32 @wifStopped(i32*)
 declare i32 @nErrno()
 declare i32 @gErrno()
 @Tio = external global i1
@@ -80959,7 +80962,7 @@ $7:
   store i8* null, i8** %40
 ; # (flushAll)
   call void @flushAll()
-; # (cond ((lt0 (fork)) (forkErr Exe)) ((=0 @) (execvp (val Av) Av) (...
+; # (cond ((lt0 (fork)) (forkErr Exe)) ((=0 @) (setpgid 0 0) (execvp ...
 ; # (fork)
   %41 = call i32 @fork()
 ; # (lt0 (fork))
@@ -80977,84 +80980,122 @@ $9:
   br i1 %45, label %$12, label %$11
 $12:
   %46 = phi i64 [%44, %$9] ; # X
+; # (setpgid 0 0)
+  %47 = call i32 @setpgid(i32 0, i32 0)
 ; # (val Av)
-  %47 = load i8*, i8** %17
+  %48 = load i8*, i8** %17
 ; # (execvp (val Av) Av)
-  %48 = call i32 @execvp(i8* %47, i8** %17)
+  %49 = call i32 @execvp(i8* %48, i8** %17)
 ; # (val Av)
-  %49 = load i8*, i8** %17
+  %50 = load i8*, i8** %17
 ; # (execErr (val Av))
-  call void @execErr(i8* %49)
+  call void @execErr(i8* %50)
   unreachable
 $11:
-  %50 = phi i64 [%44, %$9] ; # X
+  %51 = phi i64 [%44, %$9] ; # X
   br label %$8
 $8:
-  %51 = phi i64 [%50, %$11] ; # X
-  %52 = phi i64 [0, %$11] ; # ->
-; # (let (Pid @ Res (b32 1)) (while (lt0 (waitpid Pid Res 0)) (unless...
+  %52 = phi i64 [%51, %$11] ; # X
+  %53 = phi i64 [0, %$11] ; # ->
+; # (let (Pid @ Res (b32 1)) (setpgid Pid 0) (tcsetpgrp 0 Pid) (loop ...
 ; # (b32 1)
-  %53 = alloca i32, i64 1
-; # (while (lt0 (waitpid Pid Res 0)) (unless (== (gErrno) EINTR) (err...
+  %54 = alloca i32, i64 1
+; # (setpgid Pid 0)
+  %55 = call i32 @setpgid(i32 %41, i32 0)
+; # (tcsetpgrp 0 Pid)
+  %56 = call i32 @tcsetpgrp(i32 0, i32 %41)
+; # (loop (while (lt0 (waitWuntraced Pid Res)) (unless (== (gErrno) E...
   br label %$13
 $13:
-  %54 = phi i64 [%51, %$8], [%61, %$19] ; # X
-; # (waitpid Pid Res 0)
-  %55 = call i32 @waitpid(i32 %41, i32* %53, i32 0)
-; # (lt0 (waitpid Pid Res 0))
-  %56 = icmp slt i32 %55, 0
-  br i1 %56, label %$14, label %$15
+  %57 = phi i64 [%52, %$8], [%85, %$21] ; # X
+; # (while (lt0 (waitWuntraced Pid Res)) (unless (== (gErrno) EINTR) ...
+  br label %$14
 $14:
-  %57 = phi i64 [%54, %$13] ; # X
+  %58 = phi i64 [%57, %$13], [%65, %$20] ; # X
+; # (waitWuntraced Pid Res)
+  %59 = call i32 @waitWuntraced(i32 %41, i32* %54)
+; # (lt0 (waitWuntraced Pid Res))
+  %60 = icmp slt i32 %59, 0
+  br i1 %60, label %$15, label %$16
+$15:
+  %61 = phi i64 [%58, %$14] ; # X
 ; # (unless (== (gErrno) EINTR) (err Exe 0 ($ "wait pid") null))
 ; # (gErrno)
-  %58 = call i32 @gErrno()
+  %62 = call i32 @gErrno()
 ; # (== (gErrno) EINTR)
-  %59 = icmp eq i32 %58, 2
-  br i1 %59, label %$17, label %$16
-$16:
-  %60 = phi i64 [%57, %$14] ; # X
+  %63 = icmp eq i32 %62, 2
+  br i1 %63, label %$18, label %$17
+$17:
+  %64 = phi i64 [%61, %$15] ; # X
 ; # (err Exe 0 ($ "wait pid") null)
   call void @err(i64 %0, i64 0, i8* bitcast ([9 x i8]* @$82 to i8*), i8* null)
   unreachable
-$17:
-  %61 = phi i64 [%57, %$14] ; # X
-; # (sigChk Exe)
-  %62 = load i32, i32* bitcast ([16 x i32]* @$Signal to i32*)
-  %63 = icmp ne i32 %62, 0
-  br i1 %63, label %$18, label %$19
 $18:
-  call void @sighandler(i64 %0)
-  br label %$19
+  %65 = phi i64 [%61, %$15] ; # X
+; # (sigChk Exe)
+  %66 = load i32, i32* bitcast ([16 x i32]* @$Signal to i32*)
+  %67 = icmp ne i32 %66, 0
+  br i1 %67, label %$19, label %$20
 $19:
-  br label %$13
-$15:
-  %64 = phi i64 [%54, %$13] ; # X
+  call void @sighandler(i64 %0)
+  br label %$20
+$20:
+  br label %$14
+$16:
+  %68 = phi i64 [%58, %$14] ; # X
+; # (getpgrp)
+  %69 = call i32 @getpgrp()
+; # (tcsetpgrp 0 (getpgrp))
+  %70 = call i32 @tcsetpgrp(i32 0, i32 %69)
+; # (? (=0 (wifStopped Res)) (set $At2 (cnt (i64 (val Res)))) (if (va...
+; # (wifStopped Res)
+  %71 = call i32 @wifStopped(i32* %54)
+; # (=0 (wifStopped Res))
+  %72 = icmp eq i32 %71, 0
+  br i1 %72, label %$23, label %$21
+$23:
+  %73 = phi i64 [%68, %$16] ; # X
 ; # (set $At2 (cnt (i64 (val Res))))
 ; # (val Res)
-  %65 = load i32, i32* %53
+  %74 = load i32, i32* %54
 ; # (i64 (val Res))
-  %66 = sext i32 %65 to i64
+  %75 = sext i32 %74 to i64
 ; # (cnt (i64 (val Res)))
-  %67 = shl i64 %66, 4
-  %68 = or i64 %67, 2
-  %69 = inttoptr i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 456) to i64) to i64*
-  store i64 %68, i64* %69
+  %76 = shl i64 %75, 4
+  %77 = or i64 %76, 2
+  %78 = inttoptr i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 456) to i64) to i64*
+  store i64 %77, i64* %78
 ; # (if (val Res) $Nil $T)
 ; # (val Res)
-  %70 = load i32, i32* %53
-  %71 = icmp ne i32 %70, 0
-  br i1 %71, label %$20, label %$21
-$20:
-  %72 = phi i64 [%64, %$15] ; # X
+  %79 = load i32, i32* %54
+  %80 = icmp ne i32 %79, 0
+  br i1 %80, label %$24, label %$25
+$24:
+  %81 = phi i64 [%73, %$23] ; # X
+  br label %$26
+$25:
+  %82 = phi i64 [%73, %$23] ; # X
+  br label %$26
+$26:
+  %83 = phi i64 [%81, %$24], [%82, %$25] ; # X
+  %84 = phi i64 [ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 8) to i64), %$24], [ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 280) to i64), %$25] ; # ->
   br label %$22
 $21:
-  %73 = phi i64 [%64, %$15] ; # X
-  br label %$22
+  %85 = phi i64 [%68, %$16] ; # X
+; # (repl 0 ($ "+ ") $Nil)
+  %86 = call i64 @repl(i64 0, i8* bitcast ([3 x i8]* @$83 to i8*), i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 8) to i64))
+; # (tcsetpgrp 0 Pid)
+  %87 = call i32 @tcsetpgrp(i32 0, i32 %41)
+; # (val SIGCONT Sig)
+  %88 = getelementptr i32, i32* @Sig, i32 8
+  %89 = load i32, i32* %88
+; # (kill Pid (val SIGCONT Sig))
+  %90 = call i32 @kill(i32 %41, i32 %89)
+  br label %$13
 $22:
-  %74 = phi i64 [%72, %$20], [%73, %$21] ; # X
-  %75 = phi i64 [ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 8) to i64), %$20], [ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 280) to i64), %$21] ; # ->
-  ret i64 %75
+  %91 = phi i64 [%83, %$26] ; # X
+  %92 = phi i64 [%84, %$26] ; # ->
+  ret i64 %92
 }
 
 define i64 @_ipid(i64) {
@@ -81304,7 +81345,7 @@ $9:
 define void @makeErr(i64) {
 $1:
 ; # (err Exe 0 ($ "Not making") null)
-  call void @err(i64 %0, i64 0, i8* bitcast ([11 x i8]* @$83 to i8*), i8* null)
+  call void @err(i64 %0, i64 0, i8* bitcast ([11 x i8]* @$84 to i8*), i8* null)
   unreachable
 }
 
@@ -98933,7 +98974,7 @@ $4:
   %26 = phi i64 [%14, %$2], [%15, %$5] ; # X
   %27 = phi i64 [0, %$2], [%25, %$5] ; # ->
 ; # (err 0 (if (atom (shift X)) 0 (eval (car X))) ($ "%s") Msg)
-  call void @err(i64 0, i64 %27, i8* bitcast ([3 x i8]* @$84 to i8*), i8* %8)
+  call void @err(i64 0, i64 %27, i8* bitcast ([3 x i8]* @$85 to i8*), i8* %8)
   unreachable
 }
 
@@ -99255,7 +99296,7 @@ $3:
   br label %$4
 $4:
   %12 = phi i64 [%6, %$2], [%7, %$3] ; # X
-  %13 = phi i8* [bitcast ([2 x i8]* @$85 to i8*), %$2], [%11, %$3] ; # ->
+  %13 = phi i8* [bitcast ([2 x i8]* @$86 to i8*), %$2], [%11, %$3] ; # ->
 ; # (getDir (if (nil? (evSym X)) ($ ".") (let Nm (xName Exe @) (pathS...
   %14 = call i8* @getDir(i8* %13)
   %15 = icmp ne i8* %14, null
@@ -100498,7 +100539,7 @@ $4:
 define void @natErr(i64) {
 $1:
 ; # (err 0 Spec ($ "Bad result spec") null)
-  call void @err(i64 0, i64 %0, i8* bitcast ([16 x i8]* @$86 to i8*), i8* null)
+  call void @err(i64 0, i64 %0, i8* bitcast ([16 x i8]* @$87 to i8*), i8* null)
   unreachable
 }
 
@@ -101086,7 +101127,7 @@ $7:
 $9:
   %30 = phi i64 [%23, %$7] ; # Spec
 ; # (err Exe 0 ($ "Bad ffi") null)
-  call void @err(i64 %0, i64 0, i8* bitcast ([8 x i8]* @$87 to i8*), i8* null)
+  call void @err(i64 %0, i64 0, i8* bitcast ([8 x i8]* @$88 to i8*), i8* null)
   unreachable
 $10:
   %31 = phi i64 [%23, %$7] ; # Spec
@@ -101814,7 +101855,7 @@ $16:
 ; # (dlerror)
   %45 = call i8* @dlerror()
 ; # (err Exe Y ($ "[DLL] %s") (dlerror))
-  call void @err(i64 %0, i64 %15, i8* bitcast ([9 x i8]* @$88 to i8*), i8* %45)
+  call void @err(i64 %0, i64 %15, i8* bitcast ([9 x i8]* @$89 to i8*), i8* %45)
   unreachable
 $17:
   %46 = phi i64 [%38, %$14] ; # X
@@ -102641,7 +102682,7 @@ $10:
   %32 = phi i64 [%29, %$8] ; # P
   %33 = phi i8** [%30, %$8] ; # Q
 ; # (err Exe 0 ($ "Too many callbacks") null)
-  call void @err(i64 %0, i64 0, i8* bitcast ([19 x i8]* @$89 to i8*), i8* null)
+  call void @err(i64 %0, i64 0, i8* bitcast ([19 x i8]* @$90 to i8*), i8* null)
   unreachable
 $11:
   %34 = phi i64 [%29, %$8] ; # P
@@ -104145,7 +104186,7 @@ $1:
 ; # (val P)
   %6 = load i8*, i8** %5
 ; # (strcmp (val P) ($ "+"))
-  %7 = call i32 @strcmp(i8* %6, i8* bitcast ([2 x i8]* @$90 to i8*))
+  %7 = call i32 @strcmp(i8* %6, i8* bitcast ([2 x i8]* @$91 to i8*))
   %8 = icmp ne i32 %7, 0
   br i1 %8, label %$3, label %$2
 $2:
@@ -104238,7 +104279,7 @@ $7:
   %41 = phi i8** [%17, %$4], [%40, %$13] ; # Av
 ; # (when (getenv ($ "HOME")) (set $UsrHome @ $UsrLen (strlen @)))
 ; # (getenv ($ "HOME"))
-  %42 = call i8* @getenv(i8* bitcast ([5 x i8]* @$91 to i8*))
+  %42 = call i8* @getenv(i8* bitcast ([5 x i8]* @$92 to i8*))
   %43 = icmp ne i8* %42, null
   br i1 %43, label %$14, label %$15
 $14:
@@ -104510,20 +104551,21 @@ $26:
 $27:
   %154 = phi i8** [%153, %$26], [%154, %$27] ; # Av
 ; # (repl 0 ($ ": ") $Nil)
-  %155 = call i64 @repl(i64 0, i8* bitcast ([3 x i8]* @$92 to i8*), i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 8) to i64))
+  %155 = call i64 @repl(i64 0, i8* bitcast ([3 x i8]* @$93 to i8*), i64 ptrtoint (i8* getelementptr (i8, i8* bitcast ([852 x i64]* @SymTab to i8*), i32 8) to i64))
   br label %$27
 }
 
-@$92 = private constant [3 x i8] c": \00"
-@$91 = private constant [5 x i8] c"HOME\00"
-@$90 = private constant [2 x i8] c"+\00"
-@$89 = private constant [19 x i8] c"Too many callbacks\00"
-@$88 = private constant [9 x i8] c"[DLL] %s\00"
-@$87 = private constant [8 x i8] c"Bad ffi\00"
-@$86 = private constant [16 x i8] c"Bad result spec\00"
-@$85 = private constant [2 x i8] c".\00"
-@$84 = private constant [3 x i8] c"%s\00"
-@$83 = private constant [11 x i8] c"Not making\00"
+@$93 = private constant [3 x i8] c": \00"
+@$92 = private constant [5 x i8] c"HOME\00"
+@$91 = private constant [2 x i8] c"+\00"
+@$90 = private constant [19 x i8] c"Too many callbacks\00"
+@$89 = private constant [9 x i8] c"[DLL] %s\00"
+@$88 = private constant [8 x i8] c"Bad ffi\00"
+@$87 = private constant [16 x i8] c"Bad result spec\00"
+@$86 = private constant [2 x i8] c".\00"
+@$85 = private constant [3 x i8] c"%s\00"
+@$84 = private constant [11 x i8] c"Not making\00"
+@$83 = private constant [3 x i8] c"+ \00"
 @$82 = private constant [9 x i8] c"wait pid\00"
 @$81 = private constant [4 x i8] c" = \00"
 @$80 = private constant [3 x i8] c" :\00"
