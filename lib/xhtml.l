@@ -1,4 +1,4 @@
-# 15jan21 Software Lab. Alexander Burger
+# 06feb21 Software Lab. Alexander Burger
 
 (de xhtml (Path)
    (for X
@@ -511,10 +511,10 @@
             BegL
             (A Z)  # Plain
             (DisA DisZ)  # Disabled
-            (CmdA Cmd CmdZ)  # Command
-            (ActA Act ActZ)  # Active command
-            (SubA Sub SubZ)  # Closed submenu
-            (TopA Top TopZ)  # Open submenu
+            (CmdA Cmd CmdZ)        # Command
+            (ActA Act ActZ)        # Active command
+            (SubA SubB SubC SubZ)  # Closed submenu
+            (TopA TopB TopC TopZ)  # Open submenu
             TopEnd
             EndL
             End )
@@ -554,7 +554,10 @@
                   (prin
                      SubA
                      (sesId (urlMT *Url (| M *Menu) *Tab *ID))
-                     Sub )
+                     SubB
+                     "\"" )
+                  (ht:Prin ,"Open submenu")
+                  (prin "\"" SubC)
                   (ht:Prin (eval (cadr L) E))
                   (setq M (>> -1 M))
                   (recur (L)
@@ -567,7 +570,10 @@
                   (prin
                      TopA
                      (sesId (urlMT *Url (x| M *Menu) *Tab *ID))
-                     Top )
+                     TopB
+                     "\"" )
+                  (ht:Prin ,"Close submenu")
+                  (prin "\"" TopC)
                   (ht:Prin (eval (cadr L) E))
                   (prinl TopZ)
                   (setq M (>> -1 M))
