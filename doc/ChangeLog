@@ -1,7 +1,19 @@
-06feb21
+09feb21
+   Ignore SIGHUP for non-config calls
+      src/httpGate.c
+
+08feb21
+   Start task in first 'heartbeat' call
+      lib/heartbeat.l
+   Touch events not needed
+      lib/xhtml/tab
+
+07feb21
    Variable titles in menu
+   Layout template line format
       lib/xhtml.l
-      lib/xhtml/
+      lib/xhtml/menu
+      lib/xhtml/layout
 
 05feb21
    'plio' must preserve $Ptr and $End
