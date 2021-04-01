@@ -1,3 +1,26 @@
+01apr21
+   'enum' returns cell instead of value
+      src/sym.l
+      doc/refE.html
+      test/src/sym.l
+      doc/faq.html
+   Bug in '*Term' signal handling
+      src/main.l
+
+31mar21
+   '+Remote' entity class
+      lib/db.l
+      lib/too.l
+
+30mar21
+   Exit '*', '/*', '/' and '%' upon zero
+      src/big.l
+
+29mar21
+   Note about the default browser for 'doc' calls
+      man/man1/picolisp.1
+      doc/man.html
+
 26mar21
    'enum' with single argument returns association list
       src/sym.l
