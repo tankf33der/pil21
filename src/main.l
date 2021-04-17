@@ -1,4 +1,4 @@
-# 01apr21 Software Lab. Alexander Burger
+# 17apr21 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -81,7 +81,7 @@
                   (popInFiles)
                   (? (== (val $InFrames) (Ca: (env $InFrames i8*)))) )
                (tosInFile) )
-            (memcpy (env) (Ca: (env)) (env T))
+            (memcpy (env) (Ca: (env)) (env T) T)
             (eval (Ca: fin))  # Evaluate 'finally' expression
             (set $Catch (Ca: link))
             (when (== Ca Catch)
@@ -514,7 +514,7 @@ atomErr pairErr lstErr varErr itemErr protErr lockErr forkErr symNspErr)
             (setq P (car P)) )
          (cnt (shr N (- 20 4))) ) ) )  # Divide by CELLS (1M/16)
 
-# (stack ['cnt]) -> cnt | (.. sym . cnt)
+# (stack ['cnt ['cnt]]) -> cnt | (.. sym . cnt)
 (de _stack (Exe)
    (let (X (cdr Exe)  Crt (val $Coroutines))
       (if (or (atom X) (and Crt ((coroutine Crt) nxt)))
@@ -522,17 +522,26 @@ atomErr pairErr lstErr varErr itemErr protErr lockErr forkErr symNspErr)
             (while Crt
                (let Crt: (coroutine Crt)
                   (when (Crt: tag)  # In use
-                     (setq R (cons @ R)) )
+                     (let P (Crt: lim)
+                        (while (== 7 (val P))
+                           (inc 'P) )
+                        (setq R
+                           (cons2
+                              (Crt: tag)
+                              (cnt (shr (- P (Crt: lim)) 10))
+                              R ) ) ) )
                   (setq Crt (Crt: nxt)) ) )
             R )
-         (let
-            (N (evCnt Exe X)
-               Old (val $StkSize)
-               New (shl N 10) )
-            (set $StkSize New)
+         (let N (evCnt Exe X)
+            (set $StkSize (shl N 10))
+            (when (pair (shift X))
+               (set $StkSizeT (shl (evCnt Exe X) 10)) )
             (when Crt
-               ((coroutine Crt) lim
-                  (ofs ((coroutine Crt) lim) (- Old New)) ) )
+               (let (Siz (val $StkSizeT)  Stk (stack))
+                  (memset
+                     ((coroutine Crt) lim (stack (ofs Stk (- Siz))))
+                     7 (- Siz 256) T )
+                  (stack Stk) ) )
             (cnt N) ) ) ) )
 
 # Date and time

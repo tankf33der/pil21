@@ -1,3 +1,27 @@
+17apr21
+   'stack' continued
+      src/main.l
+
+16apr21
+   Independent size of main stack segment
+      src/main.l
+      src/glob.l
+      src/flow.l
+      doc/refS.html
+   'stack' returns unused spaces
+      src/main.l
+      doc/refS.html
+   'llvm~cons2' function
+      src/dec.l
+      src/gc.l
+   Coroutine structure 'prv'
+      doc/structures
+   Optional alignment for 'memcpy' and 'memset'
+      src/lib/llvm.l
+      src/main.l
+      src/db.l
+      src/flow.l
+
 15apr21
    Infinite timeout for values greater than 24 days in '*Run', 'wait' and 'key'
    (only on systems with sizeof(int) == 4)
