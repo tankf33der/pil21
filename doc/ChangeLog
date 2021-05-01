@@ -1,3 +1,14 @@
+30apr21
+   Add file
+      doc/app.html
+
+29apr21
+   Call 'loadCoEnv' in 'unwind'
+      src/main.l
+      src/flow.l
+   Remove coroutines from catch/throw environment
+      src/glob.l
+
 22apr21
    Show thousands-separator in total counts in search dialogs
       lib/form.l
