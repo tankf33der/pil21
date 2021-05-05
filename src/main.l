@@ -1,4 +1,4 @@
-# 29apr21 Software Lab. Alexander Burger
+# 04may21 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -44,16 +44,18 @@
 (de void popErrFiles ())
 (de void popCtlFiles ())
 
-(local) (saveCoEnv loadCoEnv stop unwind)
+(local) (saveCoIO saveCoEnv loadCoEnv stop unwind)
 
 # Switch coroutines
+(de void saveCoIO ()
+   ((ioFrame (val $OutFrames)) fun (val (i8** $Put)))
+   (let Io: (ioFrame (val $InFrames))
+      (Io: fun (val (i8** $Get)))
+      ((inFile (Io: file)) chr (val $Chr)) ) )
+
 (de void saveCoEnv ((i8* . Crt))
    (let Crt: (coroutine Crt)
       (Crt: at (val $At))  # Not running
-      ((ioFrame (val $OutFrames)) fun (val (i8** $Put)))
-      (let Io: (ioFrame (val $InFrames))
-         (Io: fun (val (i8** $Get)))
-         ((inFile (Io: file)) chr (val $Chr)) )
       (memcpy (Crt: (env)) (env) (env T) T) ) )
 
 (de loadCoEnv ((i8* . Crt))
@@ -535,7 +537,7 @@ atomErr pairErr lstErr varErr itemErr protErr lockErr forkErr symNspErr)
             (setq P (car P)) )
          (cnt (shr N (- 20 4))) ) ) )  # Divide by CELLS (1M/16)
 
-# (stack ['cnt ['cnt]]) -> cnt | (.. (sym . cnt) . cnt)
+# (stack ['cnt ['cnt]]) -> cnt | (.. (any . cnt) . cnt)
 (de _stack (Exe)
    (let (X (cdr Exe)  Crt (val $Coroutines))
       (if (or (atom X) (and Crt ((coroutine Crt) nxt)))
