@@ -1,4 +1,4 @@
-# 04oct20 Software Lab. Alexander Burger
+# 24may21 Software Lab. Alexander Burger
 
 (symbols 'vip~draw 'vip 'pico)
 
@@ -218,19 +218,22 @@
             (while (pair Any)
                (use D
                   (if (atom (car Any))
-                     (setq D
-                        (cell (car Pos) Y (++ Any) Any) )
+                     (setq D (cell (car Pos) Y (++ Any) Any))
                      (ifn (cdr Pos)
                         (con Pos (list (car Pos)))
-                        (set Pos
-                           (set @ (max (car @) (car Pos))) ) )
+                        (let (P @  M (car Pos))
+                           (for (A (car Any) (pair A) (car A))
+                              (setq M (max M (++ P))) )
+                           (map
+                              '((L) (set L (max M (car L))))
+                              Pos ) ) )
                      (setq D
                         (cell (car Pos) Y '| (cdr Any)) )
-                     (recurse (++ Any) (+ Y 7) (cdr Pos))
+                     (recurse (++ Any) (+ Y 5) (cdr Pos))
                      (let X2 (+ (car Pos) *DX)
                         (arrow
                            (pack X2 "/" Y2)
-                           (pack X2 "/" (+ Y2 7)) ) ) )
+                           (pack X2 "/" (+ Y2 5)) ) ) )
                   (let X2 (+ (car Pos) *DX)
                      (when Last
                         (arrow @ (pack X2 "/" Y2)) )
