@@ -1,3 +1,9 @@
+25may21
+   Revisit TAB-completion from 'history'
+      lib/vip.l
+   Unary '+' is obsolete in '*Run' setup
+      lib.l
+
 24may21
    Nesting bug in 'cells'
       lib/vip/draw.l
