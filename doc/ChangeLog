@@ -1,3 +1,13 @@
+14jun21
+   Fix terminal handling in 'pipe', 'in' and 'out'
+      src/io.l
+   Minor fix indentation
+      src/flow.l
+   Restore private declarations
+      lib/xhtml.l
+   Missing '+Remote' methods
+      lib/db.l
+
 13jun21
    Add '\e' to escape markups
       src/io.l
@@ -217,7 +227,7 @@
       lib/form.l
 
 10apr21
-   Source indentation
+   Minor fix indentation
       lib/vip.l
 
 09apr21
