@@ -1,3 +1,12 @@
+19jun21
+   Wrong 'Attr' output in 'html'
+      lib/xhtml.l
+   'pack' not needed
+      lib/vip.l
+   General argument to 'any'
+      src/io.l
+      doc/refA.html
+
 18jun21
    Also 'flip'ped sort in 'sortButton'
       lib/form.l
