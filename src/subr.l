@@ -1,4 +1,4 @@
-# 23jul21 Software Lab. Alexander Burger
+# 24jul21 Software Lab. Alexander Burger
 
 (symbols '(llvm))
 
@@ -1440,6 +1440,7 @@
                Pnl (val $Pnl) )
             (set $Penv Env  $Pnl Nl)
             (while (or (pair (val Tp1)) (pair (val Tp2)))
+               (sigChk Exe)
                (cond
                   ((pair (val Alt))
                      (set E (val Env))
