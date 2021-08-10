@@ -1,13 +1,13 @@
-# 24may21 Software Lab. Alexander Burger
+# 09aug21 Software Lab. Alexander Burger
 
 (symbols 'vip~draw 'vip 'pico)
 
-(local) (*DX *DY *Draw *Boxes)
+(local) (*DX *DY *PX *PY *Draw *Boxes)
 
 (zero *DX *DY)
 
 # Drawing primitives
-(local) (point hline vline rect label)
+(local) (point hline vline go up down left right rect label)
 
 (de point (X Y C)
    (inc 'X *DX)
@@ -42,6 +42,21 @@
          (point X (dec 'Y) "|") ) )
    (and A (point X Y A)) )
 
+(de go (X Y C)
+   (point (setq *PX X) (setq *PY Y) C) )
+
+(de up (N C)
+   (vline "|" *PX (dec *PY) (dec '*PY N) C) )
+
+(de down (N C)
+   (vline "|" *PX (inc *PY) (inc '*PY N) C) )
+
+(de left (N C)
+   (hline "-" (dec *PX) *PY (dec '*PX N) C) )
+
+(de right (N C)
+   (hline "-" (inc *PX) *PY (inc '*PX N) C) )
+
 (de rect (X Y X2 Y2)
    (hline "+" X Y (dec X2))
    (vline "+" X2 Y (dec Y2))
@@ -52,7 +67,6 @@
    (for C (chop Txt)
       (point X Y C)
       (inc 'X) ) )
-
 
 # Box
 (local) (+Box mx> my> hv>)
@@ -82,8 +96,12 @@
 
 
 # Draw box
-(local) box
+(local) (block box)
 (private) (X Y DX DY Txt Prg)
+
+(de block (X Y . Prg)
+   (let (*DX (dec X)  *DY (dec Y))
+      (run Prg) ) )
 
 (de box (X Y DX DY Txt . Prg)
    (with

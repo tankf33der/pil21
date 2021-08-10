@@ -1,6 +1,11 @@
-08aug21
+09aug21
+   'go', 'up', 'down', 'left' and 'right functions
+   'block' function
+      lib/vip/draw.l
    Preset terminal attributes in setRaw()
       src/lib.c
+
+08aug21
    Add files
       lib/term.l
       bin/pty
