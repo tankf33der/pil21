@@ -1,3 +1,9 @@
+25aug21
+   Division by zero did not throw an error
+      src/big.l
+   Private declarations
+      lib/xhtml.l
+
 22aug21
    Default alert text color black
       lib.css
