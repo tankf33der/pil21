@@ -1,4 +1,4 @@
-# 09aug21 Software Lab. Alexander Burger
+# 09oct21 Software Lab. Alexander Burger
 
 (symbols 'vip~draw 'vip 'pico)
 
@@ -140,7 +140,9 @@
             (cond
                ((> (; B y) (: y2))  # Above
                   (cond
-                     ((>= (inc X2) X (dec X2))
+                     ((or
+                           (>= 3 (- (; B y) (: y2)))
+                           (>= (inc X2) X (dec X2)) )
                         (push (:: v)
                            (list
                               (list "+" X (: y2) (dec (; B y)) "v") ) ) )
@@ -163,7 +165,9 @@
                               (list "+" X Y2 (inc (; B x2)) "<") ) ) ) ) )
                ((> (: y) (; B y2))  # Below
                   (cond
-                     ((>= (inc X2) X (dec X2))
+                     ((or
+                           (>= 3 (- (: y) (; B y2)))
+                           (>= (inc X2) X (dec X2)) )
                         (push (:: v)
                            (list
                               (list "+" X (: y) (inc (; B y2)) "\^") ) ) )
@@ -258,18 +262,34 @@
                      (setq Last (pack X2 "/" Y2 "+")) )
                   (inc Pos (+ 6 D)) ) ) ) ) ) )
 
-
 # Override +Buffer methods in object
-(extend `This)
+(let? *Class (isa '+Buffer This)
+   (dm save> (Win)
+      (super Win)
+      (view> This Win) )
+   (dm view> (Win)
+      (off *Draw *Boxes)
+      (symbols '(vip~draw vip pico)
+         (evCmd (load (fName (: file)))) )
+      (mapc 'hv> *Boxes)
+      (with Win
+         (scratch (tmp "draw") *Draw) ) ) )
 
-(dm save> (Win)
-   (super Win)
-   (view> This Win) )
+### Debug ###
+`*Dbg
 
-(dm view> (Win)
+(de pico~cells @
    (off *Draw *Boxes)
-   (symbols '(vip~draw vip pico)
-      (evCmd (load (fName (: file)))) )
+   (let Y 1
+      (while (args)
+         (let V (next)
+            (cond
+               ((pair V)
+                  (cells 1 Y V)
+                  (setq Y (+ 3 (length *Draw))) )
+               (V
+                  (label 1 Y V)
+                  (inc 'Y) ) ) ) ) )
    (mapc 'hv> *Boxes)
-   (with Win
-      (scratch (tmp "draw") *Draw) ) )
+   (out (tmp "cells") (mapc prinl *Draw))
+   (pico~vi (tmp "cells")) )

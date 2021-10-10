@@ -1,3 +1,11 @@
+09oct21
+   'pico~cells' function
+      lib/vip/draw.l
+   Minor cosmetics
+      lib/vip.l
+   Fix 'arrow' for small distances
+      lib/vip/draw.l
+
 02oct21
    Remove '+JsField'
       lib/form.l
