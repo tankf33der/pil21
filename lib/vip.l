@@ -1,4 +1,4 @@
-# 27oct21 Software Lab. Alexander Burger
+# 28oct21 Software Lab. Alexander Burger
 
 (symbols 'vip 'pico)
 
@@ -80,6 +80,7 @@ nextBuf shell shFile prCmd reset posChar getText s-expr command vi)
 
 (dm T (File Y)
    (and (=: file File) (queue '*Buffers This))
+   (=: symbols (symbols))
    (=: posX 1)
    (=: posY (or Y 1))
    (=: lastX (=: lastY 1))
@@ -392,8 +393,10 @@ nextBuf shell shFile prCmd reset posChar getText s-expr command vi)
                (if (dirty> (: buffer) This) " * " " ") )
             F (prName (: buffer file))
             Z (pack
-               (: mark)
-               " "
+               (and (: mark) (cons @ " "))
+               (casq (: buffer symbols 1)
+                  (pico)
+                  (T (cons @ " ")) )
                (: posX) "," (: posY) "/" N " "
                (if (gt0 (dec N))
                   (*/ 100 (dec (: posY)) @)
@@ -1416,7 +1419,7 @@ nextBuf shell shFile prCmd reset posChar getText s-expr command vi)
                            (get (: buffer text)
                               (=: posY
                                  (min1 (: posY) (length (: buffer text))) ) ) ) ) )
-                  (and (: buffer symbols) (symbols @))
+                  (symbols (: buffer symbols))
                   (when
                      (or
                         (> (: winX) (: posX))
