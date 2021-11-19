@@ -1,4 +1,4 @@
-# 17nov21 Software Lab. Alexander Burger
+# 18nov21 Software Lab. Alexander Burger
 
 # *PRG *Top *Gui *Btn *Get *Got *Form *FormIx *FormLst *Evt *Lock *Spans
 
@@ -2542,9 +2542,10 @@
                               (cut (dec (: pos)) 'L)
                               (list
                                  (conc
-                                    (head (: ctl gf 1) (car L))
+                                    (need (- (: ctl gf 1))
+                                       (head (: ctl gf 1) (++ L)) )
                                     (list Lst) ) )
-                              (cdr L) ) ) ) )
+                              L ) ) ) )
                   Lst )
                Cols
                Put
