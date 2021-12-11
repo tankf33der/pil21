@@ -1,3 +1,10 @@
+10dec21
+   'native' and 'struct' not limited to C functions
+      doc/refN.html
+      doc/refS.html
+   'Str' not used in 'getWord'
+      lib/vip.l
+
 08dec21
    Add 'adr' to "see also" of 'native'
       doc/refN.html
