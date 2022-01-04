@@ -1,10 +1,22 @@
+####### 21.12 #######
+03jan22
+   Bugs in (del> . +Entity) and (has> . +List)
+      lib/db.l
+      test/lib/db.l
+   'assoc', 'rassoc', 'asoq' and 'rasoq' accept circular lists
+      src/subr.l
+      test/src/subr.l
+
+30dec21
+   Enable file transfers (via 'pbPut' and 'pbGet' in PilBox)
+      bin/pty
+
 29dec21
    Fix touch scrolling in chart tables
       lib/form.l
       lib/form.js
       lib/xhtml/table
 
-####### 21.12 #######
 22dec21
    OpenBSD patch (Frithjof Schulze)
       src/httpGate.c
