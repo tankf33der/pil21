@@ -1,4 +1,4 @@
-# 07jan22 Software Lab. Alexander Burger
+# 20jan22 Software Lab. Alexander Burger
 
 (private) (Prg C Q X Y CL Cls Name)
 
@@ -173,22 +173,23 @@
 # Check Index References
 (de dangling ()
    (make
-      (dbMap
-         '((This)
+      (for (F . @) (or *Dbs (2))
+         (for (Obj (seq F) Obj (seq Obj))
             (and
-               (isa '+Entity This)
-               (not (: T))
-               (dangle This)
-               (link @) ) ) ) ) )
+               (isa '+Entity Obj)
+               (dangle Obj)
+               (link @) )
+            (wipe Obj) ) ) ) )
 
-(de dangle (Obj)
-   (and
-      (make
-         (for X (getl Obj)
-            (let V (or (atom X) (++ X))
-               (unless (rel?> Obj X V)
-                  (link X) ) ) ) )
-      (cons Obj @) ) )
+(de dangle (This)
+   (unless (: T)
+      (and
+         (make
+            (for X (getl This)
+               (let V (or (atom X) (++ X))
+                  (unless (rel?> This X V)
+                     (link X) ) ) ) )
+         (cons This @) ) ) )
 
 # Entity Counts
 (de badECnt ()
@@ -287,6 +288,21 @@
                      (; Rel 1 bag) ) )
                (not (; @ dbf))
                (println 'dbfCheck (cdr Rel) Cls) ) ) ) ) )
+
+(de displaced ()
+   (make
+      (for (F . @) *Dbs
+         (for (Obj (seq F) Obj (seq Obj))
+            (when
+               (or
+                  (isa '+Remote Obj)
+                  (and
+                     (isa '+Entity Obj)
+                     (<>
+                        (meta Obj 'Dbf 1)
+                        (car (id Obj T)) ) ) )
+               (link Obj) )
+            (wipe Obj) ) ) ) )
 
 ### Dump Objects ###
 (zero *DumpBlob)
