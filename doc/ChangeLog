@@ -1,5 +1,9 @@
-04feb22
-   Pass '*Uuid' to RPC calls
+05feb22
+   Remove 'dbs+'
+      lib/db.l
+      doc/ref.html
+      doc/refD.html
+   Pass '*Uuid' and arguments to RPC calls
       lib/android.l
 
 02feb22
