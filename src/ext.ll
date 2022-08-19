@@ -163,7 +163,7 @@ declare void @clear_history()
 @Fsign = external global i1
 @Fdigit = external global i64
 declare i8* @stderrMsg(i8*, i8*)
-declare i32 @gPrintf(i8*, i32, i8*, i8*)
+declare void @gPrintf(i8*, i32, i8*, i8*)
 declare i8* @strErrno()
 declare i32 @openRd(i8*)
 declare i32 @openWr(i8*)
