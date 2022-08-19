@@ -1641,8 +1641,8 @@ declare i8* @currentLine()
 @SigDfl = external global i8*
 @SigIgn = external global i8*
 declare i32 @gSignal(i32)
-declare void @sigUnblock(i32)
 declare void @iSignal(i32, i8*)
+declare void @sigUnblock(i32)
 declare void @sigChld(i32)
 declare i32 @waitWuntraced(i32, i32*)
 declare i32 @wifStopped(i32*)
