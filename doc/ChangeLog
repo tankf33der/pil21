@@ -1,3 +1,10 @@
+26oct22
+   Passing zero to 'tell' refers to the parent process
+      src/io.l
+      src/db.l
+      doc/refT.html
+   Remove lib/boss.l from distribution
+
 21oct22
    Use 'delete' instead of 'replace'
       lib/dbgc.l
