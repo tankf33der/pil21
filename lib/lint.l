@@ -1,4 +1,4 @@
-# 21sep20 Software Lab. Alexander Burger
+# 30dec22 Software Lab. Alexander Burger
 
 # *NoLint
 
@@ -211,12 +211,13 @@ _lintq lintFun A C Lst S X Y *L *X *Var *Dup *Def *Bnd *Use)
       Lst ) )
 
 (de lintFun (Lst)
-   (let A (and (pair Lst) (car Lst))
-      (while (pair A)
-         (lintDup (car A) (cdr A))
-         (lintVar (++ A) T) )
-      (when A
-         (lintVar A) )
+   (when (pair Lst)
+      (when (car Lst)
+         (map
+            '(((A . L))
+               (lintDup A L)
+               (lintVar A T) )
+            (fish atom @) ) )
       (mapc lint1 (cdr Lst)) ) )
 
 (de lint (X C)
