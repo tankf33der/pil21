@@ -2,6 +2,9 @@
    Fix various markup issues
       ref.html ref?.html faq.html tut.html native.html select.html httpGate.html
       lib/debug.l
+      lib/form.l
+   Set download link to demoApp.tgz
+      doc/select.html
 
 25mar23
    Undo tag argument restriction from 14feb23
