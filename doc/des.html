@@ -163,7 +163,7 @@ Philosophers Problem</a>.
 
 <hr>
 <pre>
-# 16apr23 Software Lab. Alexander Burger
+# 25apr23 Software Lab. Alexander Burger
 # Dining Philosophers
 # pil dining.l -dining~main +
 
@@ -183,12 +183,13 @@ Philosophers Problem</a>.
       (now "hungry")
       (while (or (val Left) (val Right))
          (now "waiting")
-         (pause 'done) )
+         (pause Left Right) )
       (set Left (set Right (co)))
       (now "eating")
       (pause 20)  # 20 minutes
       (set Left (set Right NIL))
-      (event 'done) ) )
+      (event Left)
+      (event Right) ) )
 
 (local) main
 
