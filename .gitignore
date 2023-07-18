@@ -1,5 +1,7 @@
-
+bin/balance
+bin/httpGate
 bin/picolisp
+bin/ssl
 lib/sysdefs
 *.bc
 *.s
