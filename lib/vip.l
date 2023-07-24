@@ -1239,8 +1239,10 @@ s-expr command vi)
    (macro
       (push1 '@Map '(@C (setq *Keys (chop @S)))) ) )
 
-(de map+ @
-   (pass _map '*KeyMap) )
+(de map+ (C . X)
+   (if (str? (car X))
+      (_map '*KeyMap C @)
+      (push1 '*KeyMap (cons C X)) ) )
 
 (de map+g (C . X)
    (if (str? (car X))
