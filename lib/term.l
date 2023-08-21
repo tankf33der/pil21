@@ -1,4 +1,4 @@
-# 20aug23 Software Lab. Alexander Burger
+# 21aug23 Software Lab. Alexander Burger
 
 (sysdefs "terminal")
 
@@ -22,7 +22,7 @@
 
 (off *AttrA *AttrU)
 
-(local) (xterm getTerm setTerm)
+(local) (*Lines *Columns xterm getTerm setTerm getSize)
 
 (de xterm ()
    (member (sys "TERM") '("xterm" "screen")) )
@@ -47,6 +47,11 @@
          (cons DY 2) ) )  # ws_ypixel
    (%@ "rl_reset_terminal" 'I 0) )
 
+(de getSize ()
+   (if (getTerm)
+      (setq *Lines (car @)  *Columns (cadr @))
+      (quit "Can't get terminal size") ) )
+
 (local) (attr cup clreol hideCsr showCsr screen1 screen2)
 
 (de attr (A U)
@@ -64,6 +69,9 @@
 
 (de clreol ()
    (prin "\e[0K") )
+
+(de clear ()
+   (prin "\e[H\e[J") )
 
 (de hideCsr ()
    (prin "\e[?25l") )

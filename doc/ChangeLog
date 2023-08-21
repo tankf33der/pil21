@@ -1,3 +1,10 @@
+23.8.21
+   Move 'getSize' to lib/term.l
+      lib/term.l
+      lib/vip.l
+   'clear' function
+      lib/term.l
+
 23.8.20
    Generalize 'attr'
       lib/term.l
