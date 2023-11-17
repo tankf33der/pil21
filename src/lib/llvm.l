@@ -432,9 +432,7 @@ Lst Lbl Flg Skip True False Beg End Safe *Safe)
                   ((caddr Lst) (const (cadr Lst)))
                   ((pair Typ)
                      (if (sub? "*" Typ)
-                        (prin
-                           "  i64 ptrtoint"
-                           " (" (cadr Lst) " " (caddr Lst) " to i64)" )
+                        (prin "  i64 ptrtoint" " (" (cadr Lst) " " (caddr Lst) " to i64)")
                         (prin "  i64 " (caddr Lst)) ) )
                   (NIL
                      (prin
