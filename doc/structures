@@ -1,4 +1,4 @@
-# 17sep22 Software Lab. Alexander Burger
+# 22jun24 Software Lab. Alexander Burger
 
    ### Primary data types ###
 
@@ -209,20 +209,18 @@
                prg
                org
          +---- nxt
-         | +-> prv
-         | |   tag   <----- Coroutines
-         | |
-         | |
-         | |   [rst]
-         | |   [env]
-         | |   ...
-         | |   [@]
-         | |   lim
-         | |   prg
-         | |   org
-         | |   nxt
-         | +-- prv
-         +---> tag
+         |     tag   <----- Coroutines
+         |
+         |
+         |     [rst]
+         |     [env]
+         |     ...
+         |     [@]
+         |     lim
+         |     prg
+         |     org
+         |     nxt
+         +- -> tag
 
 
       IPC pipes:
