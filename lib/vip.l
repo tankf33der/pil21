@@ -403,13 +403,13 @@ s-expr command vipA vipZ vi)
    (for (This *CmdWin This (: next))
       (redraw) ) )
 
-(de scLeft (N)
+(de scLeft ()
    (and
       (> (: winX) 1)
       (>= (- (: posX) (dec (:: winX))) *Columns)
       (dec (:: posX)) ) )
 
-(de scRight (N)
+(de scRight ()
    (cond
       ((> (: posX) (: winX))
          (inc (:: winX)) )
