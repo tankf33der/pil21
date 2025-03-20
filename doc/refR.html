@@ -831,10 +831,10 @@ and <code><a href="refF.html#format">format</a></code>.
 </pre></dd>
 
 <dt><a id="rt"><code>(rt cnt . prg) -> any</code></a></dt>
-<dd>Executes <code>prg</code>, then (destructively) adds the number of elapsed
-microseconds to the <code>cnt</code> parameter. Thus, <code>cnt</code> will
-finally contain the total number of microseconds spent in <code>prg</code>. See
-also <code><a href="refU.html#usec">usec</a></code>.
+<dd>Real/Runtime measurement: Executes <code>prg</code>, then (destructively)
+adds the number of elapsed microseconds to the <code>cnt</code> parameter. Thus,
+<code>cnt</code> will finally contain the total number of microseconds spent in
+<code>prg</code>. See also <code><a href="refU.html#usec">usec</a></code>.
 
 <pre>
 : (de foo ()                        # Define function with empty loop
