@@ -3,7 +3,7 @@
       lib.l
       test/lib.l
       doc/refA.html
-   Minor tuning in 'cache'
+   Minor tuning in 'cache' and 'once'
       lib.l
 
 25.5.22

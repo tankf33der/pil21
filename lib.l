@@ -162,7 +162,7 @@
    (load File) )
 
 (de once "Prg"
-   (unless (idx '*Once (file) T)
+   (unless (idx '*Once (file) 0)
       (run "Prg" 1) ) )
 
 (de finish Prg
